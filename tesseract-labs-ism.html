@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesseract Labs — Information Storage &amp; Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8fb;
+  --panel:#ffffff;
+  --panel2:#f5eefb;
+  --lav:#8a6fc4;
+  --lav-deep:#6247a6;
+  --orange:#cc5a2c;
+  --orange-deep:#a8431d;
+  --text:#2a2438;
+  --muted:#6e6580;
+  --border:rgba(98,71,166,0.16);
+  --shadow:0 8px 24px rgba(98,71,166,0.10);
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.55;overflow-x:hidden;}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.01em;}
+code,.mono{font-family:'JetBrains Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+::selection{background:var(--lav);color:#fff;}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+.page{display:none;}
+.page.active{display:block;}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(250,248,251,0.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:1.05rem;}
+.brand-mark{width:26px;height:26px;flex:none;}
+.navlinks{display:flex;gap:6px;align-items:center;}
+.navlinks button{background:none;border:1px solid transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:0.92rem;padding:8px 16px;border-radius:999px;cursor:pointer;transition:.15s;}
+.navlinks button:hover{color:var(--text);}
+.navlinks button.primary{color:#fff;background:linear-gradient(120deg,var(--lav),var(--orange));font-weight:600;}
+.navlinks button.primary:hover{filter:brightness(1.06);}
+.navlinks a.home-link{display:inline-block;background:none;border:1px solid transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:0.92rem;padding:8px 16px;border-radius:999px;text-decoration:none;transition:.15s;}
+.navlinks a.home-link:hover{color:var(--text);}
+
+.hero{position:relative;padding:96px 0 64px;overflow:hidden;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(to right, rgba(98,71,166,0.06) 1px, transparent 1px),linear-gradient(to bottom, rgba(98,71,166,0.06) 1px, transparent 1px);background-size:42px 42px;mask-image:radial-gradient(ellipse 70% 60% at 50% 30%, black 40%, transparent 90%);pointer-events:none;}
+.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 10%, rgba(138,111,196,0.16), transparent 65%);pointer-events:none;}
+#netCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr 0.95fr;gap:40px;align-items:center;}
+@media (max-width:880px){.hero-inner{grid-template-columns:1fr;}}
+
+.eyebrow-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:rgba(138,111,196,0.08);padding:6px 14px;border-radius:999px;font-size:0.82rem;color:var(--lav-deep);font-family:'JetBrains Mono',monospace;}
+.hero h1{font-size:2.8rem;margin:20px 0 16px;line-height:1.1;}
+.hero h1 .grad{background:linear-gradient(100deg,var(--lav-deep),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero p.lead{color:var(--muted);font-size:1.06rem;max-width:54ch;margin-bottom:26px;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px;}
+.btn{padding:13px 26px;border-radius:10px;font-weight:600;font-size:0.96rem;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:8px;}
+.btn:hover{transform:translateY(-1px);}
+.btn-primary{background:linear-gradient(120deg,var(--lav),var(--orange));color:#fff;}
+.btn-primary:hover{filter:brightness(1.06);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{border-color:var(--lav);}
+
+.query-line{font-family:'JetBrains Mono',monospace;font-size:0.86rem;color:var(--orange-deep);background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;max-width:440px;box-shadow:var(--shadow);}
+.query-line .caret{display:inline-block;width:8px;height:1em;background:var(--orange-deep);vertical-align:middle;animation:blink 1s steps(2) infinite;margin-left:2px;}
+@keyframes blink{50%{opacity:0;}}
+
+.quote-strip{margin-top:14px;height:28px;position:relative;overflow:hidden;max-width:440px;}
+.quote-strip span{position:absolute;inset:0;font-size:0.92rem;color:var(--muted);font-style:italic;opacity:0;transition:opacity .8s ease;}
+.quote-strip span.show{opacity:1;}
+
+/* ---- SAN / RAID hero visual ---- */
+.stage{position:relative;height:360px;background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px;}
+.san-row{position:relative;height:150px;}
+.san-node{position:absolute;top:50%;transform:translateY(-50%);text-align:center;width:70px;}
+.san-node .ic{width:52px;height:52px;border-radius:12px;background:var(--panel2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 6px;}
+.san-node .lbl{font-size:0.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.n1{left:0;} .n2{left:26%;} .n3{left:52%;} .n4{left:calc(100% - 70px);}
+#sanCanvas{position:absolute;inset:0;width:100%;height:100%;}
+
+.raid-row{display:flex;gap:10px;justify-content:center;margin-top:18px;}
+.disk{width:44px;height:110px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);position:relative;overflow:hidden;}
+.disk .seg{position:absolute;left:3px;right:3px;height:16px;border-radius:4px;top:-20px;animation:stripe 2.6s linear infinite;}
+.disk:nth-child(1) .seg{background:var(--lav);animation-delay:0s;}
+.disk:nth-child(2) .seg{background:var(--orange);animation-delay:0.35s;}
+.disk:nth-child(3) .seg{background:var(--lav-deep);animation-delay:0.7s;}
+.disk:nth-child(4) .seg{background:var(--orange-deep);animation-delay:1.05s;}
+@keyframes stripe{0%{top:-20px;} 100%{top:120px;}}
+.raid-label{text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--muted);margin-top:8px;}
+
+/* ---- sections ---- */
+section{padding:74px 0;}
+.section-head{max-width:60ch;margin-bottom:44px;}
+.section-head .kicker{color:var(--orange-deep);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.section-head h2{font-size:2rem;margin-top:10px;}
+.section-head p{color:var(--muted);margin-top:12px;}
+
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media (max-width:880px){.feature-grid{grid-template-columns:1fr 1fr;}}
+@media (max-width:560px){.feature-grid{grid-template-columns:1fr;}}
+.feature-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px 22px;box-shadow:var(--shadow);transition:transform .2s;}
+.feature-card:hover{transform:translateY(-3px);}
+.feature-card .ficon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:14px;background:linear-gradient(135deg, rgba(138,111,196,0.16), rgba(204,90,44,0.16));border:1px solid var(--border);}
+.feature-card h3{font-size:1.02rem;margin-bottom:8px;}
+.feature-card p{color:var(--muted);font-size:0.9rem;}
+
+footer{border-top:1px solid var(--border);padding:34px 0;color:var(--muted);font-size:0.88rem;}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+
+/* ---- subject page ---- */
+.subject-header{padding:52px 0 20px;}
+.subject-header h1{font-size:2rem;}
+.subject-header .sub{color:var(--muted);margin-top:8px;}
+.unit-tabs{display:flex;gap:8px;margin:28px 0 22px;flex-wrap:wrap;}
+.unit-tab{padding:10px 20px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--muted);cursor:pointer;font-weight:600;font-size:0.9rem;transition:.15s;}
+.unit-tab.active{color:#fff;background:linear-gradient(120deg,var(--lav),var(--orange));border-color:transparent;}
+
+.progress-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow);}
+.progress-wrap .ptext{font-size:0.88rem;color:var(--muted);white-space:nowrap;}
+.progress-bar{flex:1;min-width:160px;height:8px;background:rgba(98,71,166,0.10);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--lav),var(--orange));width:0%;transition:width .3s ease;}
+
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+.search-box{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'Inter',sans-serif;font-size:0.92rem;}
+.search-box::placeholder{color:var(--muted);}
+.chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-size:0.82rem;cursor:pointer;transition:.15s;user-select:none;}
+.chip.active{background:rgba(138,111,196,0.14);border-color:var(--lav);color:var(--lav-deep);}
+.chip.bookmarkchip.active{background:rgba(204,90,44,0.12);border-color:var(--orange);color:var(--orange-deep);}
+
+.quiz-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:10px;font-size:0.86rem;cursor:pointer;display:inline-flex;gap:8px;align-items:center;}
+.quiz-btn:hover{border-color:var(--orange);}
+
+.qcount{color:var(--muted);font-size:0.85rem;margin:6px 0 18px;}
+.qgrid{display:flex;flex-direction:column;gap:14px;}
+.qcard{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);}
+.qcard .qtop{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
+.qtags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.tag{font-size:0.72rem;padding:3px 9px;border-radius:6px;font-family:'JetBrains Mono',monospace;}
+.tag.marks{background:rgba(138,111,196,0.14);color:var(--lav-deep);}
+.tag.predicted{background:rgba(204,90,44,0.14);color:var(--orange-deep);}
+.tag.concept{background:rgba(110,101,128,0.12);color:var(--muted);}
+.tag.high{background:rgba(204,90,44,0.20);color:var(--orange-deep);}
+.qtext{font-size:1rem;font-weight:600;margin-bottom:4px;}
+.qactions{display:flex;gap:8px;flex:none;}
+.iconbtn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.15s;}
+.iconbtn:hover{border-color:var(--lav);color:var(--text);}
+.iconbtn.on{color:var(--orange-deep);border-color:var(--orange);}
+.iconbtn.reviewed.on{color:#3d8a5c;border-color:#3d8a5c;}
+.reveal-btn{margin-top:12px;background:none;border:1px solid var(--border);color:var(--lav-deep);padding:8px 16px;border-radius:8px;font-size:0.85rem;cursor:pointer;}
+.reveal-btn:hover{background:rgba(138,111,196,0.08);}
+.answer{margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);color:var(--muted);font-size:0.92rem;display:none;}
+.answer.open{display:block;}
+.answer pre{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text);margin:8px 0;white-space:pre;}
+.empty-state{color:var(--muted);text-align:center;padding:60px 0;}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(42,36,56,0.35);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:560px;width:100%;padding:30px 28px;position:relative;box-shadow:0 20px 60px rgba(42,36,56,0.25);}
+.modal-close{position:absolute;top:16px;right:18px;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
+.modal .qtext{font-size:1.15rem;margin-bottom:6px;}
+.modal-actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40"><polygon points="20,3 35,12 35,28 20,37 5,28 5,12" fill="none" stroke="url(#navg)" stroke-width="1.6"/><polygon points="20,12 28,17 28,26 20,31 12,26 12,17" fill="none" stroke="url(#navg)" stroke-width="1.2" opacity="0.7"/><defs><linearGradient id="navg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8a6fc4"/><stop offset="100%" stop-color="#cc5a2c"/></linearGradient></defs></svg>
+      Tesseract Labs
+    </div>
+    <div class="navlinks">
+      <a class="home-link" href="index.html">🏠 All Subjects</a>
+      <button onclick="showPage('home')">Home</button>
+      <button class="primary" onclick="showPage('subject')">Open ISM Bank</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HOME ================= -->
+<div id="home" class="page active">
+  <header class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-vignette"></div>
+    <canvas id="netCanvas"></canvas>
+    <div class="wrap hero-inner">
+      <div>
+        <span class="eyebrow-badge">CT-1 · Information Storage &amp; Management · 21CSE359T</span>
+        <h1>Study <span class="grad">ISM</span> the way the CT actually asks it.</h1>
+        <p class="lead">Unit 1 (Storage Architecture, RAID, Intelligent Storage) and Unit 2 (SAN, FC-SAN, iSCSI, NAS, Object Storage) broken into a tagged, filterable question bank built from your syllabus and predicted-question notes.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary" onclick="showPage('subject')">Open the question bank →</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">See what's inside</button>
+        </div>
+        <div class="query-line">HOST → HBA → SWITCH → ARRAY<span class="caret"></span></div>
+        <div class="quote-strip" id="quoteStrip"></div>
+      </div>
+
+      <div class="stage">
+        <div class="san-row">
+          <canvas id="sanCanvas"></canvas>
+          <div class="san-node n1"><div class="ic">🖥️</div><div class="lbl">SERVER</div></div>
+          <div class="san-node n2"><div class="ic">🔌</div><div class="lbl">HBA</div></div>
+          <div class="san-node n3"><div class="ic">🔀</div><div class="lbl">SAN SWITCH</div></div>
+          <div class="san-node n4"><div class="ic">🗄️</div><div class="lbl">STORAGE ARRAY</div></div>
+        </div>
+        <div class="raid-row">
+          <div class="disk"><div class="seg"></div></div>
+          <div class="disk"><div class="seg"></div></div>
+          <div class="disk"><div class="seg"></div></div>
+          <div class="disk"><div class="seg"></div></div>
+        </div>
+        <div class="raid-label">RAID striping across the array — data blocks distributed disk by disk</div>
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">// study toolkit</span>
+        <h2>Everything you need to drill the question bank</h2>
+        <p>Built around how you'll actually revise in the last few days before the exam — by priority, by mark value, and by what you already know.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card"><div class="ficon">🗂️</div><h3>Unit-wise question bank</h3><p>Every question sorted under Unit 1 (Storage Architecture &amp; RAID) and Unit 2 (Storage Networking).</p></div>
+        <div class="feature-card"><div class="ficon">🔴</div><h3>Priority tags</h3><p>High-probability and repeatedly-emphasized questions are flagged so you know what to study first.</p></div>
+        <div class="feature-card"><div class="ficon">👁️</div><h3>Tap-to-reveal answers</h3><p>Answers stay hidden until you tap — test recall before you peek.</p></div>
+        <div class="feature-card"><div class="ficon">🎚️</div><h3>Marks &amp; type filters</h3><p>Filter to 1 mark / 5-8 mark / 10-15 mark questions, or narrow to predicted-only.</p></div>
+        <div class="feature-card"><div class="ficon">⭐</div><h3>Bookmark &amp; track progress</h3><p>Star anything you want to revisit and mark questions reviewed — a live progress bar shows how much of each unit you've covered.</p></div>
+        <div class="feature-card"><div class="ficon">🎲</div><h3>Random quiz mode</h3><p>Pulls a random question from your current filter for quick-fire self-testing, one card at a time.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <span>Built by Raghul S — Tesseract Labs</span>
+      <span>Information Storage &amp; Management · CT-1 Question Bank</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ================= SUBJECT PAGE ================= -->
+<div id="subject" class="page">
+  <div class="wrap">
+    <div class="subject-header">
+      <h1>Information Storage &amp; Management — Question Bank</h1>
+      <p class="sub">Unit 1: Introduction to Information Storage &amp; Management (DAS/NAS/SAN, RAID, Intelligent Storage) · Unit 2: Storage Networking Technologies (SAN, FC-SAN, iSCSI, NAS, Object Storage, CAS)</p>
+
+      <div class="unit-tabs">
+        <div class="unit-tab active" data-unit="1" onclick="setUnit(1)">Unit 1 — Storage Architecture &amp; RAID</div>
+        <div class="unit-tab" data-unit="2" onclick="setUnit(2)">Unit 2 — Storage Networking</div>
+      </div>
+
+      <div class="progress-wrap">
+        <span class="ptext" id="progressText">0 / 0 reviewed</span>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <button class="quiz-btn" onclick="openQuiz()">🎲 Random quiz question</button>
+      </div>
+
+      <div class="controls">
+        <input class="search-box" id="searchBox" placeholder="Search questions or answers… e.g. 'RAID 5'" oninput="renderCards()">
+        <div class="chips" id="chipRow">
+          <div class="chip active" data-filter="all" onclick="setChip('all')">All</div>
+          <div class="chip" data-filter="predicted" onclick="setChip('predicted')">Predicted only</div>
+          <div class="chip" data-filter="m1" onclick="setChip('m1')">1 mark</div>
+          <div class="chip" data-filter="m8" onclick="setChip('m8')">5/8 mark</div>
+          <div class="chip" data-filter="m15" onclick="setChip('m15')">10/15 mark</div>
+          <div class="chip" data-filter="high" onclick="setChip('high')">High priority 🔴</div>
+          <div class="chip bookmarkchip" data-filter="bookmarked" onclick="setChip('bookmarked')">⭐ Bookmarked</div>
+        </div>
+      </div>
+      <div class="qcount" id="qcount"></div>
+    </div>
+    <div class="qgrid" id="qgrid"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="quizModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeQuiz()">✕</button>
+    <div class="qtags" id="quizTags"></div>
+    <div class="qtext" id="quizQ"></div>
+    <div class="answer" id="quizA"></div>
+    <button class="reveal-btn" id="quizRevealBtn" onclick="revealQuiz()">Show answer</button>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="nextQuiz()">Next question →</button>
+      <button class="btn btn-primary" onclick="markQuizReviewed()">Mark reviewed ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- hero SAN network animation ---------------- */
+(function(){
+  const canvas = document.getElementById('sanCanvas');
+  const ctx = canvas.getContext('2d');
+  let W,H;
+  function resize(){
+    const box = canvas.parentElement;
+    W = canvas.width = box.offsetWidth;
+    H = canvas.height = box.offsetHeight;
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  const colors = ['#8a6fc4','#cc5a2c'];
+  const xs = [35, 0.26, 0.52, 1];
+  function nodeX(i){ return i===0? 35 : i===3? W-35 : W*xs[i]; }
+  const y = () => H/2;
+
+  const packets = [];
+  for(let i=0;i<5;i++){
+    packets.push({ t: Math.random(), speed: 0.0016 + Math.random()*0.0018, c: colors[i%2] });
+  }
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle = 'rgba(98,71,166,0.22)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(nodeX(0), y());
+    ctx.lineTo(nodeX(1), y());
+    ctx.lineTo(nodeX(2), y());
+    ctx.lineTo(nodeX(3), y());
+    ctx.stroke();
+
+    packets.forEach(p=>{
+      p.t += p.speed;
+      if(p.t>1) p.t=0;
+      const segLen = 1/3;
+      const seg = Math.min(2, Math.floor(p.t/segLen));
+      const localT = (p.t - seg*segLen)/segLen;
+      const ax = nodeX(seg), bx = nodeX(seg+1);
+      const px = ax + (bx-ax)*localT;
+      ctx.beginPath();
+      ctx.fillStyle = p.c;
+      ctx.arc(px, y(), 3.2, 0, Math.PI*2);
+      ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ---------------- rotating quotes ---------------- */
+const QUOTES = [
+  "RAID doesn't back up your data — it buys you time when a disk fails.",
+  "Block or file? SAN speaks block, NAS speaks file.",
+  "Every LUN has a home — know your initiator from your target.",
+  "Cache is a promise of speed the disk hasn't made yet.",
+  "A fabric is only as reliable as its weakest zone.",
+  "Object storage remembers everything about a file except where it 'lives'."
+];
+(function(){
+  const el = document.getElementById('quoteStrip');
+  QUOTES.forEach((q,i)=>{
+    const s = document.createElement('span');
+    s.textContent = '“' + q + '”';
+    if(i===0) s.classList.add('show');
+    el.appendChild(s);
+  });
+  let idx = 0;
+  setInterval(()=>{
+    const spans = el.querySelectorAll('span');
+    spans[idx].classList.remove('show');
+    idx = (idx+1) % spans.length;
+    spans[idx].classList.add('show');
+  }, 3800);
+})();
+
+/* ---------------- routing ---------------- */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+  if(id==='subject') renderCards();
+}
+
+/* ---------------- question data ---------------- */
+/* [id, unit, marks(1/8/15), type('predicted'|'concept'), priority('high'|'medium'), question, answerHTML] */
+const QUESTIONS = [
+["u1-1m-01",1,1,"concept","high","What is information storage?","Information storage is the process of storing digital data in a reliable and accessible manner so that it can be used whenever required."],
+["u1-1m-02",1,1,"concept","medium","What is Information Storage Management (ISM)?","ISM is the systematic management of storage resources, data, applications and storage infrastructure."],
+["u1-1m-03",1,1,"concept","high","What is DAS?","Direct-Attached Storage — storage directly connected to a computer or server."],
+["u1-1m-04",1,1,"concept","high","What is NAS?","Network-Attached Storage — a dedicated network-connected storage system that provides file-level access."],
+["u1-1m-05",1,1,"concept","high","What is SAN?","Storage Area Network — a dedicated high-speed network that provides block-level storage access to servers."],
+["u1-1m-06",1,1,"concept","high","Expand RAID.","Redundant Array of Independent Disks."],
+["u1-1m-07",1,1,"concept","high","Which RAID level uses striping without parity?","RAID 0."],
+["u1-1m-08",1,1,"concept","high","Which RAID level uses mirroring?","RAID 1."],
+["u1-1m-09",1,1,"concept","high","Which RAID level uses distributed parity?","RAID 5."],
+["u1-1m-10",1,1,"concept","high","Which RAID level can tolerate two disk failures?","RAID 6."],
+["u1-1m-11",1,1,"concept","high","What is RAID 10?","RAID 10 combines RAID 1 mirroring and RAID 0 striping."],
+["u1-1m-12",1,1,"concept","medium","What is storage virtualization?","Storage virtualization presents physical storage resources to applications as logical storage."],
+["u1-1m-13",1,1,"concept","medium","What is a storage subsystem?","A collection of hardware and software components that provides storage services to servers and applications."],
+["u1-1m-14",1,1,"concept","medium","What is cache?","High-speed temporary storage used to improve storage performance."],
+["u1-1m-15",1,1,"concept","high","What is an intelligent storage system?","An advanced storage system using controllers, cache, RAID, virtualization and automated management."],
+["u1-1m-16",1,1,"concept","high","What is an intelligent storage array?","A collection of physical storage devices managed as a single storage system with advanced capabilities such as RAID, cache, virtualization and high availability."],
+["u1-1m-17",1,1,"concept","high","Give two physical components of storage infrastructure.","HDD/SSD, and storage controllers."],
+["u1-1m-18",1,1,"concept","medium","Give two logical components of storage infrastructure.","Logical volumes, and file systems."],
+["u1-1m-19",1,1,"concept","high","Which storage architecture provides block-level access?","SAN."],
+["u1-1m-20",1,1,"concept","high","Which storage architecture provides file-level access?","NAS."],
+
+["u1-8m-01",1,8,"predicted","high","Explain DAS, NAS and SAN with advantages and limitations.","<b>DAS</b> — directly connected to a server.<br>Advantages: simple installation, low cost, good performance, easy to use.<br>Limitations: limited scalability, difficult sharing/centralized management, possible storage wastage.<br><br><b>NAS</b> — network-connected storage, file-level access.<br>Advantages: easy file sharing, centralized administration, easy backup, multi-user access.<br>Limitations: network-dependent, file-level only, performance tied to network.<br><br><b>SAN</b> — dedicated high-speed network, block-level storage.<br>Advantages: high performance, high availability, centralized storage, scalable, suited to databases/enterprise apps.<br>Limitations: higher cost, complex configuration, needs specialized infrastructure.<br><br><i>Conclusion:</i> DAS = direct connection, NAS = file-level network storage, SAN = block-level dedicated storage."],
+["u1-8m-02",1,8,"predicted","high","Explain RAID levels 0, 1, 5, 6 and 10.","<pre>RAID   Technique              Min disks  Fault tolerance   Advantage\nRAID0  Striping               2          No                High performance\nRAID1  Mirroring              2          1 disk            Data protection\nRAID5  Stripe+dist. parity    3          1 disk            Performance+protection\nRAID6  Dual parity            4          2 disks           Higher protection\nRAID10 Mirror+stripe          4          Depends on pattern Performance+reliability</pre><b>RAID 0</b> — blocks striped across disks; high performance, full capacity, no fault tolerance.<br><b>RAID 1</b> — data duplicated on two disks; excellent protection, ~50% usable capacity.<br><b>RAID 5</b> — striping + distributed parity, min 3 disks, tolerates 1 failure, good read performance.<br><b>RAID 6</b> — dual parity, min 4 disks, tolerates 2 failures.<br><b>RAID 10</b> — combines RAID 1 mirroring + RAID 0 striping — high performance and reliability, higher storage cost."],
+["u1-8m-03",1,8,"predicted","high","Explain classic, virtualized and cloud storage environments.","<b>Classic:</b> Application → Physical Server → Storage → Disk. Physical servers, dedicated storage, hardware dependent, limited sharing, lower flexibility.<br><b>Virtualized:</b> Applications → VMs → Hypervisor → Physical Server → Storage. Better utilization, server consolidation, flexible allocation, improved scalability, easier management.<br><b>Cloud:</b> Users → Internet/Network → Cloud Services → Storage Infrastructure. On-demand storage, elastic scalability, resource sharing, automated management, usage-based pricing.<br><i>Evolution:</i> DAS → NAS/SAN → Virtualized Storage → Cloud Storage."],
+["u1-8m-04",1,8,"predicted","high","Explain physical and logical components of storage infrastructure.","<b>Physical components</b> (actual hardware): HDD, SSD, storage controller, connectivity ports, storage switches, cables.<br><b>Logical components</b> (software-defined): logical volumes, file systems, virtual disks, storage pools, logical storage units.<pre>Physical         Logical\nHDD/SSD          Logical volume\nController       Virtual disk\nPhysical storage Storage pool</pre>"],
+["u1-8m-05",1,8,"predicted","high","Explain intelligent storage system and intelligent storage array.","An intelligent storage system provides advanced services via storage controllers, cache, RAID, storage virtualization, multipathing, automated management, and high availability.<pre>Servers → Storage Network → Storage Controllers → Cache → RAID → HDD/SSD</pre><b>Key features:</b> high availability (redundant controllers/disks/paths), performance (cache, SSDs, parallel processing), scalability (add disks/resources), data protection (RAID, replication, backup, snapshots), and storage management (monitoring, RAID config, failure detection)."],
+["u1-8m-06",1,8,"predicted","medium","Explain data centre infrastructure.","A data centre provides centralized data processing and storage. Major components: servers (process apps/data), storage systems (persist data), network infrastructure (communication), power infrastructure (UPS, generators), cooling (temperature control), security systems, backup systems, and management software (monitoring/managing resources)."],
+
+["u1-15m-01",1,15,"predicted","medium","Explain the evolution of storage architecture from DAS to cloud storage.","<pre>Traditional/DAS → NAS → SAN → Virtualized Storage → Cloud Storage</pre><b>DAS</b> — directly connected to server.<br><b>NAS</b> — file-level network storage.<br><b>SAN</b> — block-level storage via dedicated high-speed network.<br><b>Virtualization</b> — separates physical from logical resources, flexible allocation.<br><b>Cloud</b> — on-demand, scalable storage via cloud infrastructure.<br><i>Conclusion:</i> this evolution improved scalability, resource utilization, availability, centralized management, flexibility and cost efficiency."],
+["u1-15m-02",1,15,"predicted","high","Explain RAID levels 0, 1, 5, 6 and 10 in detail with comparison.","For 15 marks, structure the answer as: definition of RAID → need for RAID → RAID 0 → RAID 1 → RAID 5 → RAID 6 → RAID 10 → comparison table → applications/selection → conclusion. Use the RAID comparison table (technique, minimum disks, fault tolerance, advantage) covered in the 8-mark RAID answer above, and close by matching each RAID level to a suitable use case (RAID 0 for performance-only workloads, RAID 1/5/6/10 where protection matters)."],
+["u1-15m-03",1,15,"predicted","high","Explain intelligent storage architecture and its components.","<pre>SERVER → STORAGE NETWORK → Storage Controllers → CACHE → RAID → HDD/SSD</pre>Explain each layer: storage controllers, cache, RAID, disk drives, storage ports, management software, storage virtualization, multipathing, replication, high availability, and thin provisioning."],
+["u1-15m-04",1,15,"predicted","high","Compare classic, virtualized and cloud environments and explain their advantages.","<pre>Feature            Classic          Virtualized        Cloud\nInfrastructure     Physical         Virtual+physical   Cloud\nScalability        Low              High               Very high\nResource use       Moderate         High               High\nManagement         Hardware-focused Centralized        Automated\nFlexibility        Low              High               Very high\nCost               Capital expense  Mixed              Usage based\nAccessibility      Local/network    Network            Internet/network</pre>"],
+
+["u2-1m-01",2,1,"concept","high","What is SAN?","A high-speed network providing centralized block-level storage to servers."],
+["u2-1m-02",2,1,"concept","high","What is FC-SAN?","A SAN implementation that uses Fibre Channel technology for communication."],
+["u2-1m-03",2,1,"concept","high","What is IP-SAN?","A SAN that uses IP-based networking to provide block-level storage access."],
+["u2-1m-04",2,1,"concept","high","Expand iSCSI.","Internet Small Computer Systems Interface."],
+["u2-1m-05",2,1,"concept","medium","What does iSCSI carry?","It carries SCSI commands over IP networks."],
+["u2-1m-06",2,1,"concept","high","What is an iSCSI initiator?","The server/client-side component that requests block storage."],
+["u2-1m-07",2,1,"concept","high","What is an iSCSI target?","The storage-side endpoint that provides block storage."],
+["u2-1m-08",2,1,"concept","high","What is LUN?","Logical Unit Number — a logical storage unit presented to a host."],
+["u2-1m-09",2,1,"concept","high","What is FCoE?","Fibre Channel over Ethernet — carries Fibre Channel frames over Ethernet."],
+["u2-1m-10",2,1,"concept","high","What is NAS?","Network Attached Storage — provides file-level access over a network."],
+["u2-1m-11",2,1,"concept","medium","What is object storage?","A storage method that stores data as objects containing data, metadata and a unique identifier."],
+["u2-1m-12",2,1,"concept","medium","What is unified storage?","A storage system supporting more than one access method, typically file and block storage."],
+["u2-1m-13",2,1,"concept","high","What is CAS?","Content-Addressed Storage — object-based storage designed for secure storage and retrieval of fixed content."],
+["u2-1m-14",2,1,"concept","medium","What is Fibre Channel?","A high-speed networking technology primarily used in SAN environments."],
+["u2-1m-15",2,1,"concept","high","Name three FC topologies.","Point-to-point, arbitrated loop, and switched fabric."],
+["u2-1m-16",2,1,"concept","medium","What is FC-AL?","Fibre Channel Arbitrated Loop."],
+["u2-1m-17",2,1,"concept","medium","How many ports can FC-AL support?","Up to 126 ports on one controller."],
+["u2-1m-18",2,1,"concept","medium","What is a SAN switch?","A device that connects SAN nodes and provides switching/routing of storage traffic."],
+["u2-1m-19",2,1,"concept","medium","What is a director?","A larger SAN interconnection device with high port count and high fault tolerance."],
+["u2-1m-20",2,1,"concept","high","What is FC-0?","The lowest FC layer — defines the physical characteristics of the interface and media."],
+["u2-1m-21",2,1,"concept","medium","What does the FC-1 layer define?","Encoding and decoding, and transmission."],
+["u2-1m-22",2,1,"concept","medium","What does the FC-2 layer define?","Signalling and the transfer of frames, sequences and exchanges."],
+["u2-1m-23",2,1,"concept","medium","What does the FC-4 layer define?","Mapping of upper-layer protocols such as SCSI and IP onto Fibre Channel."],
+["u2-1m-24",2,1,"concept","medium","Expand HBA.","Host Bus Adapter — connects a server to a storage network (e.g. FC fabric)."],
+
+["u2-8m-01",2,8,"predicted","high","Explain SAN architecture and its components.","<pre>Server → HBA → SAN Switch → Storage Controller → Storage Array → LUN</pre><b>Components:</b> servers/hosts, HBAs, SAN switches, storage arrays, FC/Ethernet links, storage management software.<br><b>Characteristics:</b> block-level storage, high performance, low latency, centralized storage, high availability, scalability.<br><b>Advantages:</b> better storage utilization, server consolidation, centralized management, high availability, suited to enterprise applications."],
+["u2-8m-02",2,8,"predicted","high","Explain FC-SAN architecture and working.","<pre>Server → FC-HBA → FC Switch → Storage Controller → Storage Array</pre><b>Working:</b> server generates an I/O request → FC-HBA connects it to the FC fabric → FC switch provides connectivity → storage controller receives the request → storage array processes it → the required LUN is accessed.<br><b>Advantages:</b> high speed, low latency, reliable connectivity, dedicated storage network, large-scale enterprise support, suited to mission-critical applications."],
+["u2-8m-03",2,8,"predicted","high","Explain IP-SAN and iSCSI.","<b>IP-SAN</b> uses IP-based networking for block-level storage: Server → Ethernet/IP Network → IP-SAN Storage.<br><b>iSCSI</b> carries SCSI commands over IP: Initiator → IP/Ethernet → Target → Storage.<br><b>Components:</b> initiator, target, IP network, Ethernet adapter/NIC, storage array, LUN, management software.<br><b>Advantages:</b> uses standard IP networking, can reuse existing Ethernet, easier deployment, centralized block storage, suits organizations of any size."],
+["u2-8m-04",2,8,"predicted","medium","Explain Fibre Channel topologies.","<b>1. Point-to-point</b> — one link connects two ports; simple, inexpensive, full link bandwidth available.<br><b>2. Arbitrated Loop</b> — a one-way ring; arbitration decides which node transmits; FC-AL supports up to 126 ports on one controller.<br><b>3. Switched Fabric</b> — a network of FC switches; supports multiple simultaneous connections; the standard for modern SANs."],
+["u2-8m-05",2,8,"predicted","high","Explain NAS and NAS I/O operations.","NAS provides file-level access over a network.<br><b>Read:</b> Client → NAS → Storage → NAS → Client.<br><b>Write:</b> Client → NAS → Storage → Confirmation → Client.<br><b>Features:</b> file-level storage, network-based access, centralized file sharing, multiple clients, easy administration — suited to documents and shared files."],
+["u2-8m-06",2,8,"predicted","high","Explain NAS implementations.","<b>1. Unified NAS</b> — supports both file and block access via protocols such as CIFS, NFS, iSCSI, FC.<br><b>2. Gateway NAS</b> — the NAS device uses external storage (Clients → NAS Gateway → External Storage); NAS and storage are managed independently.<br><b>3. Scale-out NAS</b> — multiple nodes pooled into a cluster that operates as a single entity."],
+["u2-8m-07",2,8,"predicted","medium","Explain object-based storage.","Object storage stores information as Data + Metadata + Unique Identifier.<br><b>Features:</b> rich metadata, unique object identification, very high scalability, suited to unstructured data, cloud-friendly, good for images/video/backup/archives.<pre>NAS               Object Storage\nFile based        Object/API based\nFiles/directories Objects/metadata\nFile sharing      Large unstructured data</pre>"],
+["u2-8m-08",2,8,"predicted","high","Explain CAS (Content-Addressed Storage).","CAS is an object-based storage system for secure, online storage and retrieval of fixed content. Data and attributes are stored as an object, and each object receives a globally unique content address derived from its binary representation.<br><b>Features:</b> content authenticity, content integrity, location independence, single-instance storage, retention enforcement, data protection."],
+
+["u2-15m-01",2,15,"predicted","high","Explain SAN architecture, FC-SAN, components, working and advantages.","<pre>            SAN\n     ┌───────┴───────┐\n   Server          Storage\n     │                │\n    HBA         Storage Array\n     │                │\n     └── SAN Switch ──┘</pre><b>Components:</b> server, HBA, SAN switch, storage controller, storage array, storage devices, FC/Ethernet cables, LUN, management software.<br><b>FC-SAN flow:</b> Server → FC-HBA → FC Switch → Storage Controller → Storage Array.<br><b>Advantages:</b> high performance, low latency, centralized management, high availability, better utilization, scalability, enterprise support."],
+["u2-15m-02",2,15,"predicted","high","Explain iSCSI architecture, components and working.","<pre>Server (Initiator) ── IP/Ethernet ── Storage (Target) → LUN</pre><b>Components:</b> initiator (requests storage), target (provides storage), IP network, NIC/Ethernet adapter, storage array, LUN.<br><b>Working:</b> initiator is configured → discovers target → authentication may occur → session established → SCSI commands sent over IP → target processes commands → required blocks returned.<br><b>Advantages:</b> standard Ethernet, uses existing IP infrastructure, lower complexity, centralized block storage, suits small-to-enterprise environments."],
+["u2-15m-03",2,15,"predicted","medium","Explain Fibre Channel architecture and the FC protocol stack.","FC provides reliable, high-speed, lossless communication for SANs.<br><b>Components:</b> initiators, targets, FC switches, FC ports, cables, storage systems.<br><b>Protocol layers (top to bottom):</b> FC-4 (upper-layer protocol mapping, e.g. SCSI/IP) → FC-3 (not implemented) → FC-2 (signalling/frames/sequences/exchanges) → FC-1 (encoding/decoding) → FC-0 (physical layer/media)."],
+["u2-15m-04",2,15,"predicted","medium","Compare SAN, NAS, iSCSI and Object Storage.","<pre>Feature      SAN        NAS          iSCSI          Object\nAccess       Block      File         Block          Object\nNetwork      FC/Ether   Ethernet     IP/Ethernet    IP/API\nPerformance  High       Good         Good–High      Scale optimized\nMain use     DB/VM      File sharing IP block store Unstructured data\nManagement   Enterprise Simple–Ent. IP-based       Cloud/object\nScalability  High       High         High           Very high</pre><i>Key to remember:</i> SAN = Block, NAS = File, iSCSI = SCSI over IP/Block, Object = Object+Metadata."],
+["u2-15m-05",2,15,"predicted","high","Explain Unified Storage and CAS.","<b>Unified Storage</b> supports both file and block storage from a common platform. Benefits: centralized management, better utilization, supports NAS and SAN workloads, reduces separate infrastructure.<br><b>CAS</b> stores fixed content as objects, identified by a content address. Features: authenticity, integrity, location independence, single-instance storage, retention enforcement, data protection."],
+["u2-15m-06",2,15,"predicted","medium","Explain SAN implementation in a heterogeneous environment.","<pre>Windows/Linux/Unix/VM Hosts → FC-HBAs → SAN Switches → Storage Array → LUNs</pre><b>Implementation steps:</b> identify servers/applications → identify storage requirements → install/configure HBAs → connect hosts to FC switches → configure zoning and access control → configure storage pools/RAID → create and present LUNs → configure multipathing → verify storage visibility → test performance and failover.<br><b>Considerations:</b> interoperability, zoning, LUN masking, multipathing, redundancy, performance, security, monitoring."],
+["u2-15m-07",2,15,"predicted","medium","Explain FC scan and iSCSI scan procedures.","<b>FC Scan</b> (discover FC targets): verify FC-HBA connectivity → check FC interfaces → verify fabric connectivity → check zoning → perform host/device scan → check LUN visibility → verify multipathing.<br><b>iSCSI Scan</b> (discover iSCSI targets): verify network connectivity → configure iSCSI initiator → discover target → authenticate if required → log in to target → verify LUN visibility → check multipath/redundant sessions."]
+];
+
+/* ---------------- state ---------------- */
+let currentUnit = 1;
+let currentChip = 'all';
+let reviewed = new Set();
+let bookmarked = new Set();
+let openAnswers = new Set();
+let quizPool = [];
+let quizIndex = -1;
+let quizRevealed = false;
+
+async function loadState(){
+  try{
+    if(window.storage){
+      const r = await window.storage.get('ism-progress');
+      if(r && r.value){
+        const d = JSON.parse(r.value);
+        reviewed = new Set(d.reviewed||[]);
+        bookmarked = new Set(d.bookmarked||[]);
+      }
+    }
+  }catch(e){ /* fresh start */ }
+  renderCards();
+}
+async function saveState(){
+  try{
+    if(window.storage){
+      await window.storage.set('ism-progress', JSON.stringify({reviewed:[...reviewed], bookmarked:[...bookmarked]}));
+    }
+  }catch(e){ /* best effort only */ }
+}
+
+function setUnit(u){
+  currentUnit = u;
+  document.querySelectorAll('.unit-tab').forEach(t=>t.classList.toggle('active', Number(t.dataset.unit)===u));
+  renderCards();
+}
+function setChip(f){
+  currentChip = f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.dataset.filter===f));
+  renderCards();
+}
+function matchesChip(item){
+  const [,,marks,type,priority] = item;
+  switch(currentChip){
+    case 'all': return true;
+    case 'predicted': return type==='predicted';
+    case 'm1': return marks===1;
+    case 'm8': return marks===8;
+    case 'm15': return marks===15;
+    case 'high': return priority==='high';
+    case 'bookmarked': return bookmarked.has(item[0]);
+    default: return true;
+  }
+}
+function marksLabel(m){ return m===1? '1 mark' : m===8? '5/8 mark' : '10/15 mark'; }
+
+function renderCards(){
+  const grid = document.getElementById('qgrid');
+  const search = document.getElementById('searchBox').value.trim().toLowerCase();
+  const filtered = QUESTIONS.filter(item=>{
+    if(item[1] !== currentUnit) return false;
+    if(!matchesChip(item)) return false;
+    if(search){
+      const hay = (item[5] + ' ' + item[6]).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('qcount').textContent = filtered.length + ' question' + (filtered.length===1?'':'s') + ' shown';
+
+  const unitTotal = QUESTIONS.filter(i=>i[1]===currentUnit).length;
+  const unitReviewed = QUESTIONS.filter(i=>i[1]===currentUnit && reviewed.has(i[0])).length;
+  document.getElementById('progressText').textContent = unitReviewed + ' / ' + unitTotal + ' reviewed';
+  document.getElementById('progressFill').style.width = (unitTotal? (unitReviewed/unitTotal*100):0) + '%';
+
+  if(filtered.length===0){
+    grid.innerHTML = '<div class="empty-state">No questions match this filter yet — try clearing the search or switching filters.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(item=>{
+    const [id,unit,marks,type,priority,q,a] = item;
+    const isBook = bookmarked.has(id);
+    const isRev = reviewed.has(id);
+    const isOpen = openAnswers.has(id);
+    return `
+    <div class="qcard">
+      <div class="qtop">
+        <div style="flex:1;">
+          <div class="qtags">
+            <span class="tag marks">${marksLabel(marks)}</span>
+            <span class="tag ${type}">${type==='predicted'?'Predicted':'Concept'}</span>
+            ${priority==='high'?'<span class="tag high">High priority</span>':''}
+          </div>
+          <div class="qtext">${q}</div>
+        </div>
+        <div class="qactions">
+          <button class="iconbtn ${isBook?'on':''}" title="Bookmark" onclick="toggleBookmark('${id}')">${isBook?'★':'☆'}</button>
+          <button class="iconbtn reviewed ${isRev?'on':''}" title="Mark reviewed" onclick="toggleReviewed('${id}')">✓</button>
+        </div>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer('${id}')">${isOpen?'Hide answer':'Show answer'}</button>
+      <div class="answer ${isOpen?'open':''}" id="ans-${id}">${a}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAnswer(id){
+  if(openAnswers.has(id)) openAnswers.delete(id); else openAnswers.add(id);
+  renderCards();
+}
+function toggleBookmark(id){
+  if(bookmarked.has(id)) bookmarked.delete(id); else bookmarked.add(id);
+  saveState(); renderCards();
+}
+function toggleReviewed(id){
+  if(reviewed.has(id)) reviewed.delete(id); else reviewed.add(id);
+  saveState(); renderCards();
+}
+
+function openQuiz(){
+  quizPool = QUESTIONS.filter(item=> item[1]===currentUnit && matchesChip(item));
+  if(quizPool.length===0) quizPool = QUESTIONS.filter(item=>item[1]===currentUnit);
+  quizIndex = -1;
+  document.getElementById('quizModal').classList.add('open');
+  nextQuiz();
+}
+function closeQuiz(){ document.getElementById('quizModal').classList.remove('open'); }
+function nextQuiz(){
+  if(quizPool.length===0) return;
+  let idx = Math.floor(Math.random()*quizPool.length);
+  if(quizPool.length>1){ while(idx===quizIndex) idx = Math.floor(Math.random()*quizPool.length); }
+  quizIndex = idx;
+  quizRevealed = false;
+  const [id,unit,marks,type,priority,q,a] = quizPool[idx];
+  document.getElementById('quizTags').innerHTML = `<span class="tag marks">${marksLabel(marks)}</span><span class="tag ${type}">${type==='predicted'?'Predicted':'Concept'}</span>${priority==='high'?'<span class="tag high">High priority</span>':''}`;
+  document.getElementById('quizQ').textContent = q.replace(/<[^>]+>/g,'');
+  const ansEl = document.getElementById('quizA');
+  ansEl.innerHTML = a; ansEl.classList.remove('open');
+  document.getElementById('quizRevealBtn').textContent = 'Show answer';
+}
+function revealQuiz(){
+  quizRevealed = !quizRevealed;
+  document.getElementById('quizA').classList.toggle('open', quizRevealed);
+  document.getElementById('quizRevealBtn').textContent = quizRevealed ? 'Hide answer' : 'Show answer';
+}
+function markQuizReviewed(){
+  if(quizIndex<0) return;
+  const id = quizPool[quizIndex][0];
+  reviewed.add(id);
+  saveState();
+  renderCards();
+  nextQuiz();
+}
+
+loadState();
+</script>
+</body>
+</html>

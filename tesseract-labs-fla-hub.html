@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesseract Labs — FLA Study Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #05060d;
+    --bg-2: #0a0d1a;
+    --panel: #0d1122;
+    --panel-2: #10152a;
+    --line: rgba(120,150,255,0.14);
+    --cyan: #29e3f2;
+    --blue: #4d7dff;
+    --violet: #a855f7;
+    --magenta: #ec4899;
+    --text: #eaf1ff;
+    --muted: #8a93b3;
+    --muted-2: #5c6688;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{ font-family:'Orbitron', sans-serif; }
+  ::selection{ background: var(--violet); color:#fff; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  a{ color:inherit; }
+  button{ font-family:inherit; cursor:pointer; }
+
+  /* ---------- background layers ---------- */
+  #particle-canvas{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(80,110,220,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(80,110,220,0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 90%);
+  }
+  .vignette{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(77,125,255,0.10), transparent 60%),
+                radial-gradient(ellipse 50% 40% at 100% 100%, rgba(236,72,153,0.08), transparent 60%);
+  }
+
+  /* ---------- top nav ---------- */
+  .topnav{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 5vw;
+    background:rgba(5,6,13,0.72);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Orbitron', sans-serif; font-weight:700; letter-spacing:0.5px;
+    font-size:15px;
+  }
+  .brand .mark{ width:22px; height:22px; }
+  .brand small{ display:block; font-family:'Inter'; font-weight:500; color:var(--muted); font-size:9.5px; letter-spacing:2.5px; }
+  .nav-links{ display:flex; gap:6px; align-items:center; }
+  .nav-btn{
+    background:transparent; border:1px solid transparent; color:var(--muted);
+    padding:8px 16px; border-radius:8px; font-size:13.5px; font-weight:500;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  .nav-btn:hover{ color:var(--text); border-color:var(--line); background:rgba(255,255,255,0.03); }
+  .nav-btn.active{ color:var(--cyan); border-color:rgba(41,227,242,0.3); background:rgba(41,227,242,0.06); }
+  .nav-feedback{
+    border:1px solid rgba(236,72,153,0.4); color:#ffd4ea;
+    background:linear-gradient(180deg, rgba(236,72,153,0.14), rgba(236,72,153,0.04));
+  }
+
+  .page{ display:none; position:relative; z-index:1; }
+  .page.active{ display:block; animation: pagein .5s ease both; }
+  @keyframes pagein{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height: 92vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding: 60px 6vw 40px;
+    position:relative;
+  }
+  .hero-cube-wrap{
+    width: 260px; height:260px; margin-bottom: 18px;
+    perspective: 1000px;
+  }
+  .hero-cube-wrap svg{ width:100%; height:100%; filter: drop-shadow(0 0 22px rgba(77,125,255,0.35)); animation: floaty 6s ease-in-out infinite; }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-14px);} }
+
+  /* ---------- Automaton hero animation (FLA) ---------- */
+  .automaton-wrap{ width:260px; height:220px; margin:0 auto 10px; position:relative; }
+  .automaton-wrap svg{ width:100%; height:100%; overflow:visible; }
+  .fla-state circle{ fill:rgba(13,17,34,0.9); stroke-width:2.5; }
+  .fla-state text{ font-family:'JetBrains Mono', monospace; font-size:13px; fill:#eaf1ff; text-anchor:middle; }
+  .fla-state.active circle{ animation: state-glow 1.8s ease-in-out infinite; }
+  @keyframes state-glow{ 0%,100%{ filter:drop-shadow(0 0 0 rgba(41,227,242,0)); } 50%{ filter:drop-shadow(0 0 10px rgba(41,227,242,0.9)); } }
+  .fla-edge{ stroke:rgba(140,160,255,0.45); stroke-width:1.6; fill:none; }
+  .fla-caption{ text-align:center; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--muted-2); margin-top:-4px; margin-bottom:8px; }
+
+  .eyebrow-line{
+    display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12.5px; letter-spacing:3px; margin-bottom:18px;
+  }
+  .eyebrow-line span.dot{ width:5px; height:5px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); }
+  .eyebrow-line .rule{ width:34px; height:1px; background:linear-gradient(90deg, transparent, var(--muted-2)); }
+
+  .hero h1{
+    font-size: clamp(34px, 6vw, 68px);
+    font-weight:900; margin:0 0 6px; line-height:1.02;
+    letter-spacing: 1px;
+    background: linear-gradient(100deg, #ffffff 10%, #bcd4ff 40%, var(--cyan) 60%, var(--violet) 85%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero .sub{
+    font-family:'Orbitron', sans-serif; font-weight:700; font-size: clamp(16px, 2.4vw, 24px);
+    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--magenta));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom: 18px; letter-spacing:2px;
+  }
+  .hero p.tag{ color:var(--muted); max-width:520px; margin:0 auto 34px; line-height:1.7; font-size:15.5px; }
+
+  .cta-row{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+  .btn-primary{
+    position:relative; border:none; padding:15px 34px; border-radius:12px;
+    font-family:'Orbitron', sans-serif; font-weight:700; font-size:14px; letter-spacing:1px;
+    color:#04060f;
+    background: linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--violet));
+    box-shadow: 0 8px 30px rgba(77,125,255,0.35);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow: 0 12px 34px rgba(168,85,247,0.4); }
+  .btn-ghost{
+    padding:15px 30px; border-radius:12px; font-weight:600; font-size:14px;
+    border:1px solid var(--line); color:var(--text); background:rgba(255,255,255,0.02);
+    transition: border-color .2s, background .2s;
+  }
+  .btn-ghost:hover{ border-color: rgba(168,85,247,0.5); background:rgba(168,85,247,0.06); }
+
+  /* quote strip */
+  .quote-strip{
+    max-width:640px; margin: 56px auto 0; min-height:64px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding: 0 20px;
+  }
+  .quote-strip blockquote{
+    margin:0; font-size:15px; color:#c8d4f5; font-style:italic; line-height:1.6;
+    animation: quotefade 6s ease-in-out infinite;
+  }
+  .quote-strip blockquote span{ display:block; margin-top:8px; font-style:normal; color:var(--muted-2); font-size:12px; letter-spacing:1px; }
+  @keyframes quotefade{ 0%{opacity:0; transform:translateY(6px);} 8%{opacity:1; transform:translateY(0);} 92%{opacity:1;} 100%{opacity:0; transform:translateY(-6px);} }
+
+  /* corner circuit decorations */
+  .circuit{ position:absolute; inset:0; z-index:-1; opacity:0.5; pointer-events:none; }
+
+  /* ---------- SECTIONS on home ---------- */
+  .section{ padding: 70px 6vw; position:relative; z-index:1; }
+  .section-head{ max-width:640px; margin: 0 auto 40px; text-align:center; }
+  .section-head h2{ font-size: clamp(24px,3.4vw,34px); margin:0 0 10px; }
+  .section-head p{ color:var(--muted); font-size:14.5px; line-height:1.7; margin:0; }
+
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr));
+    gap:18px; max-width:1100px; margin:0 auto;
+  }
+  .feature-card{
+    background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:14px; padding:26px 22px;
+    transition: transform .25s, border-color .25s;
+  }
+  .feature-card:hover{ transform:translateY(-5px); border-color: rgba(41,227,242,0.35); }
+  .feature-card .icon{
+    width:40px; height:40px; border-radius:10px; margin-bottom:16px;
+    display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, rgba(41,227,242,0.18), rgba(168,85,247,0.18));
+    border:1px solid var(--line);
+  }
+  .feature-card h3{ font-size:16px; margin:0 0 8px; font-family:'Inter'; font-weight:700; }
+  .feature-card p{ font-size:13.5px; color:var(--muted); line-height:1.6; margin:0; }
+
+  .subject-cta{
+    max-width:920px; margin:0 auto; border-radius:20px; padding:44px 6vw;
+    background: radial-gradient(circle at 20% 20%, rgba(41,227,242,0.14), transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(236,72,153,0.14), transparent 55%),
+                var(--panel);
+    border:1px solid var(--line);
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:24px;
+  }
+  .subject-cta h3{ margin:0 0 8px; font-size:22px; }
+  .subject-cta p{ margin:0; color:var(--muted); font-size:13.5px; max-width:380px; }
+  .badge{
+    display:inline-block; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:1.5px;
+    color:var(--cyan); border:1px solid rgba(41,227,242,0.35); background:rgba(41,227,242,0.08);
+    padding:4px 10px; border-radius:20px; margin-bottom:12px;
+  }
+
+  footer{
+    text-align:center; padding: 40px 6vw 50px; color:var(--muted-2); font-size:12.5px;
+    border-top:1px solid var(--line); position:relative; z-index:1;
+  }
+  footer .foot-brand{ color:var(--muted); font-family:'Orbitron'; font-size:12px; letter-spacing:1.5px; margin-bottom:6px; }
+
+  /* ---------- SUBJECT PAGE ---------- */
+  .subject-hero{
+    padding: 46px 6vw 20px; text-align:center;
+  }
+  .subject-hero h1{ font-size: clamp(26px,4vw,40px); margin:0 0 10px; }
+  .subject-hero p{ color:var(--muted); max-width:600px; margin:0 auto; font-size:14px; line-height:1.7; }
+
+  .unit-tabs{
+    display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin: 28px 0 8px; padding: 0 6vw;
+  }
+  .unit-tab{
+    padding:11px 22px; border-radius:10px; border:1px solid var(--line); background:var(--panel);
+    color:var(--muted); font-weight:600; font-size:13.5px; transition: all .2s;
+  }
+  .unit-tab.active{ color:#04060f; background:linear-gradient(100deg, var(--cyan), var(--violet)); border-color:transparent; }
+
+  .filter-row{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin: 18px 0 34px; padding:0 6vw;
+  }
+  .filter-chip{
+    padding:7px 14px; border-radius:20px; border:1px solid var(--line); background:transparent;
+    color:var(--muted); font-size:12px; font-weight:500; transition:all .2s;
+  }
+  .filter-chip.active{ color:var(--cyan); border-color:rgba(41,227,242,0.45); background:rgba(41,227,242,0.08); }
+
+  .qa-list{ max-width:880px; margin:0 auto; padding: 0 6vw 70px; display:flex; flex-direction:column; gap:14px; }
+  .qa-card{
+    border:1px solid var(--line); background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    border-radius:14px; padding:20px 22px; transition: border-color .2s;
+  }
+  .qa-card:hover{ border-color: rgba(120,150,255,0.3); }
+  .qa-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .tag{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.5px;
+    padding:3px 9px; border-radius:6px; border:1px solid var(--line); color:var(--muted);
+  }
+  .tag.marks{ color:#bcd4ff; border-color:rgba(77,125,255,0.35); background:rgba(77,125,255,0.08); }
+  .tag.pyq{ color:#ffd4ea; border-color:rgba(236,72,153,0.35); background:rgba(236,72,153,0.08); }
+  .tag.pred{ color:#d7ffe0; border-color:rgba(80,220,140,0.35); background:rgba(80,220,140,0.08); }
+  .tag.high{ color:#ffd48a; border-color:rgba(255,180,80,0.4); background:rgba(255,180,80,0.08); }
+  .qa-q{ font-size:15px; font-weight:600; line-height:1.55; margin-bottom:12px; }
+  .ans-btn{
+    border:1px solid rgba(41,227,242,0.4); color:var(--cyan); background:rgba(41,227,242,0.06);
+    padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:700; letter-spacing:0.5px;
+  }
+  .ans-btn:hover{ background:rgba(41,227,242,0.14); }
+  .qa-answer{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);
+    color:#cdd8f7; font-size:13.8px; line-height:1.75; display:none; white-space:pre-line;
+  }
+  .qa-answer.show{ display:block; animation: revealans .3s ease both; }
+  @keyframes revealans{ from{ opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+
+  .unit-panel{ display:none; }
+  .unit-panel.active{ display:block; }
+
+  @media (max-width: 620px){
+    .topnav{ padding:14px 4vw; }
+    .nav-links{ gap:2px; }
+    .nav-btn{ padding:7px 10px; font-size:12px; }
+    .section, .subject-hero, .qa-list{ padding-left:5vw; padding-right:5vw; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+
+<!-- ============ NAV ============ -->
+<nav class="topnav">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 100 100" fill="none">
+      <polygon points="50,8 90,30 90,70 50,92 10,70 10,30" stroke="url(#navgrad)" stroke-width="4"/>
+      <polygon points="50,30 72,42 72,64 50,76 28,64 28,42" stroke="url(#navgrad2)" stroke-width="4"/>
+      <line x1="50" y1="8" x2="50" y2="30" stroke="#29e3f2" stroke-width="3"/>
+      <line x1="90" y1="30" x2="72" y2="42" stroke="#a855f7" stroke-width="3"/>
+      <line x1="90" y1="70" x2="72" y2="64" stroke="#ec4899" stroke-width="3"/>
+      <line x1="50" y1="92" x2="50" y2="76" stroke="#a855f7" stroke-width="3"/>
+      <line x1="10" y1="70" x2="28" y2="64" stroke="#4d7dff" stroke-width="3"/>
+      <line x1="10" y1="30" x2="28" y2="42" stroke="#29e3f2" stroke-width="3"/>
+      <defs>
+        <linearGradient id="navgrad" x1="0" y1="0" x2="100" y2="100"><stop stop-color="#29e3f2"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+        <linearGradient id="navgrad2" x1="0" y1="0" x2="100" y2="100"><stop stop-color="#4d7dff"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+      </defs>
+    </svg>
+    <div>TESSERACT LABS<small>FLA STUDY HUB</small></div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-btn" href="index.html">🏠 All Subjects</a>
+    <button class="nav-btn active" data-page="home">Home</button>
+    <button class="nav-btn" data-page="subject">FLA Subject</button>
+    <button class="nav-btn nav-feedback" id="open-feedback-nav">Feedback</button>
+  </div>
+</nav>
+
+<!-- ============ HOME PAGE ============ -->
+<main id="page-home" class="page active">
+  <section class="hero">
+    <div class="automaton-wrap">
+      <svg id="tess-rotor" viewBox="0 0 260 200" fill="none">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="rgba(140,160,255,0.6)"/>
+          </marker>
+        </defs>
+        <path id="loopPath" d="M40,160 L130,40 L220,160 Z" fill="none" stroke="none"/>
+        <path class="fla-edge" d="M40,160 L130,40" marker-end="url(#arrowhead)"/>
+        <path class="fla-edge" d="M130,40 L220,160" marker-end="url(#arrowhead)"/>
+        <path class="fla-edge" d="M220,160 L40,160" marker-end="url(#arrowhead)"/>
+        <path class="fla-edge" d="M220,160 C250,120 250,90 222,68" marker-end="url(#arrowhead)"/>
+        <g class="fla-state active"><circle cx="40" cy="160" r="20" stroke="#29e3f2"/><text x="40" y="165">q0</text></g>
+        <g class="fla-state"><circle cx="130" cy="40" r="20" stroke="#4d7dff"/><text x="130" y="45">q1</text></g>
+        <g class="fla-state"><circle cx="220" cy="160" r="20" stroke="#a855f7"/><circle cx="220" cy="160" r="15" stroke="#a855f7"/><text x="220" y="165">q2</text></g>
+        <circle r="6" fill="#ec4899" style="filter:drop-shadow(0 0 8px #ec4899)">
+          <animateMotion dur="4s" repeatCount="indefinite" rotate="0">
+            <mpath href="#loopPath"/>
+          </animateMotion>
+        </circle>
+      </svg>
+    </div>
+    <div class="fla-caption">δ(q0, 1) → q1 · δ(q1, 0) → q2 · ACCEPT</div>
+
+    <div class="eyebrow-line"><span class="dot"></span>Innovate <span class="rule"></span> Intelligent <span class="rule"></span> Impact</div>
+
+    <h1>Master Formal Languages<br>&amp; Automata</h1>
+    <div class="sub">21CSC301T · FLA STUDY HUB</div>
+    <p class="tag">Every PYQ, every predicted question, every priority topic for Unit 1 and Unit 2 — organized, tagged, and ready before your FT-2 on 17-09-2026.</p>
+
+    <div class="cta-row">
+      <button class="btn-primary" data-page="subject">OPEN FLA SUBJECT →</button>
+      <button class="btn-ghost" id="open-feedback-hero">Send Feedback</button>
+    </div>
+
+    <div class="quote-strip">
+      <blockquote id="quote-box">"An automaton doesn't get anxious about the input it hasn't seen yet."<span>— on staying calm before exams</span></blockquote>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <span class="badge">STUDY TOOLKIT</span>
+      <h2>Built for the way you'll actually revise</h2>
+      <p>Everything is sorted by unit, marks weightage and priority — so the last 48 hours before FT-2 are spent on what repeats, not what's rare.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="icon">📚</div>
+        <h3>Unit-wise question bank</h3>
+        <p>Unit 1 (Automata &amp; Regular Languages) and Unit 2 (CFG &amp; Simplification) split cleanly, pulled from Semester PYQs, CT-1 and FT-1 sets.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🎯</div>
+        <h3>Priority tags</h3>
+        <p>Every question is tagged PYQ or Predicted, plus its mark value, so you know what's confirmed and what's a pattern-based forecast.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">👁️</div>
+        <h3>Tap-to-reveal answers</h3>
+        <p>Answers stay hidden until you tap "Show Answer" — test yourself first, then check, the way real recall practice should work.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔥</div>
+        <h3>High-yield ranking</h3>
+        <p>ε-NFA→DFA, DFA minimization, CFG simplification and CNF are flagged high-priority based on how often they've repeated.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🧮</div>
+        <h3>1 / 5 / 8 / 15-mark coverage</h3>
+        <p>From one-line definitions to full 15-mark constructions — filter by the exact mark value you're revising for.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">💬</div>
+        <h3>Direct feedback line</h3>
+        <p>Found an error, or want a topic added? Send feedback straight to the person who built this hub.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="subject-cta">
+      <div>
+        <span class="badge">FT-2 · 17-09-2026</span>
+        <h3>Formal Language &amp; Automata</h3>
+        <p>Unit 1: NFA/DFA, minimization, regular expressions, Moore &amp; Mealy · Unit 2: CFG, derivation trees, simplification, CNF.</p>
+      </div>
+      <button class="btn-primary" data-page="subject">START REVISING →</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-brand">TESSERACT LABS</div>
+    Built by <strong>RAGHUL S</strong> — Tesseract Labs · Innovate · Intelligent · Impact
+  </footer>
+</main>
+
+<!-- ============ SUBJECT PAGE ============ -->
+<main id="page-subject" class="page">
+  <div class="subject-hero">
+    <span class="badge">21CSC301T</span>
+    <h1>Formal Language &amp; Automata</h1>
+    <p>FT-2 question bank — Unit 1 (Automata &amp; Regular Languages) and Unit 2 (Context-Free Grammars). Tap "Show Answer" on any card to reveal the solution.</p>
+  </div>
+
+  <div class="unit-tabs">
+    <button class="unit-tab active" data-unit="1">Unit 1 — Automata &amp; RE</button>
+    <button class="unit-tab" data-unit="2">Unit 2 — CFG &amp; Simplification</button>
+  </div>
+
+  <div class="filter-row" id="filter-row">
+    <button class="filter-chip active" data-filter="all">All</button>
+    <button class="filter-chip" data-filter="pyq">PYQ only</button>
+    <button class="filter-chip" data-filter="pred">Predicted only</button>
+    <button class="filter-chip" data-filter="1">1 mark</button>
+    <button class="filter-chip" data-filter="5">5 mark</button>
+    <button class="filter-chip" data-filter="8">8 mark</button>
+    <button class="filter-chip" data-filter="15">15 mark</button>
+    <button class="filter-chip" data-filter="high">High priority 🔥</button>
+  </div>
+
+  <div id="unit-1" class="unit-panel active">
+    <div class="qa-list" id="qa-list-1"></div>
+  </div>
+  <div id="unit-2" class="unit-panel">
+    <div class="qa-list" id="qa-list-2"></div>
+  </div>
+
+  <footer>
+    <div class="foot-brand">TESSERACT LABS</div>
+    Built by <strong>RAGHUL S</strong> — Tesseract Labs · Innovate · Intelligent · Impact
+  </footer>
+</main>
+
+<script>
+/* ============ NAVIGATION ============ */
+document.querySelectorAll('[data-page]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const target = el.getAttribute('data-page');
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+target).classList.add('active');
+    document.querySelectorAll('.nav-btn[data-page]').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn[data-page="'+target+'"]').forEach(b=>b.classList.add('active'));
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+/* ============ FEEDBACK (opens shared Google Form) ============ */
+function openFeedback(){ window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank'); }
+document.getElementById('open-feedback-nav').addEventListener('click', openFeedback);
+document.getElementById('open-feedback-hero').addEventListener('click', openFeedback);
+
+/* ============ ROTATING QUOTES ============ */
+const quotes = [
+  ['"An automaton doesn\'t get anxious about the input it hasn\'t seen yet."', 'on staying calm before exams'],
+  ['"Every NFA has a DFA hiding inside it — you just have to do the subset work."', 'on trusting the process'],
+  ['"A language is regular until proven otherwise. Assume less, prove more."', 'on rigor'],
+  ['"Minimize your DFA, not your effort."', 'on exam prep'],
+  ['"Ambiguity in a grammar is a bug. Ambiguity in your revision plan is worse."', 'on planning'],
+  ['"CNF doesn\'t simplify itself. Neither does your syllabus."', 'on discipline'],
+  ['"The Moore machine remembers where it\'s been. So should you, on exam day."', 'on preparation'],
+];
+let qi = 0;
+const quoteBox = document.getElementById('quote-box');
+function showQuote(){
+  const [text, tag] = quotes[qi % quotes.length];
+  quoteBox.style.animation = 'none';
+  void quoteBox.offsetWidth;
+  quoteBox.innerHTML = text + '<span>— ' + tag + '</span>';
+  quoteBox.style.animation = 'quotefade 6s ease-in-out both';
+  qi++;
+}
+showQuote();
+setInterval(showQuote, 6000);
+
+/* ============ TESSERACT ROTATION (mouse parallax) ============ */
+const rotor = document.getElementById('tess-rotor');
+let angle = 0;
+function animateRotor(){
+  angle += 0.25;
+  if(rotor){
+    rotor.style.transformOrigin = '130px 100px';
+    rotor.style.transform = 'rotate(' + Math.sin(angle*0.02)*4 + 'deg) scale(' + (1+Math.sin(angle*0.02)*0.02) + ')';
+  }
+  requestAnimationFrame(animateRotor);
+}
+animateRotor();
+
+/* ============ PARTICLE CANVAS ============ */
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+const COLORS = ['#29e3f2', '#4d7dff', '#a855f7', '#ec4899'];
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function initParticles(){
+  const count = Math.min(80, Math.floor((W*H)/22000));
+  particles = [];
+  for(let i=0;i<count;i++){
+    particles.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.35,
+      vy: (Math.random()-0.5)*0.35,
+      r: Math.random()*1.6 + 0.6,
+      c: COLORS[Math.floor(Math.random()*COLORS.length)]
+    });
+  }
+}
+initParticles();
+window.addEventListener('resize', initParticles);
+
+function tickParticles(){
+  ctx.clearRect(0,0,W,H);
+  for(const p of particles){
+    p.x += p.vx; p.y += p.vy;
+    if(p.x < 0 || p.x > W) p.vx *= -1;
+    if(p.y < 0 || p.y > H) p.vy *= -1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.c;
+    ctx.globalAlpha = 0.7;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const maxDist = 130;
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const a = particles[i], b = particles[j];
+      const dx = a.x-b.x, dy = a.y-b.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist < maxDist){
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = 'rgba(120,150,255,' + (0.12*(1-dist/maxDist)) + ')';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(tickParticles);
+}
+tickParticles();
+
+/* ============ QUESTION DATA ============ */
+const DATA = {
+  1: [
+    {m:1, tag:'pyq', pr:false, q:'Write the regular expression for the language over {1} having odd length.', a:'RE: 1(11)*\nExamples: 1, 111, 11111, ...\n(Nov 2023 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Which regular expression identity is genuine — verify (x+y)* = (x*y*)*.', a:'True. (x+y)* = (x*y*)* is a valid RE identity.\n(Jul 2024 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Find the RE for L = {x in {0,1}* | x starts with 1 and ends with 0}.', a:'RE: 1(0+1)*0\n(Jul 2024 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Are (ab)* and a*b* equivalent regular expressions?', a:'No. Counter-example: aabb ∈ a*b* but aabb ∉ (ab)*. So they represent different languages.\n(May 2025 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Which statement is true about DFA and NFA in terms of expressive power?', a:'DFA and NFA have the same expressive power. Every NFA has an equivalent DFA (subset construction), though the DFA may need exponentially more states.\n(Nov 2023 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:false, q:'What is the expressive power of NFA compared to ε-NFA?', a:'Same. Both recognize exactly the class of regular languages.\n(May 2025 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:true, q:'An NFA has 6 states. What is the maximum possible number of states in the DFA obtained via subset construction?', a:'2^n for n=6 → 2^6 = 64 states.\n(2026 FT-1 pattern — very likely repeat)'},
+    {m:1, tag:'pyq', pr:false, q:'What is ε-closure of a state?', a:'The set of all states reachable from that state using only ε-transitions (zero or more). Do not follow normal input-symbol transitions.\n(CT-1 PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'What is a language L over alphabet Σ, formally?', a:'L ⊆ Σ*, i.e., any subset of the set of all finite strings over Σ.\n(2026 FT-1 Set B)'},
+    {m:1, tag:'pyq', pr:false, q:'For a DFA transition δ(q,a) = r, what is r?', a:'A single, unique next state (exactly one) — this is what distinguishes DFA from NFA.\n(2026 FT-1 Set B)'},
+    {m:1, tag:'pyq', pr:false, q:'Give the formal transition functions for DFA and NFA.', a:'DFA: δ: Q × Σ → Q (exactly one next state)\nNFA: δ: Q × Σ → 2^Q (a set of possible next states)\n(2026 FT-1 pattern)'},
+    {m:1, tag:'pyq', pr:false, q:'An NFA accepts a string if... (choose correct definition)', a:'At least one computation path on that string ends in a final/accepting state (not every path needs to accept).\n(2026 FT-1 Set A)'},
+    {m:1, tag:'pyq', pr:false, q:'If L1 and L2 are regular languages, is L1L2 (concatenation) regular?', a:'Yes — always regular. Regular languages are closed under concatenation, union and intersection.\n(2026 FT-1 Set D/G)'},
+    {m:1, tag:'pyq', pr:false, q:'What is Σ* and Σ+ for Σ = {0,1}?', a:'Σ* = all finite strings over {0,1}, including the empty string ε.\nΣ+ = all non-empty finite strings over {0,1} (Σ* minus ε).\n(2026 FT-1 pattern)'},
+    {m:1, tag:'pyq', pr:false, q:'Minimum number of DFA states needed for L = {w ∈ {0,1}* : |w| is even}?', a:'2 states — one for even-length-so-far, one for odd-length-so-far.\n(2026 FT-1 Set D)'},
+    {m:1, tag:'pyq', pr:false, q:'What is a Two-Way Finite Automaton (2-WFA)? Is it more powerful than a one-way FA?', a:'A 2-WFA has a read head that can move both Left and Right (δ(q,a) = (p,b,D), D ∈ {L,R}) instead of only right.\nIt is NOT more powerful — a 2-WFA recognizes exactly the class of regular languages, same as an ordinary FA.\n(1-mark bank + Unit 1 portion)'},
+    {m:1, tag:'pyq', pr:false, q:'Where is Moore machine output written? Where is Mealy machine output written?', a:'Moore: output is written inside/associated with each state (depends only on present state).\nMealy: output is written on each transition (depends on present state AND input symbol).'},
+    {m:5, tag:'pyq', pr:true, q:'Minimize the number of states of a given DFA using the partition/table-filling method.', a:'Algorithm:\n1) Remove unreachable states.\n2) Initial partition P0 = {F, Q−F} (final vs non-final states).\n3) For each state, check where its transitions land under every input symbol; if two states in the same block go to different blocks, split them.\n4) Repeat step 3 until no further splitting occurs (Pi = Pi+1).\n5) Each remaining equivalence class becomes a single state in the minimized DFA.\n6) Draw the minimized DFA and transition table.\n(CT-1 PYQ, 5 marks — VERY HIGH priority, also appeared 2024 & 2025 Semester)'},
+    {m:5, tag:'pyq', pr:true, q:'Construct a Moore machine that prints "a" whenever the sequence 01 is encountered in any input binary string.', a:'States: q0 (no useful prefix seen), q1 (last symbol was 0), q2 (01 just detected).\n\nTransition/Output table:\n→q0 : on 0→q1, on 1→q0, output ε\nq1  : on 0→q1, on 1→q2, output ε\nq2  : on 0→q1, on 1→q0, output a\n\nWhenever the machine reaches q2 (i.e., reads ...0 then 1), it outputs "a".\n(CT-1 PYQ, 5 marks — VERY HIGH priority)'},
+    {m:5, tag:'pyq', pr:true, q:'A username must start with "a", contain any combination of a and b, and end with "b". Construct the RE and an NFA for this language.', a:'RE: a(a+b)*b\n\nNFA:\nq0 --a--> q1\nq1 --a--> q1\nq1 --b--> q1\nq1 --b--> q2 (final)\n\nThis is nondeterministic because δ(q1, b) = {q1, q2} — two possible next states for the same input.\n(CT-1 PYQ, 5 marks — VERY HIGH priority)'},
+    {m:5, tag:'pyq', pr:false, q:'Differentiate DFA and NFA with respect to string acceptance, and construct a DFA for strings containing "ab" as a substring.', a:'DFA acceptance: the single deterministic computation path must end in a final state.\nNFA acceptance: at least one of the possible computation paths must end in a final state.\n\nDFA for "contains ab": states track progress — q0 (nothing useful), q1 (last symbol was a), q2 (ab seen, final/trap-continue). Once ab is seen, stay in the accepting state regardless of further input.\n(2026 FT-1 Set C pattern)'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Construct an NFA for strings containing 101 as a substring, and explain why it is an NFA and not a DFA.', a:'q0 --1--> {q0, q1}\nq1 --0--> q2\nq2 --1--> q3 (final)\n\nIt is an NFA because δ(q0, 1) = {q0, q1} has more than one possible next state for the same input symbol.'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Construct a DFA accepting all strings over {0,1} ending with 101.', a:'Track the longest useful suffix seen so far:\nq0: no useful suffix\nq1: last symbol seen matches "1"\nq2: last two symbols match "10"\nq3 (final): last three symbols match "101"\nCarefully redirect on mismatches to preserve overlapping suffixes (standard string-matching DFA construction).'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Compare Moore and Mealy machines (differences table).', a:'Moore vs Mealy:\n• Output depends on: state only (Moore) vs state + input (Mealy)\n• Output location: on the state (Moore) vs on the transition (Mealy)\n• Number of states: usually more (Moore) vs usually fewer (Mealy)\n• Output timing: changes only after a state transition (Moore) vs can respond immediately to input (Mealy)\n• Output function: λ:Q→Δ (Moore) vs λ:Q×Σ→Δ (Mealy)\nBoth have equivalent computational power — every Moore machine has an equivalent Mealy machine and vice versa.'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] Find the RE for strings over {0,1} containing exactly two 1s.', a:'RE: 0*10*10*'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] Find the RE for strings starting with 0 and ending with 1.', a:'RE: 0(0+1)*1'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] Explain the Two-Way Finite Automaton and state its relationship to standard FA in terms of power.', a:'A 2-way FA\'s head can move Left or Right: δ(q,a) = (p,b,D). Despite the extra movement freedom, a 2-WFA recognizes exactly the regular languages — same expressive power as a one-way FA.'},
+    {m:8, tag:'pyq', pr:true, q:'Construct a DFA equivalent to a given NFA using subset construction. (Given an NFA transition table.)', a:'Subset construction algorithm:\n1) DFA states = subsets of NFA states, Q_D ⊆ 2^(Q_N).\n2) Start state = {q0} (or ε-closure(q0) if ε-transitions exist).\n3) For every DFA state S and symbol a: δ_D(S,a) = ∪ (over q in S) δ_N(q,a).\n4) Continue generating new subsets until no new ones appear.\n5) A subset S is a final DFA state if S ∩ F_N ≠ ∅ (contains at least one NFA final state).\n6) Draw the DFA transition table/diagram; state L(DFA) = L(NFA).\n(Nov 2023 Semester PYQ, 8 marks — one of the strongest repeated questions)'},
+    {m:8, tag:'pyq', pr:true, q:'Construct a minimized DFA for the regular expression: 10 + (0 + 11)0*1', a:'Steps: build the DFA for the RE, identify final states, remove unreachable states, then partition into F / Q−F and refine by transition destinations until stable, merging equivalent states.\nFor this RE, the minimized DFA has 5 states.\nSample transition table (q1 = start, q0 = final, q2 = dead state):\n→q1: 0→q3, 1→q4\nq3: 0→q3, 1→q0\nq4: 0→q0, 1→q3\n*q0: 0→q2, 1→q2\nq2: 0→q2, 1→q2\nMinimum states = 5.\n(Jul 2024 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pyq', pr:true, q:'Compare and contrast Moore and Mealy machines, and construct a Moore machine that computes divisibility of a binary number by 3.', a:'Comparison table: see the Moore vs Mealy 5-mark answer above.\n\nDivisibility by 3 (Moore machine): let states q0, q1, q2 represent remainder 0, 1, 2. Reading bit b when current remainder is r moves to remainder r_new = (2r + b) mod 3.\nFrom q0: 0→q0, 1→q1\nFrom q1: 0→q2, 1→q0\nFrom q2: 0→q1, 1→q2\nq0 is the accepting/output state (remainder 0 = divisible by 3).\n(May 2025 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pyq', pr:true, q:'Simplify the grammar: S→AB, A→a, B→b, B→C, E→C|ε. Find the simplified grammar and the language generated.', a:'E is unreachable from S (never appears in any derivation starting at S).\nC is non-generating (no production leads only to terminals).\nRemove both.\nSimplified grammar: S→AB, A→a, B→b\nLanguage: L(G) = {ab}\n(Nov 2023 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pyq', pr:true, q:'Simplify the grammar: S→aaA|aBB, A→aaA|ε, B→bB|bbC, C→B. Find the simplified grammar and the language generated.', a:'A is nullable (A ⇒ ε).\nB and C are non-generating — B and C only ever produce more B/C, never terminate in terminals alone. Remove B and C.\nRemaining: S→aaA, A→aaA|ε\nEquivalent simplified grammar (removing the nullable ε directly): S→aaA|aa, A→aaA|aa\nLanguage: L(G) = {a^(2n) | n ≥ 1}\n(May 2025 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pred', pr:true, q:'[Predicted] Convert the following ε-NFA to an equivalent DFA using ε-closure and subset construction.', a:'Algorithm:\n1) Compute ε-closure(q0); this is the DFA start state.\n2) For each DFA state S and input symbol a: δ_D(S,a) = ε-closure(move(S,a)).\n3) Repeat until no new subsets are generated.\n4) Any subset containing an NFA final state becomes a DFA final state.\n5) Draw the full DFA transition table and diagram.\n(Matches CT-1\'s 10-mark ε-NFA→DFA question, scaled to 8 marks)'},
+    {m:8, tag:'pred', pr:false, q:'[Predicted] Explain ambiguous grammar with an example.', a:'A CFG G is ambiguous if some string w ∈ L(G) has two or more distinct leftmost derivations (equivalently, two distinct parse trees).\nClassic example: E→E+E | E*E | id. For the string id+id*id, more than one parse tree exists (grouping the + first or the * first), so the grammar is ambiguous.'},
+    {m:15, tag:'pyq', pr:true, q:'[Semester-style, expandable to 15 marks] Convert the regular expressions below to NFA using Thompson\'s construction: (a) a*b(a+b)*  (b) (a+b)c  (c) 0*1+10  (d) 10+(0+11)0*1', a:'Thompson\'s construction rules:\n• For R = a: create q0 --a--> q1.\n• Union R1+R2: new start state with ε-transitions to both R1 and R2 start states; both accept states get ε-transitions to a new common final state.\n• Concatenation R1R2: connect the final state of R1 to the start state of R2 via an ε-transition.\n• Kleene star R*: add a new start/final pair with ε-transitions allowing zero occurrences (skip) or looping back for one-or-more occurrences.\nApply these rules step by step to each of the four expressions, building up from the smallest sub-expressions.\n(CT-1 PYQ, originally 10 marks — practice all four)'},
+    {m:15, tag:'pred', pr:true, q:'[Predicted, high priority] Given an ε-NFA, construct the equivalent DFA using ε-closure/subset construction, identify the final states, and draw the DFA diagram.', a:'Full method:\nStep 1: Compute ε-closure(q0) → this is the DFA start state.\nStep 2: For each DFA state S and each input symbol a, compute δ_D(S,a) = ε-closure(move(S,a)).\nStep 3: Repeat until no new subsets appear.\nStep 4: Any DFA state (subset) containing an NFA final state becomes a DFA final state.\nStep 5: Draw the complete DFA transition table and state diagram.\nStep 6: State that L(DFA) = L(ε-NFA).\nVery high probability — CT-1 tested this as 10 marks, and 2026 FT-1 repeatedly drills subset construction.'},
+    {m:15, tag:'pred', pr:true, q:'[Predicted, high priority] Minimize a given DFA using the partition/table-filling method and prove the minimized DFA accepts the same language.', a:'1) Remove unreachable states from the start state.\n2) Initial partition: P0 = {F, Q−F}.\n3) Refine: split any block whose states transition to different blocks on some input.\n4) Repeat until partitions stabilize (Pi = Pi+1).\n5) Merge each equivalence class into a single state; redraw transitions between the merged states.\n6) Argument for equivalence: two states are merged only if they are indistinguishable for every possible future input, so the merged DFA accepts exactly the same set of strings as the original.\nVery high probability — appeared in CT-1 and multiple Semester papers.'},
+    {m:15, tag:'pred', pr:false, q:'[Predicted] Given a regular expression, construct an ε-NFA using Thompson\'s construction and then convert it into an equivalent DFA. Example: R = (0+1)*01', a:'Part A — Build via Thompson\'s construction: handle the (0+1) union, apply Kleene star for repetition, then concatenate with 01 at the end, combining sub-machines with ε-transitions.\nPart B — Convert to DFA: compute ε-closures, apply subset construction as in the ε-NFA→DFA method above, and mark final states (any subset containing the ε-NFA\'s final state).\nPart C (optional minimization): apply partition refinement to reduce the DFA to its minimum number of states.\nThis combines two of the most frequently tested construction techniques into one long-answer question.'},
+    {m:15, tag:'pred', pr:false, q:'[Predicted] Construct a Moore machine for a given sequence-detection problem and convert it to an equivalent Mealy machine.', a:'1) Build the Moore machine: define states representing "how much of the target sequence has been matched so far," with the output attached to the state that represents a full match.\n2) Convert to Mealy: for each Moore transition into a state with output o, move that output onto the incoming transition instead of the state, since Mealy output depends on (state, input) rather than state alone.\n3) Verify both machines produce the same output sequence for the same input string (allowing for the usual one-step output-timing difference between Moore and Mealy).'},
+  ],
+  2: [
+    {m:1, tag:'pyq', pr:false, q:'A CFG is ambiguous if...', a:'At least one string in the language has two or more distinct leftmost derivations (equivalently, two or more distinct parse trees).\n(Nov 2023 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:false, q:'What is the Chomsky Normal Form (CNF) production format?', a:'Every production is of the form A→BC or A→a, where A, B, C are variables and a is a terminal (with S→ε allowed only if ε is in the language).\n(Nov 2023 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:false, q:'What is a unit production? What is a null production?', a:'Unit production: A→B, where both A and B are variables.\nNull production: A→ε.'},
+    {m:1, tag:'pyq', pr:false, q:'What is a useless symbol in a CFG?', a:'A symbol that is either non-generating (can never derive a string of terminals) or unreachable (can never be reached from the start symbol S).'},
+    {m:1, tag:'pyq', pr:false, q:'Define a CFG formally.', a:'A CFG is G = (V, T, P, S) where V = variables (non-terminals), T = terminals, P = productions, S = start symbol.\n(May 2024 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:false, q:'A grammar with more than one parse tree for some string is called what?', a:'Ambiguous.\n(May 2024 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:false, q:'Which of the following is NOT a standard CFG simplification procedure: (a) removal of ε-productions (b) removal of unit productions (c) removal of useless symbols (d) removal of non-reachable states?', a:'"Removal of non-reachable states" is a DFA/automaton concept, not a CFG simplification step — the correct CFG simplification steps are removing null productions, unit productions, and useless symbols.\n(May 2024 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:false, q:'What do internal nodes and leaves of a derivation (parse) tree represent?', a:'Internal nodes represent non-terminals (variables); leaves represent terminals (and possibly ε).'},
+    {m:1, tag:'pyq', pr:false, q:'Define leftmost derivation and rightmost derivation.', a:'Leftmost derivation (LMD): at every step, replace the leftmost non-terminal first.\nRightmost derivation (RMD): at every step, replace the rightmost non-terminal first.'},
+    {m:1, tag:'pyq', pr:false, q:'Given S→aAB, A→a, B→b, is this in CNF? Which production breaks the rule?', a:'No. S→aAB has three symbols on the right side (a terminal plus two variables) — CNF only allows A→BC (two variables) or A→a (a single terminal).'},
+    {m:5, tag:'pyq', pr:true, q:'Check whether the following grammar is in CNF: S→bA|aB, A→bAA|aS|a, B→bBB|bS|b. Justify.', a:'Not in CNF. For example, S→bA mixes a terminal with a variable on the right-hand side, and A→bAA has a terminal followed by two variables — both violate the CNF requirement that every production be exactly A→BC or A→a.\n(Nov 2023 Semester PYQ, 4–5 marks)'},
+    {m:5, tag:'pyq', pr:false, q:'Define null, unit, and useless productions with one example each.', a:'Null production: A→ε (example: A→ε).\nUnit production: A→B where A, B are both variables (example: B→C).\nUseless symbol: a variable that is either non-generating (e.g., C→C with no terminal-only rule) or unreachable from S.'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Convert a small CFG (e.g., S→aAB, A→a, B→b) into Chomsky Normal Form.', a:'Introduce a new variable for the terminal: X→a, rewrite S→XAB.\nStill 3 symbols, so introduce another variable for a pair: Y→AB, rewrite S→XY.\nFinal CNF grammar: S→XY, Y→AB, X→a, A→a, B→b — every rule is now A→BC or A→a.'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Explain ambiguous grammar with an example and show two different derivations/parse trees.', a:'Grammar: E→E+E | E*E | id.\nFor string id+id*id, one derivation groups the "+" operation first, another groups the "*" first — producing two different parse trees for the same string. Since a single string has more than one parse tree, the grammar is ambiguous.'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] What is the general algorithm to remove null productions from a CFG?', a:'1) Find all nullable variables (A is nullable if A→ε directly, or A can derive ε through other nullable variables).\n2) For every production containing one or more nullable variables, add new versions of that production with each nullable variable independently omitted (in every combination), while never re-adding a bare ε production unless the start symbol itself must generate ε.\n3) Remove the original ε-productions once all combinations are captured.'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] What is the general algorithm to remove unit productions from a CFG?', a:'1) Find all unit pairs (A,B) such that A ⇒* B using only unit productions.\n2) For each such pair, if B→α is a non-unit production, add A→α directly.\n3) Delete all original unit productions once their effects have been copied over.'},
+    {m:8, tag:'pyq', pr:true, q:'Given S→AB, A→a, B→C|b, C→D, D→E, E→a — remove unit productions and simplify the grammar.', a:'Unit production chain: B⇒C⇒D⇒E, and E→a (non-unit).\nSo replace the whole chain: B→a|b (inherits E\'s non-unit production plus its own b).\nFinal simplified grammar: S→AB, A→a, B→a|b.\n(May 2025 Semester PYQ, part of a 15-mark question)'},
+    {m:8, tag:'pyq', pr:true, q:'Given a CFG and a string derived from it (e.g. S→a|(T), T→T,S|S), find the leftmost derivation, rightmost derivation, and parse tree.', a:'Leftmost derivation: at each step expand the leftmost non-terminal only.\nRightmost derivation: at each step expand the rightmost non-terminal only.\nParse tree: draw S as the root, branching according to whichever production was applied at each derivation step, with terminals as leaves.\nBoth derivations should yield the same parse tree for an unambiguous string (different orders of expansion, same tree shape).\n(Nov 2023 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pred', pr:true, q:'[Predicted, high priority] Simplify the given CFG by eliminating null productions, unit productions, and useless symbols. State the language generated.', a:'Standard order:\n1) Identify nullable variables → eliminate null (ε) productions by adding the appropriate combinations.\n2) Eliminate unit productions by substituting the target\'s non-unit productions.\n3) Remove non-generating symbols (variables that can never produce a pure terminal string).\n4) Remove unreachable symbols (variables never reached from S).\n5) State the resulting language based on what remains.\nThis exact combined pattern appeared in the 2023 and 2025 Semester papers.'},
+    {m:8, tag:'pred', pr:true, q:'[Predicted, high priority] Convert a given CFG into Chomsky Normal Form (CNF), showing all intermediate steps.', a:'1) Add a new start symbol if S appears on the right of any production.\n2) Eliminate null productions.\n3) Eliminate unit productions.\n4) Eliminate useless symbols.\n5) Replace terminals that appear alongside variables in a production with new variables (A_x→x).\n6) Break down productions with more than 2 variables on the right into a chain of binary productions.\nEnd with every rule in the form A→BC or A→a.'},
+    {m:15, tag:'pyq', pr:true, q:'[Semester-style] Simplify a CFG by removing unit productions (S→AB, A→a, B→C|b, C→D, D→E, E→a) as part of a larger simplification question. What does the fully simplified grammar look like?', a:'From the unit-production chain B⇒C⇒D⇒E and E→a, replace B\'s unit productions: B→a|b.\nFully simplified: S→AB, A→a, B→a|b (assuming C, D, E become unreachable/unused once their non-unit production is folded into B, they can also be dropped entirely).\n(May 2025 Semester PYQ — a strong 15-mark candidate as a combined unit+null+useless elimination question)'},
+    {m:15, tag:'pred', pr:true, q:'[Predicted, top priority] Simplify the following CFG by eliminating null productions, unit productions and useless symbols, then convert the resulting grammar into Chomsky Normal Form.', a:'Full combined procedure:\nStage 1 — Find nullable variables, eliminate ε-productions (adding all necessary combinations).\nStage 2 — Find unit pairs, eliminate unit productions by substitution.\nStage 3 — Remove non-generating variables (can\'t reach a terminal-only string).\nStage 4 — Remove unreachable variables (can\'t be reached from S).\nStage 5 — Convert the fully simplified grammar into CNF: introduce variables for lone terminals mixed with variables, and break 3+ symbol right-hand sides into chains of binary productions (A→BC or A→a).\nThis is the single strongest 15-mark prediction — CFG simplification and CNF both repeat heavily across the 2023, 2024 and 2025 Semester papers.'},
+    {m:15, tag:'pred', pr:false, q:'[Predicted] Given a CFG, find the leftmost derivation, rightmost derivation, and parse tree for a given string, and determine whether the grammar is ambiguous.', a:'1) Write out the grammar\'s productions.\n2) Perform the leftmost derivation for the target string, step by step.\n3) Perform the rightmost derivation for the same string, step by step.\n4) Draw the parse tree for each derivation.\n5) Attempt to find a second, structurally different parse tree for the same string.\n6) Conclusion: if two distinct parse trees exist for the same string, the grammar is ambiguous; otherwise, for this string, no ambiguity is demonstrated (ambiguity is a property of the grammar, so ideally check with a few different strings).'},
+  ]
+};
+
+const PRIORITY_HIGH = new Set([
+  'Minimize the number of states of a given DFA using the partition/table-filling method.',
+  'Construct a Moore machine that prints "a" whenever the sequence 01 is encountered in any input binary string.',
+  'A username must start with "a", contain any combination of a and b, and end with "b". Construct the RE and an NFA for this language.',
+  'Construct a DFA equivalent to a given NFA using subset construction. (Given an NFA transition table.)',
+  'Construct a minimized DFA for the regular expression: 10 + (0 + 11)0*1',
+  'Compare and contrast Moore and Mealy machines, and construct a Moore machine that computes divisibility of a binary number by 3.',
+  'Simplify the grammar: S→AB, A→a, B→b, B→C, E→C|ε. Find the simplified grammar and the language generated.',
+  'Simplify the grammar: S→aaA|aBB, A→aaA|ε, B→bB|bbC, C→B. Find the simplified grammar and the language generated.',
+  "[Predicted, high priority] Given an ε-NFA, construct the equivalent DFA using ε-closure/subset construction, identify the final states, and draw the DFA diagram.",
+  "[Predicted, high priority] Minimize a given DFA using the partition/table-filling method and prove the minimized DFA accepts the same language.",
+  "[Predicted, high priority] Simplify the given CFG by eliminating null productions, unit productions, and useless symbols. State the language generated.",
+  "[Predicted, high priority] Convert a given CFG into Chomsky Normal Form (CNF), showing all intermediate steps.",
+  "[Predicted, top priority] Simplify the following CFG by eliminating null productions, unit productions and useless symbols, then convert the resulting grammar into Chomsky Normal Form.",
+  "Check whether the following grammar is in CNF: S→bA|aB, A→bAA|aS|a, B→bBB|bS|b. Justify.",
+]);
+
+let currentUnit = '1';
+let currentFilter = 'all';
+
+function cardMatchesFilter(item, filter){
+  if(filter === 'all') return true;
+  if(filter === 'pyq') return item.tag === 'pyq';
+  if(filter === 'pred') return item.tag === 'pred';
+  if(filter === 'high') return PRIORITY_HIGH.has(item.q);
+  return String(item.m) === filter;
+}
+
+function renderUnit(unit){
+  const list = document.getElementById('qa-list-' + unit);
+  list.innerHTML = '';
+  DATA[unit].filter(item => cardMatchesFilter(item, currentFilter)).forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'qa-card';
+    const isHigh = PRIORITY_HIGH.has(item.q);
+    card.innerHTML = `
+      <div class="qa-tags">
+        <span class="tag marks">${item.m} MARK${item.m>1?'S':''}</span>
+        <span class="tag ${item.tag}">${item.tag === 'pyq' ? 'PYQ' : 'PREDICTED'}</span>
+        ${isHigh ? '<span class="tag high">HIGH PRIORITY 🔥</span>' : ''}
+      </div>
+      <div class="qa-q">${item.q}</div>
+      <button class="ans-btn">Show Answer</button>
+      <div class="qa-answer">${item.a.replace(/\\n/g,'<br>')}</div>
+    `;
+    const btn = card.querySelector('.ans-btn');
+    const ans = card.querySelector('.qa-answer');
+    btn.addEventListener('click', ()=>{
+      const isOpen = ans.classList.toggle('show');
+      btn.textContent = isOpen ? 'Hide Answer' : 'Show Answer';
+    });
+    list.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.unit-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.unit-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    currentUnit = tab.getAttribute('data-unit');
+    document.querySelectorAll('.unit-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('unit-' + currentUnit).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.filter-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter = chip.getAttribute('data-filter');
+    renderUnit('1'); renderUnit('2');
+  });
+});
+
+renderUnit('1');
+renderUnit('2');
+</script>
+
+<!-- ===== Tesseract Labs shared chrome: countdown + feedback ===== -->
+<div class="tlx-chrome" id="tlx-chrome">
+  <div class="tlx-timer" id="tlx-timer">⏳ --</div>
+  <button class="tlx-fb" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank')">💬 Feedback</button>
+</div>
+<style>
+  .tlx-chrome{ position:fixed; bottom:16px; right:16px; z-index:999; display:flex; gap:8px; align-items:center; font-family:'JetBrains Mono', monospace; flex-wrap:wrap; justify-content:flex-end; max-width:70vw; }
+  .tlx-chrome .tlx-timer, .tlx-chrome .tlx-fb{
+    background:rgba(8,10,20,0.85); backdrop-filter:blur(8px); border:1px solid rgba(140,160,255,0.28);
+    color:#eaf1ff; font-size:11px; letter-spacing:.4px; padding:9px 14px; border-radius:20px;
+    white-space:nowrap; box-shadow:0 4px 18px rgba(0,0,0,0.35);
+  }
+  .tlx-timer{ color:#ffce54; border-color:rgba(255,206,84,0.4); }
+  .tlx-fb{ cursor:pointer; font-family:inherit; }
+  .tlx-fb:hover{ border-color:#ec4899; color:#ffd4ea; }
+  @media (max-width:560px){ .tlx-chrome{ left:10px; right:10px; bottom:10px; justify-content:center; } }
+</style>
+<script>
+(function(){
+  var target = new Date("2026-09-17T09:00:00").getTime();
+  var el = document.getElementById('tlx-timer');
+  function tick(){
+    var diff = target - Date.now();
+    if(diff <= 0){ el.textContent = '🎯 FT day is here!'; return; }
+    var d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
+        m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+    el.textContent = '⏳ FT-2 in ' + d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

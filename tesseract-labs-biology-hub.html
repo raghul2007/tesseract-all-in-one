@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesseract Labs — Biology Study Hub (21GEO105T)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #05060d;
+    --bg-2: #0a0d1a;
+    --panel: #0d1122;
+    --panel-2: #10152a;
+    --line: rgba(120,150,255,0.14);
+    --cyan: #29e3f2;
+    --blue: #4d7dff;
+    --violet: #a855f7;
+    --magenta: #ec4899;
+    --text: #eaf1ff;
+    --muted: #8a93b3;
+    --muted-2: #5c6688;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{ font-family:'Orbitron', sans-serif; }
+  ::selection{ background: var(--violet); color:#fff; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  a{ color:inherit; }
+  button{ font-family:inherit; cursor:pointer; }
+
+  /* ---------- background layers ---------- */
+  #particle-canvas{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(80,110,220,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(80,110,220,0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 90%);
+  }
+  .vignette{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(77,125,255,0.10), transparent 60%),
+                radial-gradient(ellipse 50% 40% at 100% 100%, rgba(236,72,153,0.08), transparent 60%);
+  }
+
+  /* ---------- top nav ---------- */
+  .topnav{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 5vw;
+    background:rgba(5,6,13,0.72);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Orbitron', sans-serif; font-weight:700; letter-spacing:0.5px;
+    font-size:15px;
+  }
+  .brand .mark{ width:22px; height:22px; }
+  .brand small{ display:block; font-family:'Inter'; font-weight:500; color:var(--muted); font-size:9.5px; letter-spacing:2.5px; }
+  .nav-links{ display:flex; gap:6px; align-items:center; }
+  .nav-btn{
+    background:transparent; border:1px solid transparent; color:var(--muted);
+    padding:8px 16px; border-radius:8px; font-size:13.5px; font-weight:500;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  .nav-btn:hover{ color:var(--text); border-color:var(--line); background:rgba(255,255,255,0.03); }
+  .nav-btn.active{ color:var(--cyan); border-color:rgba(41,227,242,0.3); background:rgba(41,227,242,0.06); }
+  .nav-feedback{
+    border:1px solid rgba(236,72,153,0.4); color:#ffd4ea;
+    background:linear-gradient(180deg, rgba(236,72,153,0.14), rgba(236,72,153,0.04));
+  }
+
+  .page{ display:none; position:relative; z-index:1; }
+  .page.active{ display:block; animation: pagein .5s ease both; }
+  @keyframes pagein{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height: 92vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding: 60px 6vw 40px;
+    position:relative;
+  }
+  .hero-cube-wrap{
+    width: 260px; height:260px; margin-bottom: 18px;
+    perspective: 1000px;
+  }
+  .hero-cube-wrap svg{ width:100%; height:100%; filter: drop-shadow(0 0 22px rgba(77,125,255,0.35)); animation: floaty 6s ease-in-out infinite; }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-14px);} }
+
+  /* ---------- DNA helix hero animation (Biology) ---------- */
+  .dna-wrap{
+    width:220px; height:260px; margin:0 auto 18px; position:relative;
+    perspective:800px; filter: drop-shadow(0 0 22px rgba(41,227,242,0.25));
+  }
+  .dna-wrap .rung{
+    position:absolute; left:50%; top:calc(var(--i) * 12px);
+    width:150px; height:6px; margin-left:-75px;
+    transform-style:preserve-3d;
+    animation: dna-spin 3.2s linear infinite;
+    animation-delay: calc(var(--i) * -0.16s);
+  }
+  .dna-wrap .rung .bp{
+    position:absolute; top:50%; width:150px; height:2px; margin-top:-1px;
+    background:linear-gradient(90deg, var(--cyan), var(--muted-2) 48%, var(--magenta));
+    opacity:0.85;
+  }
+  .dna-wrap .rung .base{
+    position:absolute; top:50%; width:11px; height:11px; margin-top:-5.5px; border-radius:50%;
+  }
+  .dna-wrap .rung .base.left{ left:-2px; background:var(--cyan); box-shadow:0 0 9px var(--cyan); }
+  .dna-wrap .rung .base.right{ right:-2px; background:var(--magenta); box-shadow:0 0 9px var(--magenta); }
+  @keyframes dna-spin{
+    0%{ transform: rotateY(0deg); }
+    100%{ transform: rotateY(360deg); }
+  }
+  .dna-caption{ text-align:center; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--muted-2); margin-top:-8px; margin-bottom:8px; }
+
+  .eyebrow-line{
+    display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12.5px; letter-spacing:3px; margin-bottom:18px;
+  }
+  .eyebrow-line span.dot{ width:5px; height:5px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); }
+  .eyebrow-line .rule{ width:34px; height:1px; background:linear-gradient(90deg, transparent, var(--muted-2)); }
+
+  .hero h1{
+    font-size: clamp(34px, 6vw, 68px);
+    font-weight:900; margin:0 0 6px; line-height:1.02;
+    letter-spacing: 1px;
+    background: linear-gradient(100deg, #ffffff 10%, #bcd4ff 40%, var(--cyan) 60%, var(--violet) 85%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero .sub{
+    font-family:'Orbitron', sans-serif; font-weight:700; font-size: clamp(16px, 2.4vw, 24px);
+    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--magenta));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom: 18px; letter-spacing:2px;
+  }
+  .hero p.tag{ color:var(--muted); max-width:520px; margin:0 auto 34px; line-height:1.7; font-size:15.5px; }
+
+  .cta-row{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+  .btn-primary{
+    position:relative; border:none; padding:15px 34px; border-radius:12px;
+    font-family:'Orbitron', sans-serif; font-weight:700; font-size:14px; letter-spacing:1px;
+    color:#04060f;
+    background: linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--violet));
+    box-shadow: 0 8px 30px rgba(77,125,255,0.35);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow: 0 12px 34px rgba(168,85,247,0.4); }
+  .btn-ghost{
+    padding:15px 30px; border-radius:12px; font-weight:600; font-size:14px;
+    border:1px solid var(--line); color:var(--text); background:rgba(255,255,255,0.02);
+    transition: border-color .2s, background .2s;
+  }
+  .btn-ghost:hover{ border-color: rgba(168,85,247,0.5); background:rgba(168,85,247,0.06); }
+
+  /* quote strip */
+  .quote-strip{
+    max-width:640px; margin: 56px auto 0; min-height:64px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding: 0 20px;
+  }
+  .quote-strip blockquote{
+    margin:0; font-size:15px; color:#c8d4f5; font-style:italic; line-height:1.6;
+    animation: quotefade 6s ease-in-out infinite;
+  }
+  .quote-strip blockquote span{ display:block; margin-top:8px; font-style:normal; color:var(--muted-2); font-size:12px; letter-spacing:1px; }
+  @keyframes quotefade{ 0%{opacity:0; transform:translateY(6px);} 8%{opacity:1; transform:translateY(0);} 92%{opacity:1;} 100%{opacity:0; transform:translateY(-6px);} }
+
+  /* corner circuit decorations */
+  .circuit{ position:absolute; inset:0; z-index:-1; opacity:0.5; pointer-events:none; }
+
+  /* ---------- SECTIONS on home ---------- */
+  .section{ padding: 70px 6vw; position:relative; z-index:1; }
+  .section-head{ max-width:640px; margin: 0 auto 40px; text-align:center; }
+  .section-head h2{ font-size: clamp(24px,3.4vw,34px); margin:0 0 10px; }
+  .section-head p{ color:var(--muted); font-size:14.5px; line-height:1.7; margin:0; }
+
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr));
+    gap:18px; max-width:1100px; margin:0 auto;
+  }
+  .feature-card{
+    background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:14px; padding:26px 22px;
+    transition: transform .25s, border-color .25s;
+  }
+  .feature-card:hover{ transform:translateY(-5px); border-color: rgba(41,227,242,0.35); }
+  .feature-card .icon{
+    width:40px; height:40px; border-radius:10px; margin-bottom:16px;
+    display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, rgba(41,227,242,0.18), rgba(168,85,247,0.18));
+    border:1px solid var(--line);
+  }
+  .feature-card h3{ font-size:16px; margin:0 0 8px; font-family:'Inter'; font-weight:700; }
+  .feature-card p{ font-size:13.5px; color:var(--muted); line-height:1.6; margin:0; }
+
+  .subject-cta{
+    max-width:920px; margin:0 auto; border-radius:20px; padding:44px 6vw;
+    background: radial-gradient(circle at 20% 20%, rgba(41,227,242,0.14), transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(236,72,153,0.14), transparent 55%),
+                var(--panel);
+    border:1px solid var(--line);
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:24px;
+  }
+  .subject-cta h3{ margin:0 0 8px; font-size:22px; }
+  .subject-cta p{ margin:0; color:var(--muted); font-size:13.5px; max-width:380px; }
+  .badge{
+    display:inline-block; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:1.5px;
+    color:var(--cyan); border:1px solid rgba(41,227,242,0.35); background:rgba(41,227,242,0.08);
+    padding:4px 10px; border-radius:20px; margin-bottom:12px;
+  }
+
+  footer{
+    text-align:center; padding: 40px 6vw 50px; color:var(--muted-2); font-size:12.5px;
+    border-top:1px solid var(--line); position:relative; z-index:1;
+  }
+  footer .foot-brand{ color:var(--muted); font-family:'Orbitron'; font-size:12px; letter-spacing:1.5px; margin-bottom:6px; }
+
+  /* ---------- SUBJECT PAGE ---------- */
+  .subject-hero{
+    padding: 46px 6vw 20px; text-align:center;
+  }
+  .subject-hero h1{ font-size: clamp(26px,4vw,40px); margin:0 0 10px; }
+  .subject-hero p{ color:var(--muted); max-width:600px; margin:0 auto; font-size:14px; line-height:1.7; }
+
+  .unit-tabs{
+    display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin: 28px 0 8px; padding: 0 6vw;
+  }
+  .unit-tab{
+    padding:11px 22px; border-radius:10px; border:1px solid var(--line); background:var(--panel);
+    color:var(--muted); font-weight:600; font-size:13.5px; transition: all .2s;
+  }
+  .unit-tab.active{ color:#04060f; background:linear-gradient(100deg, var(--cyan), var(--violet)); border-color:transparent; }
+
+  .filter-row{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin: 18px 0 34px; padding:0 6vw;
+  }
+  .filter-chip{
+    padding:7px 14px; border-radius:20px; border:1px solid var(--line); background:transparent;
+    color:var(--muted); font-size:12px; font-weight:500; transition:all .2s;
+  }
+  .filter-chip.active{ color:var(--cyan); border-color:rgba(41,227,242,0.45); background:rgba(41,227,242,0.08); }
+
+  .qa-list{ max-width:880px; margin:0 auto; padding: 0 6vw 70px; display:flex; flex-direction:column; gap:14px; }
+  .qa-card{
+    border:1px solid var(--line); background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    border-radius:14px; padding:20px 22px; transition: border-color .2s;
+  }
+  .qa-card:hover{ border-color: rgba(120,150,255,0.3); }
+  .qa-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .tag{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.5px;
+    padding:3px 9px; border-radius:6px; border:1px solid var(--line); color:var(--muted);
+  }
+  .tag.marks{ color:#bcd4ff; border-color:rgba(77,125,255,0.35); background:rgba(77,125,255,0.08); }
+  .tag.pyq{ color:#ffd4ea; border-color:rgba(236,72,153,0.35); background:rgba(236,72,153,0.08); }
+  .tag.pred{ color:#d7ffe0; border-color:rgba(80,220,140,0.35); background:rgba(80,220,140,0.08); }
+  .tag.high{ color:#ffd48a; border-color:rgba(255,180,80,0.4); background:rgba(255,180,80,0.08); }
+  .qa-q{ font-size:15px; font-weight:600; line-height:1.55; margin-bottom:12px; }
+  .ans-btn{
+    border:1px solid rgba(41,227,242,0.4); color:var(--cyan); background:rgba(41,227,242,0.06);
+    padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:700; letter-spacing:0.5px;
+  }
+  .ans-btn:hover{ background:rgba(41,227,242,0.14); }
+  .qa-answer{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);
+    color:#cdd8f7; font-size:13.8px; line-height:1.75; display:none; white-space:pre-line;
+  }
+  .qa-answer.show{ display:block; animation: revealans .3s ease both; }
+  @keyframes revealans{ from{ opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+
+  .unit-panel{ display:none; }
+  .unit-panel.active{ display:block; }
+
+  @media (max-width: 620px){
+    .topnav{ padding:14px 4vw; }
+    .nav-links{ gap:2px; }
+    .nav-btn{ padding:7px 10px; font-size:12px; }
+    .section, .subject-hero, .qa-list{ padding-left:5vw; padding-right:5vw; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+
+<!-- ============ NAV ============ -->
+<nav class="topnav">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 100 100" fill="none">
+      <polygon points="50,8 90,30 90,70 50,92 10,70 10,30" stroke="url(#navgrad)" stroke-width="4"/>
+      <polygon points="50,30 72,42 72,64 50,76 28,64 28,42" stroke="url(#navgrad2)" stroke-width="4"/>
+      <line x1="50" y1="8" x2="50" y2="30" stroke="#29e3f2" stroke-width="3"/>
+      <line x1="90" y1="30" x2="72" y2="42" stroke="#a855f7" stroke-width="3"/>
+      <line x1="90" y1="70" x2="72" y2="64" stroke="#ec4899" stroke-width="3"/>
+      <line x1="50" y1="92" x2="50" y2="76" stroke="#a855f7" stroke-width="3"/>
+      <line x1="10" y1="70" x2="28" y2="64" stroke="#4d7dff" stroke-width="3"/>
+      <line x1="10" y1="30" x2="28" y2="42" stroke="#29e3f2" stroke-width="3"/>
+      <defs>
+        <linearGradient id="navgrad" x1="0" y1="0" x2="100" y2="100"><stop stop-color="#29e3f2"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+        <linearGradient id="navgrad2" x1="0" y1="0" x2="100" y2="100"><stop stop-color="#4d7dff"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+      </defs>
+    </svg>
+    <div>TESSERACT LABS<small>BIOLOGY STUDY HUB</small></div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-btn" href="index.html">🏠 All Subjects</a>
+    <button class="nav-btn active" data-page="home">Home</button>
+    <button class="nav-btn" data-page="subject">Biology Subject</button>
+    <button class="nav-btn nav-feedback" id="open-feedback-nav">Feedback</button>
+  </div>
+</nav>
+
+<!-- ============ HOME PAGE ============ -->
+<main id="page-home" class="page active">
+  <section class="hero">
+    <div class="dna-wrap" id="tess-rotor">
+        <div class="rung" style="--i:0"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:1"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:2"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:3"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:4"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:5"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:6"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:7"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:8"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:9"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:10"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:11"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:12"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:13"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:14"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:15"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:16"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+        <div class="rung" style="--i:17"><div class="bp"></div><div class="base left"></div><div class="base right"></div></div>
+    </div>
+    <div class="dna-caption">A · T · G · C — DECODING LIFE</div>
+
+    <div class="eyebrow-line"><span class="dot"></span>Innovate <span class="rule"></span> Intelligent <span class="rule"></span> Impact</div>
+
+    <h1>Master Classification,<br>Cells &amp; Life Processes</h1>
+    <div class="sub">21GEO105T · BIOLOGY STUDY HUB</div>
+    <p class="tag">Every PYQ pattern, every predicted question, every priority topic for Unit 1 (full) and Unit 2 (DNA, RNA, Proteins, Mitochondria, Chloroplast, Immunity) — organized, tagged, and ready before your FT-2 on 15-09-2026.</p>
+
+    <div class="cta-row">
+      <button class="btn-primary" data-page="subject">OPEN BIOLOGY SUBJECT →</button>
+      <button class="btn-ghost" id="open-feedback-hero">Send Feedback</button>
+    </div>
+
+    <div class="quote-strip">
+      <blockquote id="quote-box">"A cell doesn't panic under a microscope. Neither should you under exam pressure."<span>— on staying calm before exams</span></blockquote>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <span class="badge">STUDY TOOLKIT</span>
+      <h2>Built for the way you'll actually revise</h2>
+      <p>Everything is sorted by unit, marks weightage and priority — so the last hours before FT-2 are spent on what repeats, not what's rare.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="icon">📚</div>
+        <h3>Unit-wise question bank</h3>
+        <p>Unit 1 (Classification &amp; Taxonomy, full) and Unit 2 (DNA, RNA, Proteins, Mitochondria, Chloroplast, Immunity) split cleanly, pulled from your course material and past papers.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🎯</div>
+        <h3>Priority tags</h3>
+        <p>Every question is tagged PYQ (pattern) or Predicted, plus its mark value, so you know what's confirmed style and what's a forecast.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">👁️</div>
+        <h3>Tap-to-reveal answers</h3>
+        <p>Answers stay hidden until you tap "Show Answer" — test yourself first, then check, the way real recall practice should work.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔥</div>
+        <h3>High-yield ranking</h3>
+        <p>DNA→RNA→Protein, Mitochondria &amp; Chloroplast, the Immune system, and Five-Kingdom classification are flagged high-priority based on repetition.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🧮</div>
+        <h3>5 / 10-mark coverage</h3>
+        <p>From quick differentiate-style answers to full structured 10-mark essays with diagrams — filter by the exact mark value you're revising for.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">💬</div>
+        <h3>Direct feedback line</h3>
+        <p>Found an error, or want a topic added? Send feedback straight to the person who built this hub.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="subject-cta">
+      <div>
+        <span class="badge">FT-2 · 15-09-2026</span>
+        <h3>Biology — 21GEO105T</h3>
+        <p>Unit 1 (full): five-kingdom classification, algae/fungi/mosses, gymnosperms/angiosperms, animal groups · Unit 2: DNA, RNA, Proteins, Mitochondria, Chloroplast, Immunity.</p>
+      </div>
+      <button class="btn-primary" data-page="subject">START REVISING →</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-brand">TESSERACT LABS</div>
+    Built by <strong>RAGHUL S</strong> — Tesseract Labs · Innovate · Intelligent · Impact
+  </footer>
+</main>
+
+<!-- ============ SUBJECT PAGE ============ -->
+<main id="page-subject" class="page">
+  <div class="subject-hero">
+    <span class="badge">21GEO105T</span>
+    <h1>Biology</h1>
+    <p>FT-2 question bank — Unit 1 (Classification &amp; Taxonomy, full) and Unit 2 (DNA, RNA, Proteins, Mitochondria, Chloroplast, Immunity only). Tap "Show Answer" on any card to reveal the solution. Exam: 15-09-2026 · Part A 4×5=20, Part B 2×10=20 (Either/Or).</p>
+  </div>
+
+  <div class="unit-tabs">
+    <button class="unit-tab active" data-unit="1">Unit 1 — Classification &amp; Taxonomy</button>
+    <button class="unit-tab" data-unit="2">Unit 2 — Cell Biology &amp; Immunity</button>
+  </div>
+
+  <div class="filter-row" id="filter-row">
+    <button class="filter-chip active" data-filter="all">All</button>
+    <button class="filter-chip" data-filter="pyq">PYQ only</button>
+    <button class="filter-chip" data-filter="pred">Predicted only</button>
+    <button class="filter-chip" data-filter="5">5 mark</button>
+    <button class="filter-chip" data-filter="10">10 mark</button>
+    <button class="filter-chip" data-filter="high">High priority 🔥</button>
+  </div>
+
+  <div id="unit-1" class="unit-panel active">
+    <div class="qa-list" id="qa-list-1"></div>
+  </div>
+  <div id="unit-2" class="unit-panel">
+    <div class="qa-list" id="qa-list-2"></div>
+  </div>
+
+  <footer>
+    <div class="foot-brand">TESSERACT LABS</div>
+    Built by <strong>RAGHUL S</strong> — Tesseract Labs · Innovate · Intelligent · Impact
+  </footer>
+</main>
+
+<script>
+/* ============ NAVIGATION ============ */
+document.querySelectorAll('[data-page]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const target = el.getAttribute('data-page');
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+target).classList.add('active');
+    document.querySelectorAll('.nav-btn[data-page]').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn[data-page="'+target+'"]').forEach(b=>b.classList.add('active'));
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+/* ============ FEEDBACK (opens shared Google Form) ============ */
+function openFeedback(){ window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank'); }
+document.getElementById('open-feedback-nav').addEventListener('click', openFeedback);
+document.getElementById('open-feedback-hero').addEventListener('click', openFeedback);
+
+/* ============ ROTATING QUOTES ============ */
+const quotes = [
+  ['"A cell doesn\'t panic under a microscope. Neither should you under exam pressure."', 'on staying calm before exams'],
+  ['"Mitochondria turn food into energy. Turn your revision into results the same way."', 'on consistency'],
+  ['"DNA doesn\'t skip steps in transcription. Don\'t skip steps in your prep."', 'on discipline'],
+  ['"Classification exists to bring order to chaos — let it do the same for your notes."', 'on organizing revision'],
+  ['"The immune system remembers every invader it has met. Make your memory just as good."', 'on active recall'],
+  ['"A chloroplast turns sunlight into food. Turn these last few hours into marks."', 'on exam-day focus'],
+  ['"Alternation of generations: one stage prepares the next. Let today prepare tomorrow\'s exam."', 'on preparation'],
+];
+let qi = 0;
+const quoteBox = document.getElementById('quote-box');
+function showQuote(){
+  const [text, tag] = quotes[qi % quotes.length];
+  quoteBox.style.animation = 'none';
+  void quoteBox.offsetWidth;
+  quoteBox.innerHTML = text + '<span>— ' + tag + '</span>';
+  quoteBox.style.animation = 'quotefade 6s ease-in-out both';
+  qi++;
+}
+showQuote();
+setInterval(showQuote, 6000);
+
+/* ============ TESSERACT ROTATION (mouse parallax) ============ */
+const rotor = document.getElementById('tess-rotor');
+let angle = 0;
+function animateRotor(){
+  angle += 0.25;
+  if(rotor){
+    rotor.style.transform = 'rotate(' + Math.sin(angle*0.02)*3 + 'deg)';
+  }
+  requestAnimationFrame(animateRotor);
+}
+animateRotor();
+
+/* ============ PARTICLE CANVAS ============ */
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+const COLORS = ['#29e3f2', '#4d7dff', '#a855f7', '#ec4899'];
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function initParticles(){
+  const count = Math.min(80, Math.floor((W*H)/22000));
+  particles = [];
+  for(let i=0;i<count;i++){
+    particles.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.35,
+      vy: (Math.random()-0.5)*0.35,
+      r: Math.random()*1.6 + 0.6,
+      c: COLORS[Math.floor(Math.random()*COLORS.length)]
+    });
+  }
+}
+initParticles();
+window.addEventListener('resize', initParticles);
+
+function tickParticles(){
+  ctx.clearRect(0,0,W,H);
+  for(const p of particles){
+    p.x += p.vx; p.y += p.vy;
+    if(p.x < 0 || p.x > W) p.vx *= -1;
+    if(p.y < 0 || p.y > H) p.vy *= -1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.c;
+    ctx.globalAlpha = 0.7;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const maxDist = 130;
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const a = particles[i], b = particles[j];
+      const dx = a.x-b.x, dy = a.y-b.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist < maxDist){
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = 'rgba(120,150,255,' + (0.12*(1-dist/maxDist)) + ')';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(tickParticles);
+}
+tickParticles();
+
+/* ============ QUESTION DATA ============ */
+const DATA = {
+  1: [
+    {m:5, tag:'pred', pr:true, q:'Explain the five-kingdom classification.', a:'1) Bacteria/Monera — prokaryotic, no membrane-bound nucleus, mostly unicellular, reproduce by binary fission (e.g. E. coli, Staphylococcus). Includes archaebacteria/extremophiles.\n2) Protoctista/Protista — eukaryotic, mostly unicellular/aquatic (Amoeba, Paramecium, Euglena), includes algae.\n3) Fungi — eukaryotic, heterotrophic, absorb nutrients, cell wall of chitin, reproduce by spores (mushroom, yeast, Penicillium).\n4) Plantae — multicellular, autotrophic, photosynthetic, cellulose cell wall (mosses, ferns, gymnosperms, angiosperms).\n5) Animalia — multicellular, heterotrophic, no cell wall, generally motile (sponges, fishes, frogs, reptiles, birds, mammals).\nModern taxonomy also uses fossil, embryological, biochemical and DNA evidence.'},
+    {m:10, tag:'pred', pr:true, q:'Explain the five-kingdom classification system with characteristics and examples.', a:'Full structured answer covering all five kingdoms:\n• Bacteria/Monera: prokaryotic, unicellular, no membrane-bound organelles, binary fission; examples E. coli, Staphylococcus; extremophile archaebacteria included.\n• Protoctista/Protista: eukaryotic, mostly unicellular, aquatic; examples Amoeba, Paramecium, Euglena, algae.\n• Fungi: eukaryotic, heterotrophic, absorb nutrients, chitin cell wall, mycelium, spore reproduction; examples mushroom, yeast, Penicillium; important as decomposers, in fermentation and antibiotics.\n• Plantae: multicellular, autotrophic, photosynthetic, cellulose cell wall; groups: mosses, ferns, gymnosperms, angiosperms; some show alternation of generations.\n• Animalia: multicellular, eukaryotic, heterotrophic, no cell wall, specialized tissues; groups: Porifera, Cnidaria, Mollusca, Echinodermata, Chordata.\nConclusion: the system organizes life by fundamental biological characteristics; modern taxonomy adds fossil/embryological/biochemical/DNA evidence. Draw a five-kingdom tree diagram for extra presentation marks.'},
+    {m:5, tag:'pred', pr:true, q:'Differentiate Algae, Fungi and Mosses.', a:'Kingdom: Protoctista / Fungi / Plantae\nNutrition: Autotrophic / Heterotrophic / Autotrophic\nHabitat: Mainly aquatic / Mainly terrestrial / Moist terrestrial\nCell wall: Cellulose / Chitin / Cellulose\nChlorophyll: Present / Absent / Present\nReproduction: Sexual & asexual / Mainly spores / Spores\nExample: Spirogyra / Mushroom / Sphagnum\nImportance — Algae: primary producers, oxygen release, base of aquatic food chains. Fungi: decomposers, nutrient cycling, food/fermentation/medicine. Mosses: pioneer species, soil formation, water retention, erosion control.'},
+    {m:10, tag:'pred', pr:true, q:'Explain Algae, Fungi and Mosses with their characteristics, reproduction and ecological importance.', a:'Algae: eukaryotic, unicellular to multicellular, mainly aquatic, photosynthetic, cellulose cell wall, sexual & asexual reproduction; major groups Chlorophyta (green), Phaeophyta (brown), Rhodophyta (red); importance — primary producers, oxygen production, aquatic food chains.\nFungi: eukaryotic, heterotrophic, chitin cell wall, mycelium, spore reproduction; examples mushroom, yeast, Penicillium; importance — decomposers, nutrient cycling, food production, fermentation, antibiotics, mycorrhizal associations.\nMosses: multicellular, autotrophic, non-vascular (Bryophyta), lack true roots/stems/leaves, have rhizoids, grow in moist shady areas, dominant gametophyte, need water for fertilization; importance — pioneer species, soil formation, water retention, erosion control, peat formation (Sphagnum).\nConclusion: all three differ structurally and nutritionally but play major ecological roles.'},
+    {m:5, tag:'pyq', pr:false, q:'Differentiate algae from fungi.', a:'Algae are autotrophic, mainly aquatic, photosynthetic (chlorophyll present), with a cellulose cell wall (e.g. Spirogyra). Fungi are heterotrophic, mainly terrestrial, absorb nutrients rather than photosynthesize, have a chitin cell wall, and reproduce mainly through spores (e.g. mushroom).\n(Pattern reference: appeared as a Part B question in the June 2023 paper for the earlier 18GEO105T course code.)'},
+    {m:5, tag:'pred', pr:true, q:'Compare Gymnosperms and Angiosperms.', a:'Seeds: naked (gymnosperms) vs enclosed in an ovary (angiosperms).\nFlowers: absent vs present.\nReproductive structure: cones vs flowers.\nFruits: absent vs usually present.\nDouble fertilization: absent vs present.\nLeaves: often needle/scale-like vs commonly broad/flat.\nExample: Pine vs Mango.\nKey line to remember: Gymnosperm = naked seed; Angiosperm = seed enclosed within the ovary. Angiosperms form the majority of living plant species.'},
+    {m:10, tag:'pred', pr:true, q:'Compare Gymnosperms and Angiosperms in detail.', a:'Gymnosperms: seeds not enclosed in an ovary, naked seeds, mostly cone-bearing, generally evergreen, no fruits, no double fertilization, needle/scale-like leaves; examples: Pine, Fir, Redwood.\nAngiosperms: flowering plants, seeds develop inside an ovary, fruits develop from the ovary, double fertilization occurs, broad variety of forms, dominant living plant group; examples: Mango, Rose, Rice, Sunflower.\nComparison table — Seed: naked vs enclosed; Flower: absent vs present; Cone: main reproductive structure vs absent; Fruit: absent vs present; Double fertilization: absent vs present; Leaves: needle/scale-like vs broad/flat; Style & stigma: absent vs present.\nConclusion: both are seed plants, but angiosperms have flowers and enclosed seeds, while gymnosperms have naked seeds and reproduce mainly via cones.'},
+    {m:5, tag:'pyq', pr:false, q:'List various features of angiosperms.', a:'Flowering plants; seeds enclosed within an ovary/fruit; double fertilization occurs; broad leaf forms are common; represent the dominant group of living plant species; examples include Mango, Rose, Rice, Sunflower.\n(Pattern reference: appeared as a Part C question in the June 2023 paper for the earlier 18GEO105T course code.)'},
+    {m:5, tag:'pred', pr:false, q:'Explain the characteristics of bacteria.', a:'Unicellular, prokaryotic; lack a membrane-bound nucleus and membrane-bound organelles; genetic material in the nucleoid region; reproduce mainly by binary fission; occur in diverse habitats; some beneficial (decomposition, nutrient cycling, human microbiome, food production), some pathogenic. Examples: E. coli, Staphylococcus.'},
+    {m:5, tag:'pred', pr:false, q:'What are extremophiles?', a:'Organisms (mostly archaebacteria) adapted to survive harsh conditions — hot springs, highly salty environments, extreme acidity/alkalinity. Important for understanding the limits of life and useful in biotechnology since their enzymes function under extreme conditions.'},
+    {m:10, tag:'pred', pr:false, q:'Explain bacteria and viruses with respect to structure, reproduction and their importance in everyday life.', a:'Bacteria: prokaryotic, cell wall, plasma membrane, nucleoid, ribosomes, flagella, pili, capsule, plasmid; reproduce by binary fission; some beneficial (decomposition, fermentation, microbiome), some pathogenic.\nViruses: acellular, DNA or RNA genome, capsid, sometimes an envelope, entirely host-dependent; replication stages — attachment, entry, synthesis, assembly, release; can mutate rapidly.\nImportance: bacteria drive nutrient cycling and food/fermentation industries; viruses cause disease but are also used in research (e.g. as vectors) — both are central to microbiology and public health.'},
+    {m:5, tag:'pred', pr:false, q:'What are viruses? Explain their general characteristics.', a:'Viruses are acellular infectious agents containing either DNA or RNA enclosed in a protein capsid (sometimes with an envelope). They are entirely dependent on a host cell to replicate. General replication stages: attachment → entry → synthesis → assembly → release. They can mutate, giving rise to new strains.'},
+    {m:5, tag:'pred', pr:false, q:'Differentiate Protozoans and Metazoans.', a:'Protozoans: unicellular, usually microscopic, one cell performs all functions, simple organization (e.g. Amoeba).\nMetazoans: multicellular, usually macroscopic, specialized cells perform specific functions, complex organization (e.g. Earthworm).'},
+    {m:5, tag:'pred', pr:false, q:'Compare Sponges and Cnidarians.', a:'Sponges (Phylum Porifera): body contains pores, generally asymmetrical, no true tissues, filter feeders (e.g. Sycon).\nCnidarians (Phylum Cnidaria): mouth surrounded by tentacles, radial symmetry, true tissues present, capture prey using stinging tentacles (e.g. Hydra).\nKey difference: sponges = pores + filter feeding; cnidarians = tentacles + prey capture.'},
+    {m:5, tag:'pyq', pr:false, q:'What are echinoderms?', a:'Echinoderms (Phylum Echinodermata) are exclusively marine animals with a calcareous endoskeleton, adult radial symmetry, tube feet, and a water vascular system. Example: starfish (Asterias), which has a central disc and typically five arms.\n(Pattern reference: appeared as a Part B question in the June 2023 paper for the earlier 18GEO105T course code.)'},
+    {m:5, tag:'pred', pr:false, q:'Compare Snails and Starfishes.', a:'Snail (Phylum Mollusca): soft body, usually has a shell, muscular foot, bilateral symmetry, terrestrial/freshwater/marine forms (e.g. Helix).\nStarfish (Phylum Echinodermata): calcareous endoskeleton, no external shell, tube feet, adult radial symmetry, exclusively marine (e.g. Asterias) — has a central disc, five arms, tube feet and a water vascular system.'},
+    {m:10, tag:'pred', pr:false, q:'Explain Protozoans, Metazoans, Sponges and Cnidarians and compare their organization.', a:'Protozoans: unicellular organisms where a single cell performs all life functions (e.g. Amoeba, Paramecium).\nMetazoans: multicellular organisms with specialized cells/tissues (e.g. Earthworm).\nSponges (Porifera): pore-bearing body, no true tissues, filter feeders (e.g. Sycon).\nCnidarians (Cnidaria): radial symmetry, tentacles with stinging cells, true tissues present, capture prey (e.g. Hydra).\nOverall trend: increasing organizational complexity from unicellular protozoans to true-tissue-bearing cnidarians.'},
+    {m:5, tag:'pred', pr:false, q:'Explain the characteristics of fishes, amphibians, reptiles and birds.', a:'Fishes: aquatic, gills for respiration, scales, fins, typically ectothermic, external fertilization common.\nAmphibians: dual habitat (water/land), moist skin used in respiration, metamorphosis from larva to adult, ectothermic.\nReptiles: dry scaly skin, lungs for respiration, mostly terrestrial, ectothermic, amniotic eggs.\nBirds: feathers, endothermic, lungs with air sacs, forelimbs modified into wings, lay hard-shelled eggs.'},
+    {m:10, tag:'pred', pr:true, q:'Explain the relationship among fishes, frogs, snakes and birds based on their major characteristics.', a:'Compare across: habitat (aquatic vs dual vs terrestrial vs aerial/terrestrial), body covering (scales vs moist skin vs dry scales vs feathers), respiration (gills vs skin+lungs vs lungs vs lungs+air sacs), reproduction (external, aquatic eggs vs amphibious eggs vs amniotic eggs vs hard-shelled eggs), temperature regulation (ectothermic in fish/amphibians/reptiles vs endothermic in birds), heart structure (2-chambered vs 3-chambered vs 3/4-chambered vs 4-chambered), locomotion (swimming vs jumping/swimming vs crawling vs flying).\nThis shows an evolutionary trend of increasing terrestrial adaptation and physiological complexity from fish to birds.\n(High priority — explicitly listed in the important-questions resource.)'},
+    {m:5, tag:'pred', pr:true, q:'Explain alternation of generations.', a:'A life cycle alternating between two multicellular stages: Gametophyte (haploid, produces gametes) and Sporophyte (diploid, produces spores).\nSequence: Gametophyte → Gametes → Fertilization → Zygote → Sporophyte → Spores → Gametophyte.\nMosses are the key example — the gametophyte is dominant, while the sporophyte depends on it for nutrition.'},
+    {m:10, tag:'pred', pr:false, q:'Explain alternation of generations in plants with a suitable example.', a:'Gametophyte (n) → Gametes → Fertilization → Zygote (2n) → Sporophyte (2n) → Meiosis → Spores (n) → Gametophyte (n).\nUse moss as the example: the gametophyte generation is dominant and photosynthetic, while the sporophyte remains attached to and nutritionally dependent on the gametophyte. This cycling between haploid and diploid multicellular stages is characteristic of plant life cycles.'},
+  ],
+  2: [
+    {m:1, tag:'pyq', pr:false, q:'Write the regular expression for the language over {1} having odd length.', a:'RE: 1(11)*\nExamples: 1, 111, 11111, ...\n(Nov 2023 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Which regular expression identity is genuine — verify (x+y)* = (x*y*)*.', a:'True. (x+y)* = (x*y*)* is a valid RE identity.\n(Jul 2024 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Find the RE for L = {x in {0,1}* | x starts with 1 and ends with 0}.', a:'RE: 1(0+1)*0\n(Jul 2024 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Are (ab)* and a*b* equivalent regular expressions?', a:'No. Counter-example: aabb ∈ a*b* but aabb ∉ (ab)*. So they represent different languages.\n(May 2025 Semester PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'Which statement is true about DFA and NFA in terms of expressive power?', a:'DFA and NFA have the same expressive power. Every NFA has an equivalent DFA (subset construction), though the DFA may need exponentially more states.\n(Nov 2023 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:false, q:'What is the expressive power of NFA compared to ε-NFA?', a:'Same. Both recognize exactly the class of regular languages.\n(May 2025 Semester PYQ)'},
+    {m:1, tag:'pyq', pr:true, q:'An NFA has 6 states. What is the maximum possible number of states in the DFA obtained via subset construction?', a:'2^n for n=6 → 2^6 = 64 states.\n(2026 FT-1 pattern — very likely repeat)'},
+    {m:1, tag:'pyq', pr:false, q:'What is ε-closure of a state?', a:'The set of all states reachable from that state using only ε-transitions (zero or more). Do not follow normal input-symbol transitions.\n(CT-1 PYQ, 1 mark)'},
+    {m:1, tag:'pyq', pr:false, q:'What is a language L over alphabet Σ, formally?', a:'L ⊆ Σ*, i.e., any subset of the set of all finite strings over Σ.\n(2026 FT-1 Set B)'},
+    {m:1, tag:'pyq', pr:false, q:'For a DFA transition δ(q,a) = r, what is r?', a:'A single, unique next state (exactly one) — this is what distinguishes DFA from NFA.\n(2026 FT-1 Set B)'},
+    {m:1, tag:'pyq', pr:false, q:'Give the formal transition functions for DFA and NFA.', a:'DFA: δ: Q × Σ → Q (exactly one next state)\nNFA: δ: Q × Σ → 2^Q (a set of possible next states)\n(2026 FT-1 pattern)'},
+    {m:1, tag:'pyq', pr:false, q:'An NFA accepts a string if... (choose correct definition)', a:'At least one computation path on that string ends in a final/accepting state (not every path needs to accept).\n(2026 FT-1 Set A)'},
+    {m:1, tag:'pyq', pr:false, q:'If L1 and L2 are regular languages, is L1L2 (concatenation) regular?', a:'Yes — always regular. Regular languages are closed under concatenation, union and intersection.\n(2026 FT-1 Set D/G)'},
+    {m:1, tag:'pyq', pr:false, q:'What is Σ* and Σ+ for Σ = {0,1}?', a:'Σ* = all finite strings over {0,1}, including the empty string ε.\nΣ+ = all non-empty finite strings over {0,1} (Σ* minus ε).\n(2026 FT-1 pattern)'},
+    {m:1, tag:'pyq', pr:false, q:'Minimum number of DFA states needed for L = {w ∈ {0,1}* : |w| is even}?', a:'2 states — one for even-length-so-far, one for odd-length-so-far.\n(2026 FT-1 Set D)'},
+    {m:1, tag:'pyq', pr:false, q:'What is a Two-Way Finite Automaton (2-WFA)? Is it more powerful than a one-way FA?', a:'A 2-WFA has a read head that can move both Left and Right (δ(q,a) = (p,b,D), D ∈ {L,R}) instead of only right.\nIt is NOT more powerful — a 2-WFA recognizes exactly the class of regular languages, same as an ordinary FA.\n(1-mark bank + Unit 1 portion)'},
+    {m:1, tag:'pyq', pr:false, q:'Where is Moore machine output written? Where is Mealy machine output written?', a:'Moore: output is written inside/associated with each state (depends only on present state).\nMealy: output is written on each transition (depends on present state AND input symbol).'},
+    {m:5, tag:'pyq', pr:true, q:'Minimize the number of states of a given DFA using the partition/table-filling method.', a:'Algorithm:\n1) Remove unreachable states.\n2) Initial partition P0 = {F, Q−F} (final vs non-final states).\n3) For each state, check where its transitions land under every input symbol; if two states in the same block go to different blocks, split them.\n4) Repeat step 3 until no further splitting occurs (Pi = Pi+1).\n5) Each remaining equivalence class becomes a single state in the minimized DFA.\n6) Draw the minimized DFA and transition table.\n(CT-1 PYQ, 5 marks — VERY HIGH priority, also appeared 2024 & 2025 Semester)'},
+    {m:5, tag:'pyq', pr:true, q:'Construct a Moore machine that prints "a" whenever the sequence 01 is encountered in any input binary string.', a:'States: q0 (no useful prefix seen), q1 (last symbol was 0), q2 (01 just detected).\n\nTransition/Output table:\n→q0 : on 0→q1, on 1→q0, output ε\nq1  : on 0→q1, on 1→q2, output ε\nq2  : on 0→q1, on 1→q0, output a\n\nWhenever the machine reaches q2 (i.e., reads ...0 then 1), it outputs "a".\n(CT-1 PYQ, 5 marks — VERY HIGH priority)'},
+    {m:5, tag:'pyq', pr:true, q:'A username must start with "a", contain any combination of a and b, and end with "b". Construct the RE and an NFA for this language.', a:'RE: a(a+b)*b\n\nNFA:\nq0 --a--> q1\nq1 --a--> q1\nq1 --b--> q1\nq1 --b--> q2 (final)\n\nThis is nondeterministic because δ(q1, b) = {q1, q2} — two possible next states for the same input.\n(CT-1 PYQ, 5 marks — VERY HIGH priority)'},
+    {m:5, tag:'pyq', pr:false, q:'Differentiate DFA and NFA with respect to string acceptance, and construct a DFA for strings containing "ab" as a substring.', a:'DFA acceptance: the single deterministic computation path must end in a final state.\nNFA acceptance: at least one of the possible computation paths must end in a final state.\n\nDFA for "contains ab": states track progress — q0 (nothing useful), q1 (last symbol was a), q2 (ab seen, final/trap-continue). Once ab is seen, stay in the accepting state regardless of further input.\n(2026 FT-1 Set C pattern)'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Construct an NFA for strings containing 101 as a substring, and explain why it is an NFA and not a DFA.', a:'q0 --1--> {q0, q1}\nq1 --0--> q2\nq2 --1--> q3 (final)\n\nIt is an NFA because δ(q0, 1) = {q0, q1} has more than one possible next state for the same input symbol.'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Construct a DFA accepting all strings over {0,1} ending with 101.', a:'Track the longest useful suffix seen so far:\nq0: no useful suffix\nq1: last symbol seen matches "1"\nq2: last two symbols match "10"\nq3 (final): last three symbols match "101"\nCarefully redirect on mismatches to preserve overlapping suffixes (standard string-matching DFA construction).'},
+    {m:5, tag:'pred', pr:true, q:'[Predicted] Compare Moore and Mealy machines (differences table).', a:'Moore vs Mealy:\n• Output depends on: state only (Moore) vs state + input (Mealy)\n• Output location: on the state (Moore) vs on the transition (Mealy)\n• Number of states: usually more (Moore) vs usually fewer (Mealy)\n• Output timing: changes only after a state transition (Moore) vs can respond immediately to input (Mealy)\n• Output function: λ:Q→Δ (Moore) vs λ:Q×Σ→Δ (Mealy)\nBoth have equivalent computational power — every Moore machine has an equivalent Mealy machine and vice versa.'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] Find the RE for strings over {0,1} containing exactly two 1s.', a:'RE: 0*10*10*'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] Find the RE for strings starting with 0 and ending with 1.', a:'RE: 0(0+1)*1'},
+    {m:5, tag:'pred', pr:false, q:'[Predicted] Explain the Two-Way Finite Automaton and state its relationship to standard FA in terms of power.', a:'A 2-way FA\'s head can move Left or Right: δ(q,a) = (p,b,D). Despite the extra movement freedom, a 2-WFA recognizes exactly the regular languages — same expressive power as a one-way FA.'},
+    {m:8, tag:'pyq', pr:true, q:'Construct a DFA equivalent to a given NFA using subset construction. (Given an NFA transition table.)', a:'Subset construction algorithm:\n1) DFA states = subsets of NFA states, Q_D ⊆ 2^(Q_N).\n2) Start state = {q0} (or ε-closure(q0) if ε-transitions exist).\n3) For every DFA state S and symbol a: δ_D(S,a) = ∪ (over q in S) δ_N(q,a).\n4) Continue generating new subsets until no new ones appear.\n5) A subset S is a final DFA state if S ∩ F_N ≠ ∅ (contains at least one NFA final state).\n6) Draw the DFA transition table/diagram; state L(DFA) = L(NFA).\n(Nov 2023 Semester PYQ, 8 marks — one of the strongest repeated questions)'},
+    {m:8, tag:'pyq', pr:true, q:'Construct a minimized DFA for the regular expression: 10 + (0 + 11)0*1', a:'Steps: build the DFA for the RE, identify final states, remove unreachable states, then partition into F / Q−F and refine by transition destinations until stable, merging equivalent states.\nFor this RE, the minimized DFA has 5 states.\nSample transition table (q1 = start, q0 = final, q2 = dead state):\n→q1: 0→q3, 1→q4\nq3: 0→q3, 1→q0\nq4: 0→q0, 1→q3\n*q0: 0→q2, 1→q2\nq2: 0→q2, 1→q2\nMinimum states = 5.\n(Jul 2024 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pyq', pr:true, q:'Compare and contrast Moore and Mealy machines, and construct a Moore machine that computes divisibility of a binary number by 3.', a:'Comparison table: see the Moore vs Mealy 5-mark answer above.\n\nDivisibility by 3 (Moore machine): let states q0, q1, q2 represent remainder 0, 1, 2. Reading bit b when current remainder is r moves to remainder r_new = (2r + b) mod 3.\nFrom q0: 0→q0, 1→q1\nFrom q1: 0→q2, 1→q0\nFrom q2: 0→q1, 1→q2\nq0 is the accepting/output state (remainder 0 = divisible by 3).\n(May 2025 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pyq', pr:true, q:'Simplify the grammar: S→AB, A→a, B→b, B→C, E→C|ε. Find the simplified grammar and the language generated.', a:'E is unreachable from S (never appears in any derivation starting at S).\nC is non-generating (no production leads only to terminals).\nRemove both.\nSimplified grammar: S→AB, A→a, B→b\nLanguage: L(G) = {ab}\n(Nov 2023 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pyq', pr:true, q:'Simplify the grammar: S→aaA|aBB, A→aaA|ε, B→bB|bbC, C→B. Find the simplified grammar and the language generated.', a:'A is nullable (A ⇒ ε).\nB and C are non-generating — B and C only ever produce more B/C, never terminate in terminals alone. Remove B and C.\nRemaining: S→aaA, A→aaA|ε\nEquivalent simplified grammar (removing the nullable ε directly): S→aaA|aa, A→aaA|aa\nLanguage: L(G) = {a^(2n) | n ≥ 1}\n(May 2025 Semester PYQ, 8 marks)'},
+    {m:8, tag:'pred', pr:true, q:'[Predicted] Convert the following ε-NFA to an equivalent DFA using ε-closure and subset construction.', a:'Algorithm:\n1) Compute ε-closure(q0); this is the DFA start state.\n2) For each DFA state S and input symbol a: δ_D(S,a) = ε-closure(move(S,a)).\n3) Repeat until no new subsets are generated.\n4) Any subset containing an NFA final state becomes a DFA final state.\n5) Draw the full DFA transition table and diagram.\n(Matches CT-1\'s 10-mark ε-NFA→DFA question, scaled to 8 marks)'},
+    {m:8, tag:'pred', pr:false, q:'[Predicted] Explain ambiguous grammar with an example.', a:'A CFG G is ambiguous if some string w ∈ L(G) has two or more distinct leftmost derivations (equivalently, two distinct parse trees).\nClassic example: E→E+E | E*E | id. For the string id+id*id, more than one parse tree exists (grouping the + first or the * first), so the grammar is ambiguous.'},
+    {m:15, tag:'pyq', pr:true, q:'[Semester-style, expandable to 15 marks] Convert the regular expressions below to NFA using Thompson\'s construction: (a) a*b(a+b)*  (b) (a+b)c  (c) 0*1+10  (d) 10+(0+11)0*1', a:'Thompson\'s construction rules:\n• For R = a: create q0 --a--> q1.\n• Union R1+R2: new start state with ε-transitions to both R1 and R2 start states; both accept states get ε-transitions to a new common final state.\n• Concatenation R1R2: connect the final state of R1 to the start state of R2 via an ε-transition.\n• Kleene star R*: add a new start/final pair with ε-transitions allowing zero occurrences (skip) or looping back for one-or-more occurrences.\nApply these rules step by step to each of the four expressions, building up from the smallest sub-expressions.\n(CT-1 PYQ, originally 10 marks — practice all four)'},
+    {m:15, tag:'pred', pr:true, q:'[Predicted, high priority] Given an ε-NFA, construct the equivalent DFA using ε-closure/subset construction, identify the final states, and draw the DFA diagram.', a:'Full method:\nStep 1: Compute ε-closure(q0) → this is the DFA start state.\nStep 2: For each DFA state S and each input symbol a, compute δ_D(S,a) = ε-closure(move(S,a)).\nStep 3: Repeat until no new subsets appear.\nStep 4: Any DFA state (subset) containing an NFA final state becomes a DFA final state.\nStep 5: Draw the complete DFA transition table and state diagram.\nStep 6: State that L(DFA) = L(ε-NFA).\nVery high probability — CT-1 tested this as 10 marks, and 2026 FT-1 repeatedly drills subset construction.'},
+    {m:15, tag:'pred', pr:true, q:'[Predicted, high priority] Minimize a given DFA using the partition/table-filling method and prove the minimized DFA accepts the same language.', a:'1) Remove unreachable states from the start state.\n2) Initial partition: P0 = {F, Q−F}.\n3) Refine: split any block whose states transition to different blocks on some input.\n4) Repeat until partitions stabilize (Pi = Pi+1).\n5) Merge each equivalence class into a single state; redraw transitions between the merged states.\n6) Argument for equivalence: two states are merged only if they are indistinguishable for every possible future input, so the merged DFA accepts exactly the same set of strings as the original.\nVery high probability — appeared in CT-1 and multiple Semester papers.'},
+    {m:15, tag:'pred', pr:false, q:'[Predicted] Given a regular expression, construct an ε-NFA using Thompson\'s construction and then convert it into an equivalent DFA. Example: R = (0+1)*01', a:'Part A — Build via Thompson\'s construction: handle the (0+1) union, apply Kleene star for repetition, then concatenate with 01 at the end, combining sub-machines with ε-transitions.\nPart B — Convert to DFA: compute ε-closures, apply subset construction as in the ε-NFA→DFA method above, and mark final states (any subset containing the ε-NFA\'s final state).\nPart C (optional minimization): apply partition refinement to reduce the DFA to its minimum number of states.\nThis combines two of the most frequently tested construction techniques into one long-answer question.'},
+    {m:15, tag:'pred', pr:false, q:'[Predicted] Construct a Moore machine for a given sequence-detection problem and convert it to an equivalent Mealy machine.', a:'1) Build the Moore machine: define states representing "how much of the target sequence has been matched so far," with the output attached to the state that represents a full match.\n2) Convert to Mealy: for each Moore transition into a state with output o, move that output onto the incoming transition instead of the state, since Mealy output depends on (state, input) rather than state alone.\n3) Verify both machines produce the same output sequence for the same input string (allowing for the usual one-step output-timing difference between Moore and Mealy).'},
+  ],
+  2: [
+    {m:5, tag:'pred', pr:true, q:'Differentiate between DNA and RNA.', a:'DNA: usually double-stranded, sugar = deoxyribose, bases A/T/G/C, contains thymine, stores genetic information, more stable.\nRNA: usually single-stranded, sugar = ribose, bases A/U/G/C, contains uracil, helps in gene expression/protein synthesis, relatively less stable.\nMain RNA types: mRNA (carries genetic information), tRNA (brings amino acids), rRNA (forms part of ribosomes).'},
+    {m:5, tag:'pred', pr:true, q:'Explain the structure and functions of mitochondria.', a:'Structure: outer membrane, intermembrane space, inner membrane, cristae (folds of inner membrane), matrix, mitochondrial DNA, ribosomes, ATP particles/oxysomes.\nFunctions: cellular respiration, ATP production, metabolic reactions, energy metabolism.\nOften described as the "powerhouse of the cell." Practise a labelled diagram.'},
+    {m:5, tag:'pred', pr:true, q:'Explain the structure and functions of chloroplast.', a:'Structure: outer membrane, inner membrane, stroma, thylakoids, grana (stacks of thylakoids), stroma lamellae, chloroplast DNA, ribosomes, starch grain.\nFunctions: photosynthesis, converting light energy into chemical energy, producing carbohydrates, releasing oxygen.\nPractise a labelled diagram — this exact structure has appeared as a "draw and label" question before.'},
+    {m:5, tag:'pred', pr:true, q:'Differentiate between mitochondria and chloroplast.', a:'Mitochondria: site of respiration, major ATP production, cristae, matrix, uses food/oxygen, releases CO2.\nChloroplast: site of photosynthesis, converts light energy to chemical energy, grana/thylakoids, stroma, uses light+CO2+water, releases O2.\nMemory trick: Mitochondria = Food → Energy; Chloroplast = Sunlight → Food.'},
+    {m:5, tag:'pred', pr:true, q:'Explain the role of mRNA, tRNA and rRNA in protein synthesis.', a:'mRNA (messenger RNA): carries genetic information copied from DNA to the ribosome during transcription.\ntRNA (transfer RNA): carries specific amino acids to the ribosome, matching codons via anticodons.\nrRNA (ribosomal RNA): forms a major structural and functional part of the ribosome itself, where translation occurs.'},
+    {m:5, tag:'pred', pr:true, q:'Explain the four levels of protein structure.', a:'Primary structure: linear sequence of amino acids (e.g. insulin).\nSecondary structure: local folding patterns like the α-helix or β-sheet (e.g. keratin, silk).\nTertiary structure: overall 3D folding of a single polypeptide chain (e.g. myoglobin).\nQuaternary structure: assembly of multiple polypeptide chains into one functional protein (e.g. haemoglobin).'},
+    {m:5, tag:'pred', pr:true, q:'Explain the immune system and its major components.', a:'The immune system is the body\'s defence system against pathogens and foreign substances.\nComponents: white blood cells, antibodies, lymphatic organs/tissues, bone marrow, spleen, lymph nodes.\nTwo types: Innate immunity (present from birth, rapid, non-specific — skin, mucous membranes) and Adaptive immunity (specific to antigens, immunological memory, involves B cells (produce antibodies) and T cells (coordinate responses/destroy infected cells)).'},
+    {m:5, tag:'pred', pr:true, q:'Differentiate innate immunity and adaptive immunity.', a:'Innate immunity: present from birth, non-specific, rapid response, no antigen-specific memory, includes skin/mucous barriers and innate immune cells.\nAdaptive immunity: develops after exposure, specific to particular antigens, relatively slower first response, has immune memory (important for vaccination), involves B cells and T cells.'},
+    {m:10, tag:'pred', pr:true, q:'Explain DNA, RNA and proteins and describe their relationship in protein synthesis.', a:'DNA: stores hereditary information in its nucleotide sequence (deoxyribose sugar, phosphate, bases A/T/G/C), usually double-stranded.\nRNA: transfers/uses genetic information (ribose sugar, bases A/U/G/C); major forms — mRNA (carries info to ribosome), tRNA (carries amino acids), rRNA (forms ribosome structure).\nProteins: polymers of amino acids performing enzymatic, structural, transport, defence, regulatory and movement functions.\nRelationship — Transcription: DNA sequence used as template to synthesize mRNA. Translation: mRNA is read at the ribosome; tRNA brings matching amino acids; amino acids link into a polypeptide.\nFlow: DNA → (transcription) → mRNA → (translation) → Protein.\nThis is one of the strongest 10-mark predictions since DNA/RNA/Proteins are explicitly grouped in the Unit 2 portion.'},
+    {m:10, tag:'pred', pr:true, q:'Explain the structure and functions of mitochondria and chloroplast with neat labelled diagrams.', a:'Mitochondria — draw and label: outer membrane, inner membrane, intermembrane space, cristae, matrix, mitochondrial DNA, ribosomes, ATP particles. Functions: respiration, ATP production, energy metabolism.\nChloroplast — draw and label: outer membrane, inner membrane, stroma, granum, thylakoid, stroma lamella, DNA, ribosomes, starch grain. Functions: photosynthesis, light energy capture, carbohydrate production, oxygen release.\nComparison: Mitochondria = respiration, food → energy, cristae, matrix, ATP production. Chloroplast = photosynthesis, sunlight → food, grana, stroma, glucose formation.\nHigh priority — diagram-based questions on these organelles have appeared in earlier papers.'},
+    {m:10, tag:'pred', pr:true, q:'Discuss the immune system and explain how it protects the body against invaders.', a:'1) First line of defence: skin, mucous membranes, other physical/chemical barriers.\n2) Innate immunity: rapid, non-specific, present from birth.\n3) Adaptive immunity: specific, develops after exposure, includes B cells (produce antibodies) and T cells (cellular immune response).\n4) Antibodies: recognize and help neutralize specific antigens.\n5) Immune memory: memory cells enable a faster, stronger response on repeat exposure — the basis of vaccination.\n6) Major immune organs: bone marrow, thymus, spleen, lymph nodes.\nFlow: Pathogen enters → Innate defence → Antigen recognition → Adaptive response → B cells (antibodies) / T cells (cellular defence) → Pathogen eliminated → Memory cells remain.\nThe immune system is explicitly emphasized in the important-questions resource as a key Unit 2 topic.'},
+    {m:10, tag:'pred', pr:false, q:'Explain the structure and functions of proteins and describe the four levels of protein organization.', a:'Proteins are polymers of amino acids linked by peptide bonds, performing enzymatic, structural, transport, defence, regulatory, and movement functions.\nFour structural levels:\n1) Primary — linear amino acid sequence (insulin).\n2) Secondary — local folding: α-helix, β-sheet (keratin, silk).\n3) Tertiary — full 3D fold of one polypeptide (myoglobin).\n4) Quaternary — assembly of multiple polypeptide chains (haemoglobin).\nEach level builds on the previous one to create a protein\'s final functional shape.'},
+    {m:10, tag:'pred', pr:false, q:'Explain photosynthesis and the role of chloroplast in conversion of sunlight into food.', a:'General equation: Carbon dioxide + Water + Light energy → Glucose + Oxygen.\nSite: chloroplast — grana (stacks of thylakoids with photosynthetic pigments) and stroma (site of carbon fixation).\nStages: (1) Light-dependent reactions in the thylakoid membranes — light energy converted to chemical energy, oxygen released from water. (2) Carbon fixation in the stroma — CO2 incorporated into organic molecules, forming carbohydrates.\nImportance: produces food, releases oxygen, provides energy-rich compounds, supports food chains, helps maintain atmospheric gas balance.\nMemory line: Chloroplast = Sunlight → Food.'},
+    {m:5, tag:'pyq', pr:false, q:'Draw and label the mitochondrial structure.', a:'Label: outer membrane, inner membrane, intermembrane space, cristae (folds of inner membrane), matrix, mitochondrial DNA, ribosomes, ATP particles/oxysomes.\n(Pattern reference: an earlier exam paper explicitly asked students to draw and label the mitochondrial structure — practise this diagram carefully.)'},
+    {m:10, tag:'pyq', pr:false, q:'Discuss the immune system and its mechanisms of defence.', a:'Cover: first line of defence (skin, mucus), innate immunity (rapid, non-specific), adaptive immunity (specific, B cells producing antibodies, T cells for cellular defence), immune memory and its role in vaccination, and the major immune organs (bone marrow, thymus, spleen, lymph nodes).\n(Pattern reference: appeared as a Part C question in the June 2023 paper for the earlier 18GEO105T course code — immunity is also explicitly listed as a key topic in the current important-questions resource.)'},
+  ]
+};
+
+const PRIORITY_HIGH = new Set([
+  'Explain the five-kingdom classification.',
+  'Explain the five-kingdom classification system with characteristics and examples.',
+  'Differentiate Algae, Fungi and Mosses.',
+  'Explain Algae, Fungi and Mosses with their characteristics, reproduction and ecological importance.',
+  'Compare Gymnosperms and Angiosperms.',
+  'Compare Gymnosperms and Angiosperms in detail.',
+  'Explain the relationship among fishes, frogs, snakes and birds based on their major characteristics.',
+  'Explain alternation of generations.',
+  'Differentiate between DNA and RNA.',
+  'Explain the structure and functions of mitochondria.',
+  'Explain the structure and functions of chloroplast.',
+  'Differentiate between mitochondria and chloroplast.',
+  'Explain the role of mRNA, tRNA and rRNA in protein synthesis.',
+  'Explain the four levels of protein structure.',
+  'Explain the immune system and its major components.',
+  'Differentiate innate immunity and adaptive immunity.',
+  'Explain DNA, RNA and proteins and describe their relationship in protein synthesis.',
+  'Explain the structure and functions of mitochondria and chloroplast with neat labelled diagrams.',
+  'Discuss the immune system and explain how it protects the body against invaders.',
+]);
+
+let currentUnit = '1';
+let currentFilter = 'all';
+
+function cardMatchesFilter(item, filter){
+  if(filter === 'all') return true;
+  if(filter === 'pyq') return item.tag === 'pyq';
+  if(filter === 'pred') return item.tag === 'pred';
+  if(filter === 'high') return PRIORITY_HIGH.has(item.q);
+  return String(item.m) === filter;
+}
+
+function renderUnit(unit){
+  const list = document.getElementById('qa-list-' + unit);
+  list.innerHTML = '';
+  DATA[unit].filter(item => cardMatchesFilter(item, currentFilter)).forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'qa-card';
+    const isHigh = PRIORITY_HIGH.has(item.q);
+    card.innerHTML = `
+      <div class="qa-tags">
+        <span class="tag marks">${item.m} MARK${item.m>1?'S':''}</span>
+        <span class="tag ${item.tag}">${item.tag === 'pyq' ? 'PYQ' : 'PREDICTED'}</span>
+        ${isHigh ? '<span class="tag high">HIGH PRIORITY 🔥</span>' : ''}
+      </div>
+      <div class="qa-q">${item.q}</div>
+      <button class="ans-btn">Show Answer</button>
+      <div class="qa-answer">${item.a.replace(/\\n/g,'<br>')}</div>
+    `;
+    const btn = card.querySelector('.ans-btn');
+    const ans = card.querySelector('.qa-answer');
+    btn.addEventListener('click', ()=>{
+      const isOpen = ans.classList.toggle('show');
+      btn.textContent = isOpen ? 'Hide Answer' : 'Show Answer';
+    });
+    list.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.unit-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.unit-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    currentUnit = tab.getAttribute('data-unit');
+    document.querySelectorAll('.unit-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('unit-' + currentUnit).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.filter-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter = chip.getAttribute('data-filter');
+    renderUnit('1'); renderUnit('2');
+  });
+});
+
+renderUnit('1');
+renderUnit('2');
+</script>
+
+<!-- ===== Tesseract Labs shared chrome: countdown + feedback ===== -->
+<div class="tlx-chrome" id="tlx-chrome">
+  <div class="tlx-timer" id="tlx-timer">⏳ --</div>
+  <button class="tlx-fb" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank')">💬 Feedback</button>
+</div>
+<style>
+  .tlx-chrome{ position:fixed; bottom:16px; right:16px; z-index:999; display:flex; gap:8px; align-items:center; font-family:'JetBrains Mono', monospace; flex-wrap:wrap; justify-content:flex-end; max-width:70vw; }
+  .tlx-chrome .tlx-timer, .tlx-chrome .tlx-fb{
+    background:rgba(8,10,20,0.85); backdrop-filter:blur(8px); border:1px solid rgba(140,160,255,0.28);
+    color:#eaf1ff; font-size:11px; letter-spacing:.4px; padding:9px 14px; border-radius:20px;
+    white-space:nowrap; box-shadow:0 4px 18px rgba(0,0,0,0.35);
+  }
+  .tlx-timer{ color:#ffce54; border-color:rgba(255,206,84,0.4); }
+  .tlx-fb{ cursor:pointer; font-family:inherit; }
+  .tlx-fb:hover{ border-color:#ec4899; color:#ffd4ea; }
+  @media (max-width:560px){ .tlx-chrome{ left:10px; right:10px; bottom:10px; justify-content:center; } }
+</style>
+<script>
+(function(){
+  var target = new Date("2026-09-15T09:00:00").getTime();
+  var el = document.getElementById('tlx-timer');
+  function tick(){
+    var diff = target - Date.now();
+    if(diff <= 0){ el.textContent = '🎯 FT day is here!'; return; }
+    var d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
+        m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+    el.textContent = '⏳ FT-2 in ' + d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

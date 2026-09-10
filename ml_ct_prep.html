@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML CT Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #05060f;
+    --panel: #0b0e1f;
+    --panel-2: #10142b;
+    --line: #232a52;
+    --cyan: #35e6ff;
+    --violet: #8b5cff;
+    --magenta: #ff4fd8;
+    --text: #e9ecfb;
+    --muted: #8b93b8;
+    --good: #3ce685;
+    --bad: #ff5f7e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse 120% 80% at 50% -10%, #131a3d 0%, var(--void) 55%);
+    color: var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ambient circuit grid */
+  .grid-field{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(139,92,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,255,0.06) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 85%);
+  }
+  .drift{
+    position:fixed; z-index:0; pointer-events:none; border-radius:50%;
+    filter: blur(70px); opacity:.35;
+  }
+  .drift.a{ width:420px;height:420px; background:var(--violet); top:-120px; left:-100px; animation: floaty 22s ease-in-out infinite; }
+  .drift.b{ width:380px;height:380px; background:var(--cyan); bottom:-140px; right:-100px; animation: floaty 26s ease-in-out infinite reverse; }
+  @keyframes floaty{
+    0%,100%{ transform: translate(0,0); }
+    50%{ transform: translate(40px,-30px); }
+  }
+
+  .wrap{ position:relative; z-index:1; max-width:920px; margin:0 auto; padding: 40px 20px 80px; }
+
+  /* HERO */
+  .hero{ display:flex; flex-direction:column; align-items:center; text-align:center; padding: 10px 0 28px; }
+  .cube-stage{
+    width:150px; height:150px; perspective: 700px; margin-bottom:18px;
+  }
+  .tesseract{
+    width:100%; height:100%; position:relative; transform-style:preserve-3d;
+    animation: spin 16s linear infinite;
+  }
+  .cube{
+    position:absolute; inset:0; transform-style:preserve-3d;
+  }
+  .cube .face{
+    position:absolute; width:80px; height:80px; top:35px; left:35px;
+    border:1.5px solid; opacity:0.85;
+  }
+  .cube.outer .face{ border-color: var(--cyan); box-shadow:0 0 14px rgba(53,230,255,0.5) inset; }
+  .cube.inner{ transform: scale(0.55); }
+  .cube.inner .face{ border-color: var(--magenta); box-shadow:0 0 14px rgba(255,79,216,0.5) inset; }
+  .cube .f1{ transform: translateZ(40px); }
+  .cube .f2{ transform: rotateY(180deg) translateZ(40px); }
+  .cube .f3{ transform: rotateY(90deg) translateZ(40px); }
+  .cube .f4{ transform: rotateY(-90deg) translateZ(40px); }
+  .cube .f5{ transform: rotateX(90deg) translateZ(40px); }
+  .cube .f6{ transform: rotateX(-90deg) translateZ(40px); }
+  @keyframes spin{
+    0%{ transform: rotateX(0deg) rotateY(0deg); }
+    100%{ transform: rotateX(360deg) rotateY(360deg); }
+  }
+
+  /* ---------- Neural network hero animation (ML) ---------- */
+  .nn-stage{ width:260px; height:170px; margin:0 auto 14px; }
+  .nn-stage svg{ width:100%; height:100%; overflow:visible; }
+  .nn-node{ animation: nn-pulse 2.4s ease-in-out infinite; }
+  .nn-node.l1{ animation-delay:0s; } .nn-node.l2{ animation-delay:.35s; } .nn-node.l3{ animation-delay:.7s; }
+  @keyframes nn-pulse{ 0%,100%{ opacity:.55; r:5; } 50%{ opacity:1; r:7; } }
+  .nn-link{ stroke:rgba(139,92,255,0.35); stroke-width:1.2; }
+  .nn-caption{ text-align:center; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--muted); margin-top:-2px; margin-bottom:6px; }
+
+  .eyebrow-line{ font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:2px; color:var(--cyan); margin-bottom:10px; }
+  h1.title{ font-size: clamp(28px,5vw,42px); margin:0 0 8px; font-weight:700; line-height:1.1;
+    background: linear-gradient(90deg, var(--cyan), var(--violet) 55%, var(--magenta));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sub{ color:var(--muted); font-size:15px; max-width:520px; }
+  .sub b{ color:var(--text); }
+
+  /* NAV */
+  .tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin: 28px 0 30px; }
+  .tab{
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.5px;
+    padding:10px 16px; border-radius:8px; border:1px solid var(--line);
+    background: var(--panel); color: var(--muted); cursor:pointer; transition: all .2s ease;
+  }
+  .tab:hover{ color:var(--text); border-color:var(--violet); }
+  .tab.active{ color:var(--void); background: linear-gradient(90deg,var(--cyan),var(--violet)); border-color:transparent; font-weight:600; }
+
+  .panel{ display:none; animation: fadein .35s ease; }
+  .panel.active{ display:block; }
+  @keyframes fadein{ from{ opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
+  .section-head h2{ font-size:18px; margin:0; }
+  .section-head span{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); }
+
+  /* PREDICTIONS */
+  .rank-list{ display:flex; flex-direction:column; gap:10px; }
+  .rank-item{
+    display:flex; align-items:center; gap:14px; background:var(--panel);
+    border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+    position:relative; overflow:hidden;
+  }
+  .rank-item::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+  }
+  .rank-item[data-heat="5"]::before{ background:var(--magenta); }
+  .rank-item[data-heat="4"]::before{ background:var(--violet); }
+  .rank-item[data-heat="3"]::before{ background:var(--cyan); }
+  .rank-num{ font-family:'JetBrains Mono',monospace; font-size:20px; color:var(--muted); width:28px; flex-shrink:0; }
+  .rank-body{ flex:1; }
+  .rank-title{ font-weight:600; font-size:14.5px; }
+  .rank-note{ color:var(--muted); font-size:12.5px; margin-top:2px; }
+  .heat{ display:flex; gap:3px; }
+  .heat i{ width:6px; height:14px; border-radius:2px; background:var(--line); }
+  .heat i.on{ background: linear-gradient(180deg,var(--cyan),var(--magenta)); }
+
+  /* FLASHCARDS */
+  .card-grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+  .flip-card{ perspective: 1000px; height:150px; cursor:pointer; }
+  .flip-inner{ position:relative; width:100%; height:100%; transition: transform .5s cubic-bezier(.4,.2,.2,1); transform-style: preserve-3d; }
+  .flip-card.flipped .flip-inner{ transform: rotateY(180deg); }
+  .flip-face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:12px;
+    padding:14px; display:flex; align-items:center; justify-content:center; text-align:center;
+    border:1px solid var(--line);
+  }
+  .flip-front{ background: var(--panel); }
+  .flip-front .term{ font-weight:600; font-size:14.5px; }
+  .flip-front .tag{ position:absolute; top:8px; left:10px; font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--muted); }
+  .flip-back{ background: linear-gradient(145deg, var(--panel-2), #171c3d); transform: rotateY(180deg); font-size:12.5px; color:var(--text); line-height:1.4; }
+  .flip-back .formula{ font-family:'JetBrains Mono',monospace; color:var(--cyan); }
+  .hint{ text-align:center; color:var(--muted); font-size:12px; margin-top:16px; font-family:'JetBrains Mono',monospace; }
+
+  /* QUIZ */
+  .quiz-box{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:24px; }
+  .progress-track{ height:5px; background:var(--line); border-radius:4px; overflow:hidden; margin-bottom:18px; }
+  .progress-fill{ height:100%; background: linear-gradient(90deg,var(--cyan),var(--violet),var(--magenta)); width:0%; transition: width .3s ease; }
+  .q-meta{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); margin-bottom:10px; }
+  .q-prompt{ font-size:17px; font-weight:600; margin-bottom:18px; line-height:1.4; }
+  .opt-list{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    text-align:left; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:13px 16px; border-radius:9px; cursor:pointer; font-family:inherit; font-size:14px;
+    transition: all .15s ease;
+  }
+  .opt:hover:not(:disabled){ border-color:var(--violet); transform: translateX(2px); }
+  .opt:disabled{ cursor:default; }
+  .opt.correct{ border-color:var(--good); background: rgba(60,230,133,0.12); }
+  .opt.wrong{ border-color:var(--bad); background: rgba(255,95,126,0.12); }
+  .explain{ margin-top:16px; padding:14px; border-radius:9px; background:var(--panel-2); border-left:3px solid var(--cyan); font-size:13px; color:var(--muted); display:none; }
+  .explain.show{ display:block; }
+  .quiz-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
+  .btn{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.5px;
+    background: linear-gradient(90deg,var(--cyan),var(--violet)); color:var(--void); border:none;
+    padding:11px 20px; border-radius:8px; cursor:pointer; font-weight:600;
+  }
+  .btn:disabled{ opacity:.35; cursor:default; }
+  .btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--muted); }
+  .score-tag{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted); }
+  .result-screen{ text-align:center; padding:30px 10px; }
+  .result-num{ font-size:52px; font-weight:700; background: linear-gradient(90deg,var(--cyan),var(--magenta)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+  /* FORMULAS */
+  .formula-grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+  .formula-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .formula-card h3{ margin:0 0 8px; font-size:13.5px; color:var(--cyan); }
+  .formula-card .fx{ font-family:'JetBrains Mono',monospace; font-size:14px; background:var(--panel-2); padding:8px 10px; border-radius:6px; display:inline-block; }
+  .formula-card p{ font-size:12px; color:var(--muted); margin:8px 0 0; line-height:1.4; }
+
+  @media (max-width:520px){
+    .rank-item{ padding:12px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .tesseract{ animation:none; }
+    .drift{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-field"></div>
+<div class="drift a"></div>
+<div class="drift b"></div>
+
+<nav style="position:relative; z-index:3; display:flex; justify-content:center; gap:10px; padding:18px 20px 0; font-family:'JetBrains Mono',monospace; font-size:12px;">
+  <a href="index.html" style="color:var(--muted); text-decoration:none; border:1px solid var(--line); padding:8px 14px; border-radius:8px; background:var(--panel);">🏠 All Subjects</a>
+  <button onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank')" style="font-family:inherit; color:var(--muted); border:1px solid var(--line); padding:8px 14px; border-radius:8px; background:var(--panel); cursor:pointer;">💬 Feedback</button>
+</nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="nn-stage">
+      <svg viewBox="0 0 260 170" fill="none">
+        <path id="nnp1" class="nn-link" d="M30,30 L130,25"/>
+        <path id="nnp2" class="nn-link" d="M30,30 L130,85"/>
+        <path id="nnp3" class="nn-link" d="M30,30 L130,145"/>
+        <path id="nnp4" class="nn-link" d="M30,85 L130,25"/>
+        <path id="nnp5" class="nn-link" d="M30,85 L130,85"/>
+        <path id="nnp6" class="nn-link" d="M30,85 L130,145"/>
+        <path id="nnp7" class="nn-link" d="M30,140 L130,25"/>
+        <path id="nnp8" class="nn-link" d="M30,140 L130,85"/>
+        <path id="nnp9" class="nn-link" d="M30,140 L130,145"/>
+        <path id="nnp10" class="nn-link" d="M130,25 L230,55"/>
+        <path id="nnp11" class="nn-link" d="M130,25 L230,115"/>
+        <path id="nnp12" class="nn-link" d="M130,85 L230,55"/>
+        <path id="nnp13" class="nn-link" d="M130,85 L230,115"/>
+        <path id="nnp14" class="nn-link" d="M130,145 L230,55"/>
+        <path id="nnp15" class="nn-link" d="M130,145 L230,115"/>
+
+        <circle class="nn-node l1" cx="30" cy="30" r="6" fill="#35e6ff"/>
+        <circle class="nn-node l1" cx="30" cy="85" r="6" fill="#35e6ff"/>
+        <circle class="nn-node l1" cx="30" cy="140" r="6" fill="#35e6ff"/>
+        <circle class="nn-node l2" cx="130" cy="25" r="6" fill="#8b5cff"/>
+        <circle class="nn-node l2" cx="130" cy="85" r="6" fill="#8b5cff"/>
+        <circle class="nn-node l2" cx="130" cy="145" r="6" fill="#8b5cff"/>
+        <circle class="nn-node l3" cx="230" cy="55" r="6" fill="#ff4fd8"/>
+        <circle class="nn-node l3" cx="230" cy="115" r="6" fill="#ff4fd8"/>
+
+        <circle r="3.4" fill="#fff" style="filter:drop-shadow(0 0 6px #35e6ff)">
+          <animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#nnp2"/></animateMotion>
+        </circle>
+        <circle r="3.4" fill="#fff" style="filter:drop-shadow(0 0 6px #8b5cff)">
+          <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.4s"><mpath href="#nnp13"/></animateMotion>
+        </circle>
+        <circle r="3.4" fill="#fff" style="filter:drop-shadow(0 0 6px #ff4fd8)">
+          <animateMotion dur="2.4s" repeatCount="indefinite" begin="0.9s"><mpath href="#nnp7"/></animateMotion>
+        </circle>
+      </svg>
+    </div>
+    <div class="nn-caption">INPUT → HIDDEN → OUTPUT · FORWARD PASS</div>
+    <div class="eyebrow-line">21CSC307P · UNIT I + UNIT II</div>
+    <h1 class="title">ML CT Command Center</h1>
+    <p class="sub">Everything worth knowing before <b>11 September 2026</b> — ranked, flippable, and quizzable.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="predict">Top Predictions</button>
+    <button class="tab" data-panel="cards">Flashcards</button>
+    <button class="tab" data-panel="quiz">Quiz</button>
+    <button class="tab" data-panel="formulas">Formulas</button>
+  </div>
+
+  <!-- PREDICTIONS -->
+  <div class="panel active" id="predict">
+    <div class="section-head"><h2>Highest-probability topics</h2><span id="predCount"></span></div>
+    <div class="rank-list" id="rankList"></div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div class="panel" id="cards">
+    <div class="section-head"><h2>Flip through the core concepts</h2><span id="cardCount"></span></div>
+    <div class="card-grid" id="cardGrid"></div>
+    <div class="hint">tap a card to flip it</div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="panel" id="quiz">
+    <div class="section-head"><h2>Rapid-fire quiz</h2><span class="score-tag" id="quizScoreTag">score 0/0</span></div>
+    <div class="quiz-box" id="quizBox"></div>
+  </div>
+
+  <!-- FORMULAS -->
+  <div class="panel" id="formulas">
+    <div class="section-head"><h2>Formula sheet</h2><span></span></div>
+    <div class="formula-grid" id="formulaGrid"></div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+
+const predictions = [
+  {t:"K-fold cross-validation", n:"Purpose, K=10 → 10 rounds, increasing K → lower bias / higher variance", h:5},
+  {t:"Confusion matrix + Precision/Recall/F1", n:"TP TN FP FN, formulas, and full numericals", h:5},
+  {t:"Overfitting vs Underfitting + Bias-Variance", n:"High variance = overfit, high bias = underfit", h:5},
+  {t:"Logistic Regression + Sigmoid", n:"Binary classification, σ(z) = 1/(1+e^-z), range 0–1", h:5},
+  {t:"F1-score numerical", n:"Given P and R, compute F1 — numbers will be changed from the FT version", h:5},
+  {t:"Bootstrapping", n:"Sampling with replacement; compare against K-fold", h:4},
+  {t:"Class imbalance & accuracy", n:"Why accuracy misleads on rare-positive datasets", h:4},
+  {t:"Supervised vs Unsupervised vs Semi-supervised", n:"Labelled / unlabelled / mixed, with examples", h:4},
+  {t:"Multiple Linear Regression + Multicollinearity", n:"Equation form, correlated predictors, VIF", h:3},
+  {t:"McNemar's test vs Paired t-test", n:"Same test-set disagreements vs paired CV-fold scores", h:3},
+  {t:"MSE & regression metrics", n:"Average squared error, R² for linear regression", h:3},
+  {t:"Threshold shifts", n:"Threshold ↑ → precision ↑, recall ↓ (and vice versa)", h:3},
+];
+
+const flashcards = [
+  {tag:"UNIT I", term:"Supervised Learning", back:"Uses labelled data to learn an input→output mapping. Example: spam detection."},
+  {tag:"UNIT I", term:"Unsupervised Learning", back:"Uses unlabelled data to find hidden structure. Example: customer clustering."},
+  {tag:"UNIT I", term:"Semi-supervised Learning", back:"Small amount of labelled data + large amount of unlabelled data, e.g. image classification."},
+  {tag:"UNIT I", term:"Overfitting", back:"Model memorizes training data/noise. Low bias, high variance. High train performance, poor test performance."},
+  {tag:"UNIT I", term:"Underfitting", back:"Model too simple to capture patterns. High bias, low variance. Poor performance on both train and test."},
+  {tag:"UNIT I", term:"Bias-Variance Tradeoff", back:"High bias → underfitting. High variance → overfitting. Good models balance both for generalization."},
+  {tag:"UNIT I", term:"Regularization", back:"Controls model complexity to reduce overfitting. L2 tends to increase bias but reduce variance."},
+  {tag:"UNIT I", term:"Cross-validation", back:"Estimates model performance on unseen data and helps detect/prevent overfitting."},
+  {tag:"UNIT I", term:"Curse of Dimensionality", back:"As features increase: data sparsity ↑, distance measures less meaningful, more data needed, overfitting risk ↑. Fix: PCA/feature selection."},
+  {tag:"UNIT I", term:"Parametric vs Non-parametric", back:"Parametric assumes a fixed functional form (e.g. logistic regression). Non-parametric does not."},
+  {tag:"UNIT II", term:"K-fold Cross-validation", back:"Split data into K folds; each fold is the validation set once, train on the remaining K-1. Average the K scores."},
+  {tag:"UNIT II", term:"Increasing K", back:"Generally lowers bias but raises variance in the performance estimate."},
+  {tag:"UNIT II", term:"Bootstrapping", back:"Resampling with replacement from the original dataset to estimate variability/confidence intervals."},
+  {tag:"UNIT II", term:"Bootstrapping vs K-fold", back:"Bootstrap: sampling with replacement, same point can repeat. K-fold: systematic partition, each point in exactly one fold."},
+  {tag:"UNIT II", term:"Confusion Matrix", back:"TP: correct positive · TN: correct negative · FP: false alarm · FN: missed positive."},
+  {tag:"UNIT II", term:"Precision", back:"formula: TP / (TP + FP) — of predicted positives, how many were right."},
+  {tag:"UNIT II", term:"Recall", back:"formula: TP / (TP + FN) — of actual positives, how many were caught. Also called Sensitivity."},
+  {tag:"UNIT II", term:"F1-score", back:"formula: 2·P·R / (P + R) — harmonic mean of precision and recall."},
+  {tag:"UNIT II", term:"Why F1 > Accuracy", back:"On imbalanced data, predicting the majority class for everyone gives high accuracy but recall = 0. F1 catches this."},
+  {tag:"UNIT II", term:"Logistic Regression", back:"Supervised binary classifier. Computes z = β₀+β₁x₁+…, then passes through sigmoid to get a probability."},
+  {tag:"UNIT II", term:"Sigmoid Function", back:"formula: σ(z) = 1 / (1 + e^-z) — squashes any real number into the range 0 to 1."},
+  {tag:"UNIT II", term:"Multiple Linear Regression", back:"Predicts a continuous target from multiple independent variables: y = β₀+β₁x₁+β₂x₂+…+ε."},
+  {tag:"UNIT II", term:"Multicollinearity", back:"Independent variables are highly correlated → unstable coefficients, inflated variance. Detect via correlation matrix/VIF."},
+  {tag:"UNIT II", term:"Data Leakage", back:"Test/validation info leaks into training, giving unrealistically optimistic performance. Prevent by splitting before preprocessing."},
+  {tag:"UNIT II", term:"McNemar's Test", back:"Compares two classifiers on the same test set, focusing on where their predictions disagree."},
+  {tag:"UNIT II", term:"Paired t-test", back:"Compares two algorithms' performance scores across the same paired folds/datasets."},
+  {tag:"UNIT II", term:"Classification Threshold", back:"Lower threshold → recall ↑, precision ↓. Higher threshold → precision ↑, recall ↓."},
+];
+
+const quizData = [
+  {q:"In 5-fold cross-validation, how many times is the model trained?", opts:["1","3","5","10"], correct:2, exp:"Each of the 5 folds takes a turn as the validation set, so the model trains 5 separate times."},
+  {q:"Which four values make up a confusion matrix?", opts:["Mean, median, mode, variance","TP, TN, FP, FN","Precision, recall, F1, MSE","Bias, variance, error, noise"], correct:1, exp:"TP, TN, FP, FN are the four outcome counts a confusion matrix is built from."},
+  {q:"A model scores 98% training accuracy but 60% testing accuracy. This is:", opts:["Underfitting","Overfitting","High bias only","Low complexity"], correct:1, exp:"A big gap between training and testing performance, with training much higher, is the signature of overfitting (high variance)."},
+  {q:"Precision = 0.8, Recall = 0.6. What is the F1-score?", opts:["0.60","0.686","0.70","0.75"], correct:1, exp:"F1 = 2(0.8)(0.6)/(0.8+0.6) = 0.96/1.4 ≈ 0.686."},
+  {q:"Bootstrapping draws samples:", opts:["Without replacement","With replacement","Only from the test set","Only once"], correct:1, exp:"Bootstrapping resamples with replacement, so the same observation can appear more than once in a sample."},
+  {q:"Which metric can be misleading on a severely imbalanced dataset?", opts:["Precision","Recall","F1-score","Accuracy"], correct:3, exp:"A model predicting the majority class for everyone can score very high accuracy while catching zero minority-class cases."},
+  {q:"Logistic regression uses which function to output a probability?", opts:["ReLU","Sigmoid","Euclidean distance","PCA"], correct:1, exp:"The sigmoid function σ(z) = 1/(1+e^-z) squashes any real value into the 0–1 probability range."},
+  {q:"Increasing K in K-fold CV generally causes:", opts:["Lower bias, higher variance in the estimate","Higher bias, lower variance","No change","No computational effect"], correct:0, exp:"With larger K, training sets get closer to the full dataset (lower bias) but the K estimates vary more across folds (higher variance)."},
+  {q:"Which test compares two classifiers on the same test samples via their disagreements?", opts:["ANOVA","McNemar's test","MSE","PCA"], correct:1, exp:"McNemar's test focuses on cases where the two classifiers disagree on the same test examples."},
+  {q:"TP = 90, FP = 30, FN = 10, TN = 70. What is the accuracy?", opts:["70%","75%","80%","90%"], correct:2, exp:"Accuracy = (90+70)/(90+70+30+10) = 160/200 = 80%."},
+  {q:"L2 regularization tends to:", opts:["Increase bias, reduce variance","Decrease bias, increase variance","Have no effect","Only fix multicollinearity"], correct:0, exp:"L2 regularization shrinks coefficients, adding some bias in exchange for a meaningful drop in variance."},
+  {q:"Clustering algorithms fall under which type of learning?", opts:["Supervised","Unsupervised","Semi-supervised","Reinforcement"], correct:1, exp:"Clustering finds structure in unlabelled data, which is the definition of unsupervised learning."},
+  {q:"A house-price model uses house area, bedrooms, and total rooms — and area/rooms are highly correlated. This risks:", opts:["Overfitting only","Multicollinearity","Data leakage","Underfitting"], correct:1, exp:"Highly correlated predictors cause multicollinearity: unstable coefficients and inflated variance."},
+  {q:"What does MSE measure?", opts:["Classification accuracy","Average squared prediction error","Precision","Recall"], correct:1, exp:"MSE = (1/n)Σ(yᵢ − ŷᵢ)² — the average squared difference between actual and predicted values."},
+  {q:"Lowering the classification threshold from 0.5 to 0.3 generally causes:", opts:["Recall ↑, Precision ↓","Recall ↓, Precision ↑","Both increase","Both decrease"], correct:0, exp:"A lower bar to call something positive catches more true positives (recall ↑) but also more false positives (precision ↓)."},
+];
+
+/* ---------- TABS ---------- */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.panel).classList.add('active');
+  });
+});
+
+/* ---------- PREDICTIONS ---------- */
+const rankList = document.getElementById('rankList');
+predictions.forEach((p,i)=>{
+  const heatDots = Array.from({length:5},(_,k)=> `<i class="${k < p.h ? 'on':''}"></i>`).join('');
+  const div = document.createElement('div');
+  div.className = 'rank-item';
+  div.setAttribute('data-heat', p.h);
+  div.innerHTML = `
+    <div class="rank-num">${String(i+1).padStart(2,'0')}</div>
+    <div class="rank-body">
+      <div class="rank-title">${p.t}</div>
+      <div class="rank-note">${p.n}</div>
+    </div>
+    <div class="heat">${heatDots}</div>
+  `;
+  rankList.appendChild(div);
+});
+document.getElementById('predCount').textContent = predictions.length + ' topics';
+
+/* ---------- FLASHCARDS ---------- */
+const cardGrid = document.getElementById('cardGrid');
+flashcards.forEach(c=>{
+  const wrap = document.createElement('div');
+  wrap.className = 'flip-card';
+  wrap.innerHTML = `
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <span class="tag">${c.tag}</span>
+        <div class="term">${c.term}</div>
+      </div>
+      <div class="flip-face flip-back">${c.back.replace(/formula: ([^—]+)—/,'<span class="formula">$1</span>—')}</div>
+    </div>
+  `;
+  wrap.addEventListener('click', ()=> wrap.classList.toggle('flipped'));
+  cardGrid.appendChild(wrap);
+});
+document.getElementById('cardCount').textContent = flashcards.length + ' cards';
+
+/* ---------- QUIZ ---------- */
+let qIndex = 0, score = 0, answered = false;
+const quizBox = document.getElementById('quizBox');
+const scoreTag = document.getElementById('quizScoreTag');
+
+function renderQuiz(){
+  if(qIndex >= quizData.length){
+    quizBox.innerHTML = `
+      <div class="result-screen">
+        <div class="result-num">${score}/${quizData.length}</div>
+        <p style="color:var(--muted); margin-top:6px;">final score</p>
+        <button class="btn" id="restartBtn" style="margin-top:14px;">Restart quiz</button>
+      </div>`;
+    document.getElementById('restartBtn').addEventListener('click', ()=>{
+      qIndex = 0; score = 0; answered = false; renderQuiz();
+    });
+    scoreTag.textContent = `score ${score}/${quizData.length}`;
+    return;
+  }
+  answered = false;
+  const item = quizData[qIndex];
+  const pct = (qIndex / quizData.length) * 100;
+  quizBox.innerHTML = `
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="q-meta">QUESTION ${qIndex+1} / ${quizData.length}</div>
+    <div class="q-prompt">${item.q}</div>
+    <div class="opt-list">
+      ${item.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}
+    </div>
+    <div class="explain" id="explainBox">${item.exp}</div>
+    <div class="quiz-footer">
+      <span class="score-tag">score ${score}/${qIndex}</span>
+      <button class="btn" id="nextBtn" disabled>Next →</button>
+    </div>
+  `;
+  scoreTag.textContent = `score ${score}/${qIndex}`;
+  quizBox.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(answered) return;
+      answered = true;
+      const chosen = parseInt(btn.dataset.i);
+      quizBox.querySelectorAll('.opt').forEach(b=>{
+        b.disabled = true;
+        const bi = parseInt(b.dataset.i);
+        if(bi === item.correct) b.classList.add('correct');
+        else if(bi === chosen) b.classList.add('wrong');
+      });
+      if(chosen === item.correct) score++;
+      document.getElementById('explainBox').classList.add('show');
+      document.getElementById('nextBtn').disabled = false;
+      scoreTag.textContent = `score ${score}/${qIndex+1}`;
+    });
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    qIndex++;
+    renderQuiz();
+  });
+}
+renderQuiz();
+
+/* ---------- FORMULAS ---------- */
+const formulas = [
+  {name:"Precision", fx:"TP / (TP + FP)", note:"Of everything predicted positive, how much was actually positive."},
+  {name:"Recall (Sensitivity)", fx:"TP / (TP + FN)", note:"Of everything actually positive, how much was caught."},
+  {name:"Accuracy", fx:"(TP + TN) / Total", note:"Overall correct predictions — unreliable under class imbalance."},
+  {name:"F1-score", fx:"2PR / (P + R)", note:"Harmonic mean of precision and recall."},
+  {name:"Sigmoid", fx:"1 / (1 + e^-z)", note:"Maps any real number to a 0–1 probability, used in logistic regression."},
+  {name:"MSE", fx:"(1/n) Σ (yᵢ − ŷᵢ)²", note:"Average squared error, used to score regression models."},
+  {name:"Multiple Linear Regression", fx:"y = β₀ + β₁x₁ + … + βₙxₙ + ε", note:"Predicts a continuous target from several predictors."},
+  {name:"K-fold average score", fx:"(S₁ + S₂ + … + S_K) / K", note:"Final cross-validated performance estimate."},
+];
+const formulaGrid = document.getElementById('formulaGrid');
+formulas.forEach(f=>{
+  const div = document.createElement('div');
+  div.className = 'formula-card';
+  div.innerHTML = `<h3>${f.name}</h3><span class="fx">${f.fx}</span><p>${f.note}</p>`;
+  formulaGrid.appendChild(div);
+});
+</script>
+
+<!-- ===== Tesseract Labs shared chrome: countdown + feedback ===== -->
+<div class="tlx-chrome" id="tlx-chrome">
+  <div class="tlx-timer" id="tlx-timer">⏳ --</div>
+  <button class="tlx-fb" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank')">💬 Feedback</button>
+</div>
+<style>
+  .tlx-chrome{ position:fixed; bottom:16px; right:16px; z-index:999; display:flex; gap:8px; align-items:center; font-family:'JetBrains Mono', monospace; flex-wrap:wrap; justify-content:flex-end; max-width:70vw; }
+  .tlx-chrome .tlx-timer, .tlx-chrome .tlx-fb{
+    background:rgba(8,10,20,0.85); backdrop-filter:blur(8px); border:1px solid rgba(140,160,255,0.28);
+    color:#eaf1ff; font-size:11px; letter-spacing:.4px; padding:9px 14px; border-radius:20px;
+    white-space:nowrap; box-shadow:0 4px 18px rgba(0,0,0,0.35);
+  }
+  .tlx-timer{ color:#ffce54; border-color:rgba(255,206,84,0.4); }
+  .tlx-fb{ cursor:pointer; font-family:inherit; }
+  .tlx-fb:hover{ border-color:#ec4899; color:#ffd4ea; }
+  @media (max-width:560px){ .tlx-chrome{ left:10px; right:10px; bottom:10px; justify-content:center; } }
+</style>
+<script>
+(function(){
+  var target = new Date("2026-09-11T09:00:00").getTime();
+  var el = document.getElementById('tlx-timer');
+  function tick(){
+    var diff = target - Date.now();
+    if(diff <= 0){ el.textContent = '🎯 CT day is here!'; return; }
+    var d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
+        m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+    el.textContent = '⏳ CT-1 in ' + d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

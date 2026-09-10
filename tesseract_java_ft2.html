@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesseract Labs — Advanced Java Programming FT-2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#05060f; --panel:#0b0e1f; --panel-2:#10142b; --panel-3:#171c3d;
+    --line:#232a52; --cyan:#35e6ff; --violet:#8b5cff; --magenta:#ff4fd8;
+    --text:#e9ecfb; --muted:#8b93b8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse 120% 80% at 50% -10%, #131a3d 0%, var(--void) 55%);
+    color:var(--text); font-family:'Space Grotesk',sans-serif; min-height:100vh; overflow-x:hidden; position:relative;
+  }
+  a{color:inherit;}
+
+  canvas#particles{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .grid-field{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image: linear-gradient(rgba(139,92,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,255,0.06) 1px, transparent 1px);
+    background-size:42px 42px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 85%);
+  }
+  .drift{ position:fixed; z-index:0; pointer-events:none; border-radius:50%; filter:blur(70px); opacity:.32; }
+  .drift.a{ width:420px;height:420px; background:var(--violet); top:-120px; left:-100px; animation:floaty 22s ease-in-out infinite; }
+  .drift.b{ width:380px;height:380px; background:var(--cyan); bottom:-140px; right:-100px; animation:floaty 26s ease-in-out infinite reverse; }
+  @keyframes floaty{ 0%,100%{transform:translate(0,0);} 50%{transform:translate(40px,-30px);} }
+
+  /* NAV */
+  .topnav{
+    position:relative; z-index:3; display:flex; align-items:center; justify-content:space-between;
+    max-width:1040px; margin:0 auto; padding:22px 22px 0;
+  }
+  .brand{ font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:3px; color:var(--text); }
+  .brand b{ color:var(--cyan); }
+  .navlinks{ display:flex; gap:6px; }
+  .navlink{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.5px; padding:9px 15px;
+    border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--muted); cursor:pointer;
+  }
+  .navlink.active{ color:var(--void); background:linear-gradient(90deg,var(--cyan),var(--violet)); border-color:transparent; font-weight:600; }
+
+  .view{ display:none; position:relative; z-index:2; }
+  .view.active{ display:block; animation:fadein .4s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ============ HOME ============ */
+  .hero{ max-width:760px; margin:0 auto; padding:50px 20px 10px; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .cube-stage{ width:150px; height:150px; perspective:700px; margin-bottom:16px; }
+  .tesseract{ width:100%; height:100%; position:relative; transform-style:preserve-3d; animation:spin 16s linear infinite; }
+  .cube{ position:absolute; inset:0; transform-style:preserve-3d; }
+  .cube .face{ position:absolute; width:80px; height:80px; top:35px; left:35px; border:1.5px solid; opacity:.85; }
+  .cube.outer .face{ border-color:var(--cyan); box-shadow:0 0 14px rgba(53,230,255,.5) inset; }
+  .cube.inner{ transform:scale(.55); }
+  .cube.inner .face{ border-color:var(--magenta); box-shadow:0 0 14px rgba(255,79,216,.5) inset; }
+  .cube .f1{ transform:translateZ(40px); } .cube .f2{ transform:rotateY(180deg) translateZ(40px); }
+  .cube .f3{ transform:rotateY(90deg) translateZ(40px); } .cube .f4{ transform:rotateY(-90deg) translateZ(40px); }
+  .cube .f5{ transform:rotateX(90deg) translateZ(40px); } .cube .f6{ transform:rotateX(-90deg) translateZ(40px); }
+  @keyframes spin{ 0%{transform:rotateX(0) rotateY(0);} 100%{transform:rotateX(360deg) rotateY(360deg);} }
+
+  /* ---------- Moving program / terminal hero animation (Java) ---------- */
+  .term-stage{
+    width:290px; max-width:80vw; height:170px; margin:0 auto 16px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--line); overflow:hidden; text-align:left;
+    box-shadow:0 14px 34px rgba(0,0,0,0.4);
+  }
+  .term-bar{ display:flex; gap:6px; padding:9px 12px; border-bottom:1px solid var(--line); background:var(--panel-2); }
+  .term-bar span{ width:9px; height:9px; border-radius:50%; }
+  .term-bar span:nth-child(1){ background:#ff5f56; } .term-bar span:nth-child(2){ background:#ffbd2e; } .term-bar span:nth-child(3){ background:#27c93f; }
+  .term-body{ height:132px; overflow:hidden; position:relative; padding:10px 14px; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.7; }
+  .term-scroll{ animation: term-scroll-up 9s linear infinite; }
+  .term-scroll div{ white-space:pre; }
+  .term-scroll .kw{ color:var(--violet); } .term-scroll .ty{ color:var(--cyan); } .term-scroll .st{ color:#ffce54; } .term-scroll .cm{ color:var(--muted); }
+  .term-cursor{ display:inline-block; width:7px; height:13px; background:var(--cyan); vertical-align:middle; animation:blink 1s steps(1) infinite; }
+  @keyframes term-scroll-up{ 0%{ transform:translateY(0); } 100%{ transform:translateY(-50%); } }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:2px; color:var(--cyan); margin-bottom:8px; }
+  h1.title{ font-size:clamp(28px,5.5vw,44px); margin:0 0 8px; font-weight:700; line-height:1.12;
+    background:linear-gradient(90deg,var(--cyan),var(--violet) 55%,var(--magenta)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:22px; }
+  .tagline b{ color:var(--text); }
+
+  .quote-box{ min-height:46px; max-width:520px; display:flex; align-items:center; justify-content:center; margin-bottom:26px; }
+  .quote{ font-size:15px; color:var(--muted); font-style:italic; opacity:0; transition:opacity .6s ease; }
+  .quote.show{ opacity:1; }
+
+  .cta{
+    font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.5px; font-weight:700;
+    background:linear-gradient(90deg,var(--cyan),var(--violet)); color:var(--void); border:none;
+    padding:14px 28px; border-radius:9px; cursor:pointer;
+  }
+
+  .features{ max-width:1000px; margin:60px auto 0; padding:0 20px 70px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .feature{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
+  .feature .dot{ width:8px; height:8px; border-radius:50%; background:linear-gradient(90deg,var(--cyan),var(--magenta)); margin-bottom:12px; }
+  .feature h3{ font-size:14px; margin:0 0 6px; }
+  .feature p{ font-size:12.5px; color:var(--muted); margin:0; line-height:1.5; }
+
+  .site-footer{ text-align:center; padding:20px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); position:relative; z-index:2; }
+
+  /* ============ SUBJECT ============ */
+  .subject-wrap{ max-width:920px; margin:0 auto; padding:34px 20px 80px; }
+  .sub-head{ text-align:center; margin-bottom:20px; }
+  .sub-head h2{ font-size:24px; margin:0 0 6px;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .pattern-strip{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:10px; }
+  .pill{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:20px; padding:6px 12px; background:var(--panel); }
+  .pill b{ color:var(--cyan); }
+
+  .unit-tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:26px 0 16px; }
+  .unit-tab{
+    font-family:'JetBrains Mono',monospace; font-size:12px; padding:10px 16px; border-radius:8px;
+    border:1px solid var(--line); background:var(--panel); color:var(--muted); cursor:pointer;
+  }
+  .unit-tab.active{ color:var(--void); background:linear-gradient(90deg,var(--cyan),var(--violet)); border-color:transparent; font-weight:600; }
+
+  .chips{ display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin-bottom:26px; }
+  .chip{
+    font-family:'JetBrains Mono',monospace; font-size:11px; padding:6px 12px; border-radius:16px;
+    border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer;
+  }
+  .chip.active{ border-color:var(--violet); color:var(--text); background:rgba(139,92,255,0.12); }
+
+  .qlist{ display:flex; flex-direction:column; gap:12px; }
+  .qcard{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px; position:relative; overflow:hidden; }
+  .qcard::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--line); }
+  .qcard[data-priority="1"]::before{ background:linear-gradient(180deg,var(--cyan),var(--magenta)); }
+  .qtags{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .tag{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.3px; padding:3px 9px; border-radius:5px; border:1px solid var(--line); color:var(--muted); }
+  .tag.marks{ color:var(--cyan); border-color:rgba(53,230,255,.35); }
+  .tag.pyq{ color:var(--magenta); border-color:rgba(255,79,216,.35); }
+  .tag.pred{ color:var(--violet); border-color:rgba(139,92,255,.4); }
+  .tag.fire{ color:#ffce54; border-color:rgba(255,206,84,.4); }
+  .qtext{ font-size:14.5px; line-height:1.5; margin-bottom:12px; }
+  .reveal-btn{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; background:transparent; border:1px solid var(--line);
+    color:var(--cyan); padding:8px 14px; border-radius:7px; cursor:pointer;
+  }
+  .reveal-btn:hover{ border-color:var(--cyan); }
+  .answer{ display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); font-size:13px; color:var(--muted); line-height:1.6; }
+  .answer.show{ display:block; }
+  .answer pre{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px 14px;
+    overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text); line-height:1.55; margin:8px 0 0;
+  }
+  .answer code{ font-family:'JetBrains Mono',monospace; color:var(--cyan); }
+  .empty-note{ text-align:center; color:var(--muted); font-size:13px; padding:40px 0; font-family:'JetBrains Mono',monospace; }
+
+  @media (max-width:680px){ .features{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:460px){ .features{ grid-template-columns:1fr; } .topnav{ flex-direction:column; gap:12px; align-items:flex-start; } }
+  @media (prefers-reduced-motion: reduce){ .tesseract{ animation:none; } .drift{ animation:none; } }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="grid-field"></div>
+<div class="drift a"></div>
+<div class="drift b"></div>
+
+<nav class="topnav">
+  <div class="brand">TESSER<b>ACT</b> LABS</div>
+  <div class="navlinks">
+    <button class="navlink active" data-view="home">Home</button>
+    <button class="navlink" data-view="subject">Subject</button>
+    <a class="navlink" href="index.html">🏠 All Subjects</a>
+    <button class="navlink" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank')">Feedback</button>
+  </div>
+</nav>
+
+<!-- ============ HOME VIEW ============ -->
+<section class="view active" id="view-home">
+  <div class="hero">
+    <div class="term-stage">
+      <div class="term-bar"><span></span><span></span><span></span></div>
+      <div class="term-body"><div class="term-scroll">
+        <div><span class="kw">public class</span> <span class="ty">FT2</span> {</div>
+        <div>&nbsp;&nbsp;<span class="kw">public static void</span> main(String[] a){</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(<span class="st">"Study time"</span>);</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// threads, streams, JDBC...</span></div>
+        <div>&nbsp;&nbsp;}</div>
+        <div>}</div>
+        <div>&nbsp;</div>
+        <div><span class="kw">class</span> <span class="ty">Worker</span> <span class="kw">extends</span> Thread {</div>
+        <div>&nbsp;&nbsp;<span class="kw">public void</span> run(){ ... }</div>
+        <div>}<span class="term-cursor"></span></div>
+        <div>&nbsp;</div>
+        <div><span class="kw">public class</span> <span class="ty">FT2</span> {</div>
+        <div>&nbsp;&nbsp;<span class="kw">public static void</span> main(String[] a){</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(<span class="st">"Study time"</span>);</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// threads, streams, JDBC...</span></div>
+        <div>&nbsp;&nbsp;}</div>
+        <div>}</div>
+        <div>&nbsp;</div>
+        <div><span class="kw">class</span> <span class="ty">Worker</span> <span class="kw">extends</span> Thread {</div>
+        <div>&nbsp;&nbsp;<span class="kw">public void</span> run(){ ... }</div>
+        <div>}<span class="term-cursor"></span></div>
+      </div></div>
+    </div>
+    <div class="eyebrow">STUDY PORTAL</div>
+    <h1 class="title">Advanced Java Programming</h1>
+    <div class="tagline">FT-2 · <b>15-09-2026</b> · Day Order 2 · Unit 1–3</div>
+    <div class="quote-box"><div class="quote" id="quoteEl"></div></div>
+    <button class="cta" id="openSubject">Open Study Portal →</button>
+  </div>
+
+  <div class="features">
+    <div class="feature"><div class="dot"></div><h3>Unit-wise question bank</h3><p>Every question sorted under Unit 1, 2 or 3 — no digging through scattered notes.</p></div>
+    <div class="feature"><div class="dot"></div><h3>PYQ vs Predicted tags</h3><p>See at a glance whether a question already appeared or is a likely rewrite.</p></div>
+    <div class="feature"><div class="dot"></div><h3>Tap-to-reveal answers</h3><p>Test yourself first — the full code or explanation stays hidden until you ask for it.</p></div>
+    <div class="feature"><div class="dot"></div><h3>High-yield ranking</h3><p>A 🔥 flag marks the questions with the strongest overlap across past papers.</p></div>
+    <div class="feature"><div class="dot"></div><h3>Marks-based filtering</h3><p>Jump straight to the 1-mark MCQ pool or the 10-mark application questions.</p></div>
+    <div class="feature"><div class="dot"></div><h3>Built for exam day</h3><p>No clutter, no distractions — just the four master programs and the MCQ core.</p></div>
+  </div>
+
+  <div class="site-footer">TESSERACT LABS · Advanced Java Programming FT-2 prep</div>
+</section>
+
+<!-- ============ SUBJECT VIEW ============ -->
+<section class="view" id="view-subject">
+  <div class="subject-wrap">
+    <div class="sub-head">
+      <h2>Advanced Java Programming — FT-2</h2>
+      <div class="pattern-strip">
+        <span class="pill"><b>10</b> MCQs · 1 mark each</span>
+        <span class="pill"><b>4</b> application Qs · <b>10</b> marks each</span>
+        <span class="pill"><b>50</b> raw marks → scaled to <b>15</b></span>
+        <span class="pill">15-09-2026 · Day Order 2</span>
+      </div>
+    </div>
+
+    <div class="unit-tabs" id="unitTabs"></div>
+    <div class="chips" id="chipRow"></div>
+    <div class="qlist" id="qlist"></div>
+  </div>
+</section>
+
+<script>
+/* ---------------- VIEW SWITCH ---------------- */
+document.querySelectorAll('.navlink').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchView(btn.dataset.view));
+});
+document.getElementById('openSubject').addEventListener('click', ()=> switchView('subject'));
+function switchView(name){
+  document.querySelectorAll('.navlink').forEach(b=> b.classList.toggle('active', b.dataset.view===name));
+  document.querySelectorAll('.view').forEach(v=> v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+}
+
+/* ---------------- ROTATING QUOTES ---------------- */
+const quotes = [
+  "Regex is just pattern matching with extra confidence.",
+  "Every red squiggly is a lesson in disguise.",
+  "An XML tag is just a labeled box for your data.",
+  "Two-way binding: say it once, see it everywhere.",
+  "Ship the form, then let the regex worry about reality.",
+  "JSON: less punctuation, more peace of mind.",
+  "Angular whispers the binding; JavaScript shouts the DOM."
+];
+let qi = 0;
+const quoteEl = document.getElementById('quoteEl');
+function showQuote(){
+  quoteEl.textContent = quotes[qi];
+  quoteEl.classList.add('show');
+}
+showQuote();
+setInterval(()=>{
+  quoteEl.classList.remove('show');
+  setTimeout(()=>{ qi = (qi+1) % quotes.length; showQuote(); }, 500);
+}, 4200);
+
+/* ---------------- PARTICLE BACKGROUND ---------------- */
+(function(){
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let w,h,particles;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  function init(){
+    resize();
+    const count = Math.min(70, Math.floor((w*h)/22000));
+    particles = Array.from({length:count}, ()=>({
+      x: Math.random()*w, y: Math.random()*h,
+      vx: (Math.random()-0.5)*0.35, vy: (Math.random()-0.5)*0.35,
+      r: Math.random()*1.6+0.6
+    }));
+  }
+  function step(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of particles){
+      if(!reduced){
+        p.x += p.vx; p.y += p.vy;
+        if(p.x<0||p.x>w) p.vx*=-1;
+        if(p.y<0||p.y>h) p.vy*=-1;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(53,230,255,0.55)';
+      ctx.fill();
+    }
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const a=particles[i], b=particles[j];
+        const dx=a.x-b.x, dy=a.y-b.y, dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<110){
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+          ctx.strokeStyle = 'rgba(139,92,255,'+(0.18*(1-dist/110))+')';
+          ctx.lineWidth=1;
+          ctx.stroke();
+        }
+      }
+    }
+    if(!reduced) requestAnimationFrame(step);
+  }
+  window.addEventListener('resize', init);
+  init();
+  step();
+})();
+
+/* ---------------- QUESTION BANK ---------------- */
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function code(s){ return '<pre>'+esc(s.trim())+'</pre>'; }
+
+const bank = [
+  // ---------- UNIT 1 ----------
+  {unit:1, marks:1, type:'PYQ', priority:false, q:"Which language is used to add dynamic behaviour to an HTML page?", a:"JavaScript."},
+  {unit:1, marks:1, type:'PYQ', priority:false, q:"Which method selects an HTML element using its ID?", a:"<code>document.getElementById()</code>"},
+  {unit:1, marks:1, type:'PYQ', priority:false, q:"What does ^ represent in a regular expression?", a:"The beginning of the string."},
+  {unit:1, marks:1, type:'PYQ', priority:false, q:"Which regex represents exactly 10 digits?", a:"<code>/^\\d{10}$/</code>"},
+  {unit:1, marks:10, type:'Predicted', priority:true,
+    q:"Design an HTML student registration form containing Registration Number, Name, Email, Password, Phone Number, Department, Gender, Hobbies and Address. Write JavaScript to validate every field using regular expressions wherever required, with alert messages for invalid input.",
+    a:"This is the single most important program in Unit 1 — it covers HTML, CSS, JavaScript, DOM and regex together. Core validation patterns:"
+      + code("var regPattern      = /^RA\\d{13}$/;\nvar namePattern     = /^[A-Za-z ]+$/;\nvar emailPattern    = /^[A-Za-z0-9._%+-]+@gmail\\.com$/;\nvar passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{8,}$/;\nvar phonePattern    = /^\\d{10}$/;")
+      + "<br>Validation flow inside <code>validateForm()</code>: check each pattern with <code>.test(value)</code>, alert and <code>return false</code> on failure, loop over the hobbies checkboxes to confirm at least one is checked, confirm department isn't left on \"Select\", confirm a gender radio is chosen, confirm address isn't empty, then on success write to <code>#result</code> via the DOM and <code>return true</code>. The form tag itself needs <code>name=\"f1\"</code> and <code>onsubmit=\"return validateForm()\"</code> so the browser only submits when validation passes."},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"Create an HTML page containing a paragraph and a button. Use JavaScript DOM methods to change the paragraph's content and style when the button is clicked.",
+    a:"Core DOM pattern to memorize:"
+      + code("<p id=\"text\">Original text</p>\n<button onclick=\"changeIt()\">Change</button>\n\n<scr"+"ipt>\nfunction changeIt(){\n  var el = document.getElementById(\"text\");\n  el.innerHTML = \"Text changed!\";\n  el.style.color = \"blue\";\n  el.style.fontWeight = \"bold\";\n}\n</scr"+"ipt>")},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"Write a Java program to find every digit in a number that occurs exactly once (unique digits).", 
+    a:"Example: input 12232 → output 1 3. Approach: build a frequency array of size 10 by peeling digits off the number with <code>%10</code> and <code>/10</code>, then walk the original digits again and print any whose <code>freq[digit] == 1</code>."},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"Write a Java program to find the digit that occurs most frequently in a given number.",
+    a:"Example: input 122312 → output 2. Approach: same frequency array as the unique-digits problem, then scan <code>freq[0..9]</code> for the index with the maximum count."},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"A number is called 'Stable' if every digit that occurs in it occurs with the same frequency. Write a Java program to classify a number as Stable or Unstable.",
+    a:"Example: 223113 → Stable (2,3,1 each appear twice). 2441 → Unstable. Approach: build the digit-frequency array, collect the non-zero frequencies, and check they're all equal."},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"Given an array of numbers, find the sum of the second-last digit of every number in the array.",
+    a:"Example: {123, 4567, 89, 12, 5, -246} → 21. Approach: for each number take its absolute value, strip the last digit once (<code>n/10</code>), then take that result <code>%10</code> — handle single-digit numbers as contributing 0."},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"Given a string, reverse its second half and append it after the (unreversed) first half.",
+    a:"Example: \"Welcome\" → \"Welemoc\" style transforms (check the exact rule given in your paper — some variants ask for the full string reversed and swapped in halves, e.g. \"college\" → \"egelcol\"). Approach: find the midpoint with <code>length/2</code>, slice the string into two halves, reverse the second half with a loop or <code>StringBuilder.reverse()</code>, and concatenate."},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"Given a string, calculate the sum of the alphabet values of its letters where A=1, B=2, … Z=26.",
+    a:"Example: \"SRM\" → S=19, R=18, M=13 → total 50. Approach: uppercase the string, loop through characters, and for each letter add <code>(ch - 'A' + 1)</code> to a running sum."},
+  {unit:1, marks:10, type:'Predicted', priority:false,
+    q:"Write a Java program to print a number/star pattern (e.g. a right-angled or diamond triangle).",
+    a:"Two common shapes to have ready:"
+      + code("1\n1 2\n1 2 3\n1 2 3 4\n1 2 3 4 5")
+      + code("   1\n  1 2 1\n 1 2 3 2 1\n1 2 3 4 3 2 1")
+      + "Approach: nested loops — outer loop for rows, inner loop(s) for leading spaces and then the increasing/decreasing values."},
+
+  // ---------- UNIT 2 ----------
+  {unit:2, marks:1, type:'PYQ', priority:false, q:"What is the purpose of XSLT?", a:"To transform an XML document into another format, most commonly HTML."},
+  {unit:2, marks:1, type:'PYQ', priority:false, q:"Which tag defines an XSLT template?", a:"<code>&lt;xsl:template&gt;</code>"},
+  {unit:2, marks:1, type:'PYQ', priority:false, q:"Which function converts JSON text into a JavaScript object?", a:"<code>JSON.parse()</code>"},
+  {unit:2, marks:1, type:'PYQ', priority:false, q:"Which function converts a JavaScript object into JSON text?", a:"<code>JSON.stringify()</code>"},
+  {unit:2, marks:10, type:'Predicted', priority:true,
+    q:"Create an XML document containing details of three students (or employees/books) and write an XSLT stylesheet to transform it into an HTML table.",
+    a:"students.xml:"
+      + code("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet type=\"text/xsl\" href=\"students.xsl\"?>\n<students>\n  <student>\n    <regno>RA2412704010018</regno>\n    <name>Raghul</name>\n    <department>CSE</department>\n    <email>raghul@gmail.com</email>\n  </student>\n  <student>\n    <regno>RA2412704010019</regno>\n    <name>Arun</name>\n    <department>ECE</department>\n    <email>arun@gmail.com</email>\n  </student>\n</students>")
+      + "students.xsl:"
+      + code("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n  <xsl:template match=\"/\">\n    <html><body>\n    <h2>Student Details</h2>\n    <table border=\"1\">\n      <tr><th>Reg No</th><th>Name</th><th>Dept</th><th>Email</th></tr>\n      <xsl:for-each select=\"students/student\">\n        <tr>\n          <td><xsl:value-of select=\"regno\"/></td>\n          <td><xsl:value-of select=\"name\"/></td>\n          <td><xsl:value-of select=\"department\"/></td>\n          <td><xsl:value-of select=\"email\"/></td>\n        </tr>\n      </xsl:for-each>\n    </table>\n    </body></html>\n  </xsl:template>\n</xsl:stylesheet>")
+      + "Memorize just this skeleton: <code>xsl:stylesheet → xsl:template match=\"/\" → xsl:for-each select=\"...\" → xsl:value-of select=\"...\"</code>."},
+  {unit:2, marks:10, type:'Predicted', priority:true,
+    q:"Create an XML document for student/employee details and write an XML Schema (XSD) that validates its structure and data types.",
+    a:"student.xml:"
+      + code("<?xml version=\"1.0\"?>\n<student xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:noNamespaceSchemaLocation=\"student.xsd\">\n  <regno>RA2412704010018</regno>\n  <name>Raghul</name>\n  <department>CSE</department>\n  <age>19</age>\n</student>")
+      + "student.xsd:"
+      + code("<?xml version=\"1.0\"?>\n<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n  <xs:element name=\"student\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"regno\" type=\"xs:string\"/>\n        <xs:element name=\"name\" type=\"xs:string\"/>\n        <xs:element name=\"department\" type=\"xs:string\"/>\n        <xs:element name=\"age\" type=\"xs:integer\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>")
+      + "Structure to remember: <code>xs:schema → xs:element → xs:complexType → xs:sequence → xs:element(type=...)</code>."},
+  {unit:2, marks:10, type:'Predicted', priority:true,
+    q:"Create an XML document for employee details and define its structure using an internal DTD.",
+    a:code("<?xml version=\"1.0\"?>\n<!DOCTYPE employee [\n  <!ELEMENT employee (name, empid, dept)>\n  <!ELEMENT name (#PCDATA)>\n  <!ELEMENT empid (#PCDATA)>\n  <!ELEMENT dept (#PCDATA)>\n]>\n<employee>\n  <name>Raghul</name>\n  <empid>E101</empid>\n  <dept>CSE</dept>\n</employee>")
+      + "Know both internal DTD (embedded like above, inside <code>&lt;!DOCTYPE ... [ ... ]&gt;</code>) and that an external DTD is referenced instead via a <code>SYSTEM</code> URL."},
+  {unit:2, marks:10, type:'Predicted', priority:false,
+    q:"Create a JSON document containing student details using objects and arrays, then write JavaScript to convert the JSON text into a JavaScript object and back into JSON text.",
+    a:"JSON structure:"
+      + code("{\n  \"students\": [\n    { \"regno\": \"RA2412704010018\", \"name\": \"Raghul\", \"department\": \"CSE\", \"age\": 19, \"isStudent\": true },\n    { \"regno\": \"RA2412704010019\", \"name\": \"Arun\", \"department\": \"ECE\", \"age\": 19, \"isStudent\": true }\n  ]\n}")
+      + "JavaScript parse/stringify:"
+      + code("var jsonData = '{\"name\":\"Raghul\",\"regno\":\"RA2412704010018\",\"department\":\"CSE\",\"age\":19}';\nvar student = JSON.parse(jsonData);\ndocument.write(student.name + \" - \" + student.department);\n\nvar newJSON = JSON.stringify(student);\ndocument.write(newJSON);")
+      + "Remember: <code>JSON.parse()</code> = JSON → JS object, <code>JSON.stringify()</code> = JS object → JSON."},
+  {unit:2, marks:10, type:'Predicted', priority:false,
+    q:"Compare JSON and XML based on syntax, readability, file size, parsing speed, flexibility, validation and use cases.",
+    a:"<b>Syntax</b> — JSON: key-value pairs · XML: tags.<br><b>Readability</b> — JSON easier · XML more verbose.<br><b>File size</b> — JSON smaller · XML larger.<br><b>Parsing</b> — JSON faster · XML slower.<br><b>Flexibility</b> — XML more flexible for complex/mixed content.<br><b>Validation</b> — JSON has no built-in schema validation · XML has DTD/XSD.<br><b>Use cases</b> — JSON: APIs/web apps · XML: configuration/complex structured data."},
+
+  // ---------- UNIT 3 ----------
+  {unit:3, marks:1, type:'PYQ', priority:false, q:"Which Angular syntax is used for two-way data binding?", a:"<code>[(ngModel)]</code>"},
+  {unit:3, marks:1, type:'PYQ', priority:false, q:"Which module must be imported for ngModel to work?", a:"<code>FormsModule</code>"},
+  {unit:3, marks:10, type:'Predicted', priority:true,
+    q:"Develop an Angular application demonstrating two-way data binding using [(ngModel)], interpolation and event binding.",
+    a:"app.ts:"
+      + code("import { Component } from '@angular/core';\nimport { FormsModule } from '@angular/forms';\n\n@Component({\n  selector: 'app-root',\n  standalone: true,\n  imports: [FormsModule],\n  templateUrl: './app.html'\n})\nexport class App {\n  userInput: string = \"Raghul\";\n\n  clearText() {\n    this.userInput = \"\";\n  }\n}")
+      + "app.html:"
+      + code("<h2>Student Information</h2>\n<label>Name:</label>\n<input type=\"text\" [(ngModel)]=\"userInput\" placeholder=\"Enter your name\">\n<p>Student Name: {{ userInput }}</p>\n<button (click)=\"clearText()\">Clear</button>")
+      + "Three things to be able to name on sight: <code>[(ngModel)]</code> = two-way binding, <code>{{ userInput }}</code> = interpolation, <code>(click)</code> = event binding. <code>FormsModule</code> is required for <code>ngModel</code> to work at all."},
+  {unit:3, marks:10, type:'Predicted', priority:false,
+    q:"Explain the Angular MVC architecture and how components, templates and data binding fit into it.",
+    a:"Model — the component's class properties (e.g. <code>userInput</code>) hold the data. View — the HTML template renders that data. Controller — the component class's methods (e.g. <code>clearText()</code>) respond to events and update the model. Angular keeps the Model and View in sync automatically through data binding: one-way with <code>{{ }}</code> or <code>[property]</code>, and two-way with <code>[(ngModel)]</code>, so a change in either the input box or the underlying variable is reflected on both sides."},
+];
+
+/* ---------------- RENDER LOGIC ---------------- */
+const units = [
+  {id:1, label:"Unit 1 — HTML/CSS/JS"},
+  {id:2, label:"Unit 2 — XML/JSON"},
+  {id:3, label:"Unit 3 — Angular"},
+];
+const chips = [
+  {id:'all', label:'All'},
+  {id:'pyq', label:'PYQ only'},
+  {id:'predicted', label:'Predicted only'},
+  {id:'m1', label:'1 mark'},
+  {id:'m10', label:'10 mark'},
+  {id:'fire', label:'High priority 🔥'},
+];
+let activeUnit = 1, activeChip = 'all';
+
+const unitTabsEl = document.getElementById('unitTabs');
+units.forEach(u=>{
+  const b = document.createElement('button');
+  b.className = 'unit-tab' + (u.id===activeUnit ? ' active':'');
+  b.textContent = u.label;
+  b.addEventListener('click', ()=>{ activeUnit = u.id; renderTabs(); renderList(); });
+  b.dataset.id = u.id;
+  unitTabsEl.appendChild(b);
+});
+function renderTabs(){
+  unitTabsEl.querySelectorAll('.unit-tab').forEach(b=> b.classList.toggle('active', parseInt(b.dataset.id)===activeUnit));
+  chipRowEl.querySelectorAll('.chip').forEach(c=> c.classList.toggle('active', c.dataset.id===activeChip));
+}
+
+const chipRowEl = document.getElementById('chipRow');
+chips.forEach(c=>{
+  const b = document.createElement('button');
+  b.className = 'chip' + (c.id===activeChip ? ' active':'');
+  b.textContent = c.label;
+  b.dataset.id = c.id;
+  b.addEventListener('click', ()=>{ activeChip = c.id; renderTabs(); renderList(); });
+  chipRowEl.appendChild(b);
+});
+
+const qlistEl = document.getElementById('qlist');
+function matchesChip(item){
+  switch(activeChip){
+    case 'pyq': return item.type === 'PYQ';
+    case 'predicted': return item.type === 'Predicted';
+    case 'm1': return item.marks === 1;
+    case 'm10': return item.marks === 10;
+    case 'fire': return item.priority === true;
+    default: return true;
+  }
+}
+function renderList(){
+  const items = bank.filter(it => it.unit === activeUnit && matchesChip(it));
+  qlistEl.innerHTML = '';
+  if(items.length === 0){
+    qlistEl.innerHTML = '<div class="empty-note">No questions match this filter yet — try a different combination.</div>';
+    return;
+  }
+  items.forEach((it, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.dataset.priority = it.priority ? '1':'0';
+    card.innerHTML = `
+      <div class="qtags">
+        <span class="tag marks">${it.marks} mark${it.marks>1?'s':''}</span>
+        <span class="tag ${it.type==='PYQ'?'pyq':'pred'}">${it.type}</span>
+        ${it.priority ? '<span class="tag fire">🔥 high priority</span>' : ''}
+      </div>
+      <div class="qtext">${it.q}</div>
+      <button class="reveal-btn">Show Answer</button>
+      <div class="answer">${it.a}</div>
+    `;
+    const btn = card.querySelector('.reveal-btn');
+    const ans = card.querySelector('.answer');
+    btn.addEventListener('click', ()=>{
+      const isShown = ans.classList.toggle('show');
+      btn.textContent = isShown ? 'Hide Answer' : 'Show Answer';
+    });
+    qlistEl.appendChild(card);
+  });
+}
+renderTabs();
+renderList();
+</script>
+
+<!-- ===== Tesseract Labs shared chrome: countdown + feedback ===== -->
+<div class="tlx-chrome" id="tlx-chrome">
+  <div class="tlx-timer" id="tlx-timer">⏳ --</div>
+  <button class="tlx-fb" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSezrBRuvKG5zXZveAnqdjbpetpw-IF110yrDGbiqQ2KnmQHQA/viewform?usp=publish-editor','_blank')">💬 Feedback</button>
+</div>
+<style>
+  .tlx-chrome{ position:fixed; bottom:16px; right:16px; z-index:999; display:flex; gap:8px; align-items:center; font-family:'JetBrains Mono', monospace; flex-wrap:wrap; justify-content:flex-end; max-width:70vw; }
+  .tlx-chrome .tlx-timer, .tlx-chrome .tlx-fb{
+    background:rgba(8,10,20,0.85); backdrop-filter:blur(8px); border:1px solid rgba(140,160,255,0.28);
+    color:#eaf1ff; font-size:11px; letter-spacing:.4px; padding:9px 14px; border-radius:20px;
+    white-space:nowrap; box-shadow:0 4px 18px rgba(0,0,0,0.35);
+  }
+  .tlx-timer{ color:#ffce54; border-color:rgba(255,206,84,0.4); }
+  .tlx-fb{ cursor:pointer; font-family:inherit; }
+  .tlx-fb:hover{ border-color:#ec4899; color:#ffd4ea; }
+  @media (max-width:560px){ .tlx-chrome{ left:10px; right:10px; bottom:10px; justify-content:center; } }
+</style>
+<script>
+(function(){
+  var target = new Date("2026-09-15T09:00:00").getTime();
+  var el = document.getElementById('tlx-timer');
+  function tick(){
+    var diff = target - Date.now();
+    if(diff <= 0){ el.textContent = '🎯 FT day is here!'; return; }
+    var d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
+        m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+    el.textContent = '⏳ FT-2 in ' + d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

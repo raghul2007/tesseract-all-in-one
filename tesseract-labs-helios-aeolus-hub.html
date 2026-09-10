@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Helios & Aeolus — 21MEO112T Study Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --plum: #5B3358;
+    --plum-deep: #402342;
+    --plum-soft: #8C5E88;
+    --sage: #7C9163;
+    --sage-light: #A9BB8C;
+    --warm-gray: #8C7B6B;
+    --warm-gray-light: #C6B9A9;
+    --cream: #F5EFE4;
+    --cream-2: #EDE3D2;
+    --ink: #2A2029;
+    --ink-soft: #5A4F56;
+    --line: rgba(42,32,41,0.12);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.5;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    color:var(--plum-deep);
+    margin:0;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+  a{color:inherit;}
+  .wrap{max-width:1140px; margin:0 auto; padding:0 28px;}
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(245,239,228,0.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-row{display:flex; align-items:center; justify-content:space-between; padding:14px 28px;}
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-weight:600; font-size:1.15rem; color:var(--plum-deep); text-decoration:none;}
+  .brand .dot-sun{width:11px; height:11px; border-radius:50%; background:radial-gradient(circle at 35% 30%, var(--sage-light), var(--sage) 60%, var(--plum) 130%);}
+  .course-chip{
+    font-size:0.72rem; letter-spacing:0.02em; color:var(--ink-soft);
+    background:var(--cream-2); border:1px solid var(--line); border-radius:20px;
+    padding:4px 12px; margin-left:2px;
+  }
+  .nav-links{display:flex; gap:26px; align-items:center; font-size:0.92rem;}
+  .nav-links a{text-decoration:none; color:var(--ink-soft); transition:color .15s;}
+  .nav-links a:hover{color:var(--plum);}
+  .nav-cta{
+    background:var(--plum); color:var(--cream); padding:8px 18px; border-radius:8px;
+    font-size:0.88rem; font-weight:500; text-decoration:none;
+  }
+  @media (max-width:720px){ .nav-links{display:none;} }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% 15%, rgba(140,94,136,0.35), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(124,145,99,0.3), transparent 60%),
+      linear-gradient(180deg, #4A2C4C 0%, #6B3F63 35%, #8C6B5E 68%, #EDE3D2 100%);
+    padding:78px 0 0;
+    min-height:640px;
+  }
+  #hero-canvas{position:absolute; inset:0; width:100%; height:100%; opacity:0.55;}
+  .hero-inner{position:relative; z-index:3;}
+  .hero-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:20px; align-items:center; min-height:480px;}
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr; min-height:auto;} }
+
+  .eyebrow-course{
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(245,239,228,0.14); border:1px solid rgba(245,239,228,0.3);
+    color:#F5EFE4; padding:6px 14px; border-radius:20px; font-size:0.82rem;
+    margin-bottom:22px;
+  }
+  .hero-text h1{
+    font-size:clamp(2.3rem, 4.6vw, 3.4rem); color:#F8F4EC; line-height:1.08; margin-bottom:18px; max-width:11ch;
+  }
+  .hero-text h1 em{font-style:italic; color:var(--sage-light);}
+  .hero-text p.lede{
+    color:#E6DCCB; font-size:1.05rem; max-width:46ch; margin-bottom:26px;
+  }
+  .hero-tagline{
+    color:#D8C9B5; font-size:0.92rem; margin-bottom:30px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .hero-tagline b{color:var(--sage-light); font-weight:600;}
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--sage-light); color:var(--plum-deep); padding:13px 26px; border-radius:9px;
+    font-weight:600; text-decoration:none; font-size:0.95rem; border:none; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,0.25);}
+  .btn-ghost{
+    background:transparent; color:#F5EFE4; padding:13px 22px; border-radius:9px;
+    border:1px solid rgba(245,239,228,0.4); text-decoration:none; font-size:0.95rem; cursor:pointer;
+  }
+
+  /* Quote ticker */
+  .quote-box{
+    margin-top:34px; min-height:44px; max-width:48ch;
+    border-left:2px solid var(--sage-light); padding-left:14px;
+  }
+  .quote-box p{
+    color:#EDE3D2; font-style:italic; font-family:'Fraunces',serif; font-size:1rem;
+    opacity:0; transform:translateY(6px);
+    animation:quoteFade 21s infinite;
+  }
+  .quote-box p:nth-child(1){animation-delay:0s;}
+  .quote-box p:nth-child(2){animation-delay:3s;}
+  .quote-box p:nth-child(3){animation-delay:6s;}
+  .quote-box p:nth-child(4){animation-delay:9s;}
+  .quote-box p:nth-child(5){animation-delay:12s;}
+  .quote-box p:nth-child(6){animation-delay:15s;}
+  .quote-box p{position:absolute;}
+  .quote-box{position:relative;}
+  @keyframes quoteFade{
+    0%{opacity:0; transform:translateY(6px);}
+    3%{opacity:1; transform:translateY(0);}
+    13%{opacity:1;}
+    16%{opacity:0; transform:translateY(-6px);}
+    100%{opacity:0;}
+  }
+
+  /* Scene: sun + turbine */
+  .scene{position:relative; height:440px;}
+  .sun-wrap{position:absolute; left:6%; top:8%; width:220px; height:220px;}
+  .sun-core{
+    position:absolute; inset:60px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #F3E9C9, var(--sage-light) 55%, var(--plum-soft) 100%);
+    box-shadow:0 0 60px 10px rgba(169,187,140,0.45);
+  }
+  .rays{position:absolute; inset:0; animation:spin 26s linear infinite;}
+  .rays span{
+    position:absolute; left:50%; top:50%; width:2px; height:34px;
+    background:linear-gradient(180deg, rgba(245,239,228,0.9), transparent);
+    transform-origin:0 110px;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .turbine-wrap{position:absolute; right:8%; bottom:0; width:200px; height:340px;}
+  .turbine-tower{
+    position:absolute; bottom:0; left:50%; width:10px; height:230px; transform:translateX(-50%);
+    background:linear-gradient(180deg, #EDE3D2, #C6B9A9);
+    border-radius:3px 3px 0 0;
+  }
+  .turbine-base{
+    position:absolute; bottom:-6px; left:50%; width:44px; height:10px; transform:translateX(-50%);
+    background:rgba(42,32,41,0.25); border-radius:50%; filter:blur(2px);
+  }
+  .blades{position:absolute; top:225px; left:50%; width:4px; height:4px; transform:translate(-50%,-50%); animation:spin 6s linear infinite;}
+  .blade{
+    position:absolute; left:0; top:0; width:6px; height:118px;
+    background:linear-gradient(180deg, #F5EFE4, var(--sage-light) 70%, var(--plum-soft));
+    border-radius:60% 60% 6px 6px; transform-origin:50% 0%;
+  }
+  .blade:nth-child(1){transform:rotate(0deg);}
+  .blade:nth-child(2){transform:rotate(120deg);}
+  .blade:nth-child(3){transform:rotate(240deg);}
+  .hub{position:absolute; top:213px; left:50%; width:16px; height:16px; transform:translate(-50%,-50%); background:var(--plum-deep); border-radius:50%; z-index:2;}
+
+  .wind-lines{position:absolute; inset:0; pointer-events:none;}
+  .wind-lines svg{width:100%; height:100%;}
+  .wline{stroke:rgba(245,239,228,0.35); stroke-width:2; fill:none; stroke-dasharray:10 14; animation:flow 5s linear infinite;}
+  .wline.w2{animation-duration:6.5s; stroke:rgba(169,187,140,0.4);}
+  .wline.w3{animation-duration:8s; stroke:rgba(245,239,228,0.22);}
+  @keyframes flow{ to{ stroke-dashoffset:-240; } }
+
+  .drift{position:absolute; border-radius:50%; background:rgba(237,227,210,0.55); animation:driftUp linear infinite;}
+  @keyframes driftUp{
+    0%{transform:translateY(0) translateX(0); opacity:0;}
+    10%{opacity:0.8;}
+    90%{opacity:0.5;}
+    100%{transform:translateY(-360px) translateX(24px); opacity:0;}
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:74px 0;}
+  .section-head{max-width:640px; margin-bottom:44px;}
+  .kicker{color:var(--sage); font-weight:600; font-size:0.82rem; letter-spacing:0.03em; margin-bottom:10px; display:block;}
+  .section-head h2{font-size:clamp(1.6rem,3vw,2.2rem);}
+  .section-head p{color:var(--ink-soft); margin-top:12px; font-size:1rem; max-width:56ch;}
+
+  /* Toolkit cards */
+  .toolkit-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  @media (max-width:860px){ .toolkit-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .toolkit-grid{grid-template-columns:1fr;} }
+  .tool-card{
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:24px;
+    position:relative; overflow:hidden;
+  }
+  .tool-card::before{
+    content:''; position:absolute; top:0; left:0; width:4px; height:100%;
+    background:linear-gradient(180deg, var(--sage-light), var(--plum-soft));
+  }
+  .tool-icon{
+    width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:var(--cream-2); margin-bottom:14px; font-size:1.2rem;
+  }
+  .tool-card h3{font-size:1.05rem; margin-bottom:8px; font-weight:600;}
+  .tool-card p{color:var(--ink-soft); font-size:0.9rem; margin:0;}
+
+  /* Priority table */
+  .priority-wrap{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  @media (max-width:820px){ .priority-wrap{grid-template-columns:1fr;} }
+  .priority-card{background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .priority-card h3{
+    padding:16px 20px; font-size:1rem; background:var(--plum-deep); color:var(--cream);
+    display:flex; align-items:center; gap:8px;
+  }
+  .priority-card table{width:100%; border-collapse:collapse; font-size:0.88rem;}
+  .priority-card td{padding:11px 20px; border-bottom:1px solid var(--line); vertical-align:top;}
+  .priority-card tr:last-child td{border-bottom:none;}
+  .flame{color:var(--plum); font-size:0.78rem; letter-spacing:1px; white-space:nowrap; width:50px;}
+  .topic-cell{color:var(--ink); font-weight:500;}
+
+  /* Top 10 + timeline */
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:36px;}
+  @media (max-width:860px){ .two-col{grid-template-columns:1fr;} }
+  .top10-list{list-style:none; margin:0; padding:0; counter-reset:t10;}
+  .top10-list li{
+    counter-increment:t10; display:flex; gap:14px; align-items:flex-start;
+    padding:11px 0; border-bottom:1px dashed var(--line); font-size:0.94rem;
+  }
+  .top10-list li::before{
+    content:counter(t10);
+    flex:0 0 26px; height:26px; border-radius:50%; background:var(--sage);
+    color:#fff; font-size:0.78rem; font-weight:600; display:flex; align-items:center; justify-content:center;
+  }
+  .timeline{list-style:none; margin:0; padding:0; border-left:2px solid var(--plum-soft); margin-left:8px;}
+  .timeline li{position:relative; padding:0 0 20px 22px; font-size:0.93rem;}
+  .timeline li::before{
+    content:''; position:absolute; left:-7px; top:3px; width:12px; height:12px; border-radius:50%;
+    background:var(--cream); border:2px solid var(--sage);
+  }
+  .timeline li b{display:block; color:var(--plum-deep); font-weight:600; margin-bottom:2px;}
+
+  /* ---------- QUESTION BANK ---------- */
+  .bank-controls{
+    position:sticky; top:64px; z-index:20; background:var(--cream);
+    padding:16px 0; border-bottom:1px solid var(--line); margin-bottom:26px;
+  }
+  .unit-tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .unit-tab{
+    padding:10px 18px; border-radius:9px; border:1px solid var(--line); background:#fff;
+    cursor:pointer; font-size:0.9rem; font-weight:500; color:var(--ink-soft);
+    transition:background .15s, color .15s;
+  }
+  .unit-tab.active{background:var(--plum-deep); color:#fff; border-color:var(--plum-deep);}
+
+  .search-row{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .search-input{
+    flex:1; min-width:200px; padding:11px 16px; border-radius:9px; border:1px solid var(--line);
+    background:#fff; font-family:inherit; font-size:0.92rem;
+  }
+  .progress-pill{
+    display:flex; align-items:center; gap:10px; font-size:0.82rem; color:var(--ink-soft);
+    background:#fff; border:1px solid var(--line); border-radius:9px; padding:0 14px;
+  }
+  .progress-track{width:90px; height:6px; border-radius:4px; background:var(--cream-2); overflow:hidden;}
+  .progress-fill{height:100%; background:var(--sage); width:0%; transition:width .3s ease;}
+
+  .chip-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{
+    padding:7px 14px; border-radius:20px; border:1px solid var(--line); background:#fff;
+    font-size:0.8rem; cursor:pointer; color:var(--ink-soft); transition:all .15s;
+  }
+  .chip.active{background:var(--sage); border-color:var(--sage); color:#fff;}
+
+  .card-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media (max-width:820px){ .card-grid{grid-template-columns:1fr;} }
+
+  .qcard{
+    background:#fff; border:1px solid var(--line); border-radius:13px; padding:20px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .qcard.reviewed{border-color:var(--sage);}
+  .qtags{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+  .tag{font-size:0.7rem; padding:3px 9px; border-radius:20px; font-weight:600; letter-spacing:0.01em;}
+  .tag.mark{background:var(--cream-2); color:var(--ink-soft);}
+  .tag.pyq{background:var(--plum); color:#fff;}
+  .tag.predicted{background:var(--warm-gray-light); color:var(--ink);}
+  .tag.high{background:var(--sage); color:#fff;}
+  .qtext{font-weight:600; font-size:0.98rem; color:var(--plum-deep); line-height:1.4;}
+  .qcard-foot{display:flex; justify-content:space-between; align-items:center; margin-top:auto;}
+  .reveal-btn{
+    background:var(--cream-2); border:none; padding:8px 14px; border-radius:8px; font-size:0.82rem;
+    font-weight:600; cursor:pointer; color:var(--plum-deep);
+  }
+  .reveal-btn:hover{background:var(--sage-light);}
+  .studied-toggle{display:flex; align-items:center; gap:6px; font-size:0.78rem; color:var(--ink-soft); cursor:pointer;}
+  .studied-toggle input{accent-color:var(--sage); cursor:pointer;}
+  .answer{
+    display:none; font-size:0.88rem; color:var(--ink-soft); border-top:1px dashed var(--line);
+    padding-top:12px; line-height:1.6;
+  }
+  .answer.show{display:block;}
+  .answer b{color:var(--ink);}
+  .answer ul{margin:6px 0; padding-left:18px;}
+  .empty-state{grid-column:1/-1; text-align:center; padding:50px 20px; color:var(--ink-soft);}
+
+  /* Quiz mode */
+  .quiz-shell{
+    background:linear-gradient(160deg, var(--plum-deep), var(--plum));
+    border-radius:20px; padding:44px; color:#fff; position:relative; overflow:hidden;
+  }
+  .quiz-shell::after{
+    content:''; position:absolute; right:-60px; top:-60px; width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle, rgba(169,187,140,0.35), transparent 70%);
+  }
+  .quiz-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; flex-wrap:wrap; gap:12px;}
+  .quiz-head h2{color:#fff;}
+  .quiz-count{font-size:0.85rem; color:var(--sage-light);}
+  .flashcard{
+    background:rgba(245,239,228,0.08); border:1px solid rgba(245,239,228,0.25); border-radius:16px;
+    min-height:190px; display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:34px; cursor:pointer; font-family:'Fraunces',serif; font-size:1.2rem; position:relative; z-index:2;
+  }
+  .flashcard .fc-label{
+    position:absolute; top:14px; left:18px; font-family:'Work Sans',sans-serif; font-size:0.72rem;
+    letter-spacing:0.05em; color:var(--sage-light);
+  }
+  .quiz-actions{display:flex; gap:12px; margin-top:22px; justify-content:center; flex-wrap:wrap; position:relative; z-index:2;}
+  .quiz-btn{
+    background:rgba(245,239,228,0.12); border:1px solid rgba(245,239,228,0.35); color:#fff;
+    padding:10px 20px; border-radius:9px; cursor:pointer; font-size:0.88rem; font-family:inherit;
+  }
+  .quiz-btn.primary{background:var(--sage-light); color:var(--plum-deep); border-color:transparent; font-weight:600;}
+
+  footer{
+    background:var(--plum-deep); color:#EDE3D2; padding:44px 0 30px; text-align:center; font-size:0.86rem;
+  }
+  footer .fcourse{font-family:'Fraunces',serif; font-size:1.05rem; color:#fff; margin-bottom:6px;}
+  footer .fsub{color:var(--warm-gray-light); margin-bottom:18px;}
+  footer .fline{color:rgba(237,227,210,0.55); font-size:0.78rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-row">
+    <a class="brand" href="#top"><span class="dot-sun"></span> Helios &amp; Aeolus</a>
+    <div class="nav-links">
+      <a href="index.html">🏠 All Subjects</a>
+      <a href="#toolkit">Toolkit</a>
+      <a href="#priority">Priority Map</a>
+      <a href="#bank">Question Bank</a>
+      <a href="#quiz">Quiz Mode</a>
+      <span class="course-chip">21MEO112T</span>
+    </div>
+    <a class="nav-cta" href="#bank">Start Studying</a>
+  </div>
+</nav>
+
+<section class="hero" id="top">
+  <canvas id="hero-canvas"></canvas>
+  <div class="wind-lines">
+    <svg viewBox="0 0 1140 640" preserveAspectRatio="none">
+      <path class="wline w1" d="M -50 160 Q 200 120 450 170 T 1200 150"/>
+      <path class="wline w2" d="M -50 260 Q 250 300 500 250 T 1200 280"/>
+      <path class="wline w3" d="M -50 380 Q 300 340 600 400 T 1200 370"/>
+    </svg>
+  </div>
+  <div class="wrap hero-inner">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <span class="eyebrow-course">☀ 21MEO112T — Renewable Energy Sources &amp; Applications</span>
+        <h1>Command the <em>sun</em> and the <em>wind</em> before CT&#8209;1.</h1>
+        <p class="lede">Every definition, formula and PYQ from Unit 1 (Solar) and Unit 2 (Wind), sorted by how often it actually shows up on your paper.</p>
+        <div class="hero-tagline">Preparing for <b>CT-1 · Unit 1 &amp; Unit 2</b> — 49 questions ranked, tagged and ready to drill.</div>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="document.getElementById('bank').scrollIntoView({behavior:'smooth'})">Open the Question Bank</button>
+          <button class="btn-ghost" onclick="document.getElementById('priority').scrollIntoView({behavior:'smooth'})">See what's high-yield</button>
+        </div>
+        <div class="quote-box" id="quoteBox"></div>
+      </div>
+      <div class="scene">
+        <div class="sun-wrap">
+          <div class="sun-core"></div>
+          <div class="rays" id="rays"></div>
+        </div>
+        <div class="turbine-wrap">
+          <div class="turbine-tower"></div>
+          <div class="turbine-base"></div>
+          <div class="blades"><div class="blade"></div><div class="blade"></div><div class="blade"></div></div>
+          <div class="hub"></div>
+        </div>
+        <div id="driftLayer"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="toolkit">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Study Toolkit</span>
+      <h2>Built for how you'll actually revise the night before</h2>
+      <p>Six ways to cut through the syllabus fast — filter by what's likely to appear, hide the answer until you're ready, and track what's left.</p>
+    </div>
+    <div class="toolkit-grid">
+      <div class="tool-card"><div class="tool-icon">🗂️</div><h3>Unit-wise question bank</h3><p>Every question from Unit 1 (Solar) and Unit 2 (Wind), organised exactly the way your paper is.</p></div>
+      <div class="tool-card"><div class="tool-icon">🔥</div><h3>Priority tags</h3><p>High / PYQ / Predicted labels so you know what's worth your last hour and what isn't.</p></div>
+      <div class="tool-card"><div class="tool-icon">👁️</div><h3>Tap-to-reveal answers</h3><p>Read the question first, test yourself, then reveal — no accidental spoilers.</p></div>
+      <div class="tool-card"><div class="tool-icon">📊</div><h3>Marks-based filtering</h3><p>Jump straight to 1-mark recall or 15-mark essays depending on how much time you have.</p></div>
+      <div class="tool-card"><div class="tool-icon">✅</div><h3>Session progress tracker</h3><p>Check off what you've reviewed and watch your completion bar fill up as you go.</p></div>
+      <div class="tool-card"><div class="tool-icon">⚡</div><h3>Flashcard quiz mode</h3><p>Shuffle through every 1-mark definition as a flip-card drill for rapid-fire recall.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="priority" style="background:var(--cream-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Priority Map</span>
+      <h2>Where the fire icons actually point</h2>
+      <p>Pulled straight from the CT-1 topic ranking — three flames means don't walk into the test without it.</p>
+    </div>
+    <div class="priority-wrap">
+      <div class="priority-card">
+        <h3>☀ Unit 1 — Solar</h3>
+        <table>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">Solar radiation: beam / diffuse / global</td></tr>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">Solar constant + radiation attenuation</td></tr>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">Solar PV system</td></tr>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">Thermal energy storage</td></tr>
+          <tr><td class="flame">🔥🔥</td><td class="topic-cell">Solar concentrators + concentration ratio</td></tr>
+          <tr><td class="flame">🔥🔥</td><td class="topic-cell">Central tower power plant</td></tr>
+          <tr><td class="flame">🔥🔥</td><td class="topic-cell">Solar water heating</td></tr>
+          <tr><td class="flame">🔥</td><td class="topic-cell">Pyranometer / Pyrheliometer</td></tr>
+          <tr><td class="flame">🔥</td><td class="topic-cell">Solar cooker / desalination</td></tr>
+          <tr><td class="flame">🔥</td><td class="topic-cell">Solar pond / chimney plant</td></tr>
+        </table>
+      </div>
+      <div class="priority-card">
+        <h3>🌬 Unit 2 — Wind</h3>
+        <table>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">Wind power + Betz limit</td></tr>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">HAWT components + working</td></tr>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">Wind energy conversion system</td></tr>
+          <tr><td class="flame">🔥🔥🔥</td><td class="topic-cell">HAWT vs VAWT</td></tr>
+          <tr><td class="flame">🔥🔥</td><td class="topic-cell">Wind terminology</td></tr>
+          <tr><td class="flame">🔥🔥</td><td class="topic-cell">Pitch, yaw and tethering control</td></tr>
+          <tr><td class="flame">🔥🔥</td><td class="topic-cell">Site selection</td></tr>
+          <tr><td class="flame">🔥</td><td class="topic-cell">Wind-power numericals</td></tr>
+          <tr><td class="flame">🔥</td><td class="topic-cell">Savonius / Darrieus rotors</td></tr>
+          <tr><td class="flame">🔥</td><td class="topic-cell">Advantages / disadvantages</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap two-col">
+    <div>
+      <div class="section-head" style="margin-bottom:22px;">
+        <span class="kicker">Non-negotiable</span>
+        <h2>Top 10 — don't skip these</h2>
+      </div>
+      <ul class="top10-list">
+        <li>Attenuation of solar radiation</li>
+        <li>Beam vs diffuse vs global radiation</li>
+        <li>Pyranometer + pyrheliometer</li>
+        <li>Sensible vs latent thermal energy storage</li>
+        <li>Solar PV system — circuit + working</li>
+        <li>Central tower power plant (15-mark)</li>
+        <li>WECS components + working + diagram</li>
+        <li>HAWT vs VAWT</li>
+        <li>Betz limit + wind-power equation</li>
+        <li>Wind terminology + numerical</li>
+      </ul>
+    </div>
+    <div>
+      <div class="section-head" style="margin-bottom:22px;">
+        <span class="kicker">If you only have tonight</span>
+        <h2>Last-night study order</h2>
+      </div>
+      <ol class="timeline">
+        <li><b>Solar radiation basics</b>Beam, diffuse and global radiation, defined and differentiated.</li>
+        <li><b>Attenuation</b>Scattering, absorption and reflection through the atmosphere.</li>
+        <li><b>Measurement</b>Pyranometer and pyrheliometer — construction and working.</li>
+        <li><b>Storage &amp; PV</b>Sensible/latent storage, then the solar PV system circuit.</li>
+        <li><b>Central tower plant</b>The 15-mark diagram question — components and flow.</li>
+        <li><b>Wind power &amp; Betz limit</b>The formula, the cube relationship, and 59.3%.</li>
+        <li><b>WECS + HAWT vs VAWT</b>Components, diagram, and the comparison table.</li>
+        <li><b>Controls &amp; terminology</b>Pitch/yaw/tether, TSR, solidity, cut-in/cut-off.</li>
+        <li><b>One numerical</b>Work through the wind-power calculation end to end.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="bank" style="background:var(--cream-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Question Bank</span>
+      <h2>49 questions, tagged and ready</h2>
+      <p>Filter by unit, marks or priority — tap a card to test yourself before revealing the answer.</p>
+    </div>
+
+    <div class="bank-controls">
+      <div class="unit-tabs" id="unitTabs"></div>
+      <div class="search-row">
+        <input type="text" class="search-input" id="searchInput" placeholder="Search a topic — e.g. Betz, pyranometer, TSR…">
+        <div class="progress-pill">
+          <span id="progressLabel">0 / 49 reviewed</span>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+      </div>
+      <div class="chip-row" id="chipRow"></div>
+    </div>
+
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+</section>
+
+<section id="quiz">
+  <div class="wrap">
+    <div class="quiz-shell">
+      <div class="quiz-head">
+        <h2>Flashcard drill — every 1-mark definition</h2>
+        <span class="quiz-count" id="quizCount">Card 1 / 32</span>
+      </div>
+      <div class="flashcard" id="flashcard">
+        <span class="fc-label" id="fcLabel">QUESTION — tap to flip</span>
+        <span id="fcText"></span>
+      </div>
+      <div class="quiz-actions">
+        <button class="quiz-btn" onclick="quizPrev()">← Previous</button>
+        <button class="quiz-btn primary" onclick="quizFlip()">Flip card</button>
+        <button class="quiz-btn" onclick="quizNext()">Next →</button>
+        <button class="quiz-btn" onclick="quizShuffle()">🔀 Shuffle</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="fcourse">Renewable Energy Sources and Applications</div>
+    <div class="fsub">Course Code 21MEO112T · CT-1 · Unit 1 (Solar) &amp; Unit 2 (Wind)</div>
+    <div class="fline">Helios &amp; Aeolus Study Hub — built from your syllabus, PYQs and CT notes.</div>
+  </div>
+</footer>
+
+<script>
+/* ================= DATA ================= */
+const QUESTIONS = [
+  // ---------- UNIT 1 · 1 MARK ----------
+  {unit:1, mark:1, type:'Predicted', priority:'med', q:'What is solar radiation?', a:'Electromagnetic energy emitted by the Sun.'},
+  {unit:1, mark:1, type:'PYQ', priority:'high', q:'What is the solar constant?', a:'The average solar radiation received per unit area at the outer edge of Earth\'s atmosphere, perpendicular to the Sun\'s rays. <b>≈ 1361 W/m²</b> (some examples use 1366 W/m²).'},
+  {unit:1, mark:1, type:'Predicted', priority:'high', q:'What is beam radiation?', a:'Solar radiation that reaches Earth\'s surface directly from the Sun without scattering.'},
+  {unit:1, mark:1, type:'PYQ', priority:'high', q:'What is diffuse radiation?', a:'Solar radiation scattered in different directions by atmospheric molecules, particles and clouds.'},
+  {unit:1, mark:1, type:'Predicted', priority:'high', q:'What is global radiation?', a:'Total radiation on a surface: <b>G = G_beam + G_diffuse</b>.'},
+  {unit:1, mark:1, type:'Predicted', priority:'high', q:'Which instrument measures global solar radiation?', a:'Pyranometer.'},
+  {unit:1, mark:1, type:'Predicted', priority:'high', q:'Which instrument measures beam/direct solar radiation?', a:'Pyrheliometer.'},
+  {unit:1, mark:1, type:'PYQ', priority:'high', q:'What is the principle of a pyranometer?', a:'It uses a thermopile that produces a voltage proportional to incoming solar radiation.'},
+  {unit:1, mark:1, type:'Predicted', priority:'med', q:'What is Rayleigh scattering?', a:'Scattering caused mainly by very small particles such as air molecules — responsible for the blue colour of the sky.'},
+  {unit:1, mark:1, type:'Predicted', priority:'med', q:'Which atmospheric gas mainly absorbs UV radiation?', a:'Ozone.'},
+  {unit:1, mark:1, type:'Predicted', priority:'low', q:'What is solar insolation?', a:'The amount of solar energy received per unit area on Earth\'s surface.'},
+  {unit:1, mark:1, type:'PYQ', priority:'high', q:'What is the hour angle?', a:'The angular displacement of the Sun from the local meridian — changes at approximately 15° per hour.'},
+  {unit:1, mark:1, type:'PYQ', priority:'high', q:'What is concentration ratio?', a:'CR = Area of collector aperture ÷ Area of receiver.'},
+  {unit:1, mark:1, type:'Predicted', priority:'med', q:'What is the photovoltaic effect?', a:'Generation of electrical charge/current when photons fall on a semiconductor material.'},
+  {unit:1, mark:1, type:'Predicted', priority:'low', q:'What type of current does a solar PV cell produce?', a:'DC current.'},
+  {unit:1, mark:1, type:'Predicted', priority:'med', q:'Name the two major types of thermal energy storage.', a:'<ul><li>Sensible heat storage — stores energy via temperature change</li><li>Latent heat storage — stores energy via phase change</li></ul>'},
+
+  // ---------- UNIT 1 · 5/8/15 MARK ----------
+  {unit:1, mark:8, type:'Predicted', priority:'high', q:'Explain attenuation of solar radiation.', a:'Intensity decreases as radiation passes through the atmosphere due to three processes: <ul><li><b>Scattering</b> — Rayleigh (small particles, blue sky) and Mie (larger particles, aerosols, water droplets)</li><li><b>Absorption</b> — ozone absorbs UV, water vapour absorbs infrared, CO₂ also contributes</li><li><b>Reflection</b> — clouds, particles and Earth\'s surface reflect radiation back to space</li></ul>Tip: sketch a Sun → atmosphere → Earth diagram showing all three.'},
+  {unit:1, mark:5, type:'Predicted', priority:'high', q:'Differentiate beam, diffuse and global radiation.', a:'<b>Beam:</b> direct from Sun, no scattering, highly directional, sharp shadows.<br><b>Diffuse:</b> scattered by atmosphere/clouds, comes from many directions, no sharp shadows.<br><b>Global:</b> beam + diffuse, total radiation received at the surface — used in solar system design. G = G_b + G_d.'},
+  {unit:1, mark:5, type:'Predicted', priority:'high', q:'Explain the working of a pyranometer.', a:'Measures global solar radiation on a horizontal surface. Parts: thermopile sensor, transparent glass dome, housing, output terminals. Radiation enters through the dome, falls on the thermopile, creates a temperature difference and a proportional voltage, measured in W/m². The dome protects the sensor and reduces long-wave effects.'},
+  {unit:1, mark:5, type:'Predicted', priority:'med', q:'Explain the pyrheliometer and measurement of beam radiation.', a:'Measures beam/direct normal radiation (DNI). Has a narrow, collimated aperture so only direct sunlight reaches the sensor; mounted on a solar tracker that keeps it aligned with the Sun. Relation: <b>G_b = G − G_d</b> (global minus diffuse).'},
+  {unit:1, mark:8, type:'PYQ', priority:'high', q:'Explain sensible and latent heat thermal energy storage.', a:'<b>Sensible:</b> stores energy by raising temperature (Q = mcΔT); examples — water, molten salts, rocks, sand; lower energy density, simpler, cheaper.<br><b>Latent:</b> stores energy during phase change with little temperature rise; examples — paraffin wax, salt hydrates, fatty acids; higher energy density, more complex, costlier.<br>PYQ: "Why is energy storage important in a solar system? Explain types of major energy storage systems." (May 2025, 8-mark)'},
+  {unit:1, mark:8, type:'PYQ', priority:'high', q:'Draw and explain a solar PV system.', a:'Flow: Sunlight → PV panel → Charge controller → Battery/DC load → Inverter → AC load.<br>Working: photons strike the semiconductor cell, generate electron-hole pairs, the internal field separates charges, current flows externally as DC. A battery stores energy; an inverter converts DC to AC.<br>PYQ: "Draw the circuit of solar photovoltaic system and explain it." (May 2025, Part B)'},
+  {unit:1, mark:8, type:'Predicted', priority:'high', q:'Explain the solar constant and extra-terrestrial radiation.', a:'Solar constant G_s ≈ 1361 W/m² (some examples use 1366) — average radiation at the outer atmosphere, perpendicular to the Sun\'s rays.<br>Extraterrestrial radiation on a horizontal surface: <b>G_oh = G_o cosθ</b>, where θ is the solar zenith angle.<br>At solar noon: cosθ = sinφ sinδ + cosφ cosδ cosH. Worked example (φ=35°, 21 March, H=0°, δ=0°) gives ≈1114.5 W/m².'},
+  {unit:1, mark:5, type:'Predicted', priority:'med', q:'Explain the classification of solar concentrators and concentration ratio.', a:'Types: parabolic trough, parabolic dish, compound parabolic concentrator (CPC), central power tower. By tracking: fixed, single-axis, dual-axis.<br>CR = Aperture area (A_a) ÷ Receiver area (A_r).'},
+  {unit:1, mark:15, type:'PYQ', priority:'high', q:'Explain the components and working of a central tower power plant with a neat sketch.', a:'Components: heliostats, receiver, tower, heat-storage system, steam turbine, generator.<br>Working: Sun → heliostats → receiver → working fluid → heat exchanger → steam → turbine → generator → electricity. Thousands of heliostats track the Sun and focus radiation onto the receiver atop the tower, heating a fluid (molten salt or water); heat is transferred to generate steam that drives the turbine-generator. Thermal storage allows generation after sunset.<br>PYQ: May 2025, Part C (15-mark) — very high probability.'},
+
+  // ---------- UNIT 2 · 1 MARK ----------
+  {unit:2, mark:1, type:'Predicted', priority:'low', q:'What type of energy does a wind turbine utilize?', a:'Kinetic energy of wind.'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'What is the formula for wind power?', a:'P = ½ ρ A V³, where ρ = air density, A = swept area, V = wind velocity.'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'If wind velocity is doubled, how does wind power change?', a:'It becomes 8 times, since P ∝ V³.'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'What is the Betz limit?', a:'The theoretical maximum fraction of wind power an ideal turbine can extract: η_max = 16/27 ≈ 59.3%.'},
+  {unit:2, mark:1, type:'Predicted', priority:'med', q:'What is cut-in speed?', a:'The minimum wind speed at which a turbine begins producing power (example: ≈3 m/s).'},
+  {unit:2, mark:1, type:'Predicted', priority:'med', q:'What is cut-off speed?', a:'The maximum wind speed at which the turbine stops for safety (example: ≈30 m/s).'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'What is HAWT?', a:'Horizontal Axis Wind Turbine.'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'What is VAWT?', a:'Vertical Axis Wind Turbine.'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'What is TSR (Tip Speed Ratio)?', a:'Ratio of rotor tip speed to free-stream wind velocity: λ = V_tip / V_air = Rω / V_air.'},
+  {unit:2, mark:1, type:'Predicted', priority:'med', q:'What is solidity ratio?', a:'S = NC / πD, where N = number of blades, C = average blade breadth, D = rotor diameter.'},
+  {unit:2, mark:1, type:'Predicted', priority:'low', q:'Name the two main types of wind turbines based on axis.', a:'HAWT and VAWT.'},
+  {unit:2, mark:1, type:'Predicted', priority:'med', q:'What does an anemometer measure?', a:'Wind speed.'},
+  {unit:2, mark:1, type:'Predicted', priority:'med', q:'What does a wind vane measure?', a:'Wind direction.'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'What is pitch control?', a:'Control of the blade angle to regulate how much wind energy is captured.'},
+  {unit:2, mark:1, type:'Predicted', priority:'high', q:'What is yaw control?', a:'Horizontal orientation of the nacelle so the rotor faces the wind.'},
+  {unit:2, mark:1, type:'Predicted', priority:'med', q:'What is the function of a gearbox?', a:'Increases rotational speed from the low-speed shaft to the high-speed shaft required by the generator.'},
+
+  // ---------- UNIT 2 · 5/8 MARK ----------
+  {unit:2, mark:8, type:'PYQ', priority:'high', q:'Explain the components and working of a Wind Energy Conversion System (WECS).', a:'Components: rotor/blades, hub, low-speed shaft, gearbox, high-speed shaft, generator, nacelle, tower, controller, brake, yaw mechanism, pitch mechanism.<br>Working: Wind → blades → rotor → low-speed shaft → gearbox (≈30–60 rpm up to ≈1200–1500 rpm) → high-speed shaft → generator → electricity.<br>PYQ: "With a suitable circuit diagram, explain the components of the wind energy conversion system." (May 2025, Part B)'},
+  {unit:2, mark:8, type:'Predicted', priority:'high', q:'Explain HAWT and VAWT.', a:'<b>HAWT:</b> axis roughly horizontal; higher efficiency, suited to high wind speeds, common for large-scale generation; components — rotor, nacelle, gearbox, generator, tower, yaw system.<br><b>VAWT:</b> axis vertical; accepts wind from any direction, components near ground level, easier servicing, lighter tower. Drawbacks: rotor sits where wind speed is lower, centrifugal stresses, poor self-starting, bearing replacement can need rotor removal.'},
+  {unit:2, mark:5, type:'Predicted', priority:'high', q:'Explain pitch, yaw and tethering controls of HAWT.', a:'<b>Pitch</b> = blade angle control.<br><b>Yaw</b> = rotates the nacelle so the rotor faces the wind.<br><b>Tether</b> = controls vertical up/down movement of the nacelle.'},
+  {unit:2, mark:5, type:'Predicted', priority:'high', q:'Explain the Betz limit.', a:'Wind power available: P_w = ½ρAV³, but full kinetic energy can\'t be extracted since air must keep moving downstream. Maximum theoretical power coefficient: C_p,max = 16/27 = 0.593, i.e. maximum theoretical efficiency = 59.3%.'},
+  {unit:2, mark:5, type:'Predicted', priority:'high', q:'Explain the wind power equation and the factors affecting output.', a:'P = ½ρAV³ → P ∝ ρ, P ∝ A, P ∝ V³. Doubling density or swept area roughly doubles power; doubling velocity gives 8× power. Factors: wind speed, rotor swept area, rotor conversion efficiency, transmission system.'},
+  {unit:2, mark:8, type:'Predicted', priority:'med', q:'Explain wind turbine terminology.', a:'<b>Swept area:</b> A = πD²/4.<br><b>Cut-in speed:</b> minimum speed for power production.<br><b>Cut-off speed:</b> maximum safe operating speed.<br><b>TSR:</b> λ = Rω/V.<br><b>Solidity ratio:</b> S = NC/πD.<br><b>Torque:</b> T = P/ω.'},
+  {unit:2, mark:5, type:'Predicted', priority:'med', q:'Explain the factors considered in wind-mill site selection.', a:'High and consistent wind velocity through the year, sufficient kinetic energy, minimum obstacles (buildings/mountains), large open flat land, low land cost, easy transportation, distance from populated areas, proximity to load centres, and availability of transmission lines.'},
+  {unit:2, mark:8, type:'Predicted', priority:'med', q:'Wind energy numerical: V = 12 m/s, rotor diameter = 10 m, efficiency = 35%. Find power output.', a:'Power density: P_d = ½ρV³ = ½(1.225)(12)³ ≈ 1058.4 W/m².<br>At 35% efficiency: P_actual ≈ 370.4 W/m².<br>Swept area: A = π(10)²/4 = 78.54 m².<br>Power: P ≈ 370.4 × 78.54 ≈ <b>29.1 kW</b> (reference example reports ≈28.53 kW depending on ρ used).'},
+];
+
+/* ================= STATE ================= */
+let state = { unit:'all', filter:'all', search:'', reviewed:new Set() };
+
+function tagsFor(item){
+  let t = [`<span class="tag mark">${item.mark===15?'15':item.mark} mark</span>`];
+  t.push(`<span class="tag ${item.type==='PYQ'?'pyq':'predicted'}">${item.type}</span>`);
+  if(item.priority==='high') t.push('<span class="tag high">High priority</span>');
+  return t.join('');
+}
+
+function matchesFilter(item){
+  if(state.unit!=='all' && item.unit!=state.unit) return false;
+  if(state.search){
+    const s = state.search.toLowerCase();
+    if(!item.q.toLowerCase().includes(s) && !item.a.toLowerCase().includes(s)) return false;
+  }
+  switch(state.filter){
+    case 'all': return true;
+    case 'pyq': return item.type==='PYQ';
+    case 'predicted': return item.type==='Predicted';
+    case '1': return item.mark===1;
+    case '5': return item.mark===5 || item.mark===8;
+    case '15': return item.mark===15;
+    case 'high': return item.priority==='high';
+    default: return true;
+  }
+}
+
+function renderTabs(){
+  const tabs = [['all','All Units'],[1,'Unit 1 · Helios (Solar)'],[2,'Unit 2 · Aeolus (Wind)']];
+  document.getElementById('unitTabs').innerHTML = tabs.map(([v,l])=>
+    `<button class="unit-tab ${state.unit==v?'active':''}" data-unit="${v}">${l}</button>`).join('');
+  document.querySelectorAll('.unit-tab').forEach(b=>b.onclick=()=>{
+    state.unit = b.dataset.unit==='all' ? 'all' : Number(b.dataset.unit);
+    renderTabs(); renderCards();
+  });
+}
+
+function renderChips(){
+  const chips = [['all','All'],['pyq','PYQ only'],['predicted','Predicted only'],['1','1 mark'],['5','5 / 8 mark'],['15','15 mark'],['high','High priority 🔥']];
+  document.getElementById('chipRow').innerHTML = chips.map(([v,l])=>
+    `<button class="chip ${state.filter==v?'active':''}" data-f="${v}">${l}</button>`).join('');
+  document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+    state.filter = c.dataset.f; renderChips(); renderCards();
+  });
+}
+
+function renderCards(){
+  const list = QUESTIONS.filter(matchesFilter);
+  const grid = document.getElementById('cardGrid');
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty-state">No questions match that combination — try clearing a filter.</div>`;
+  } else {
+    grid.innerHTML = list.map((item,idx)=>{
+      const gid = QUESTIONS.indexOf(item);
+      const reviewed = state.reviewed.has(gid);
+      return `
+      <div class="qcard ${reviewed?'reviewed':''}" data-id="${gid}">
+        <div class="qtags">${tagsFor(item)}</div>
+        <div class="qtext">${item.q}</div>
+        <div class="qcard-foot">
+          <button class="reveal-btn" data-toggle="${gid}">Show answer</button>
+          <label class="studied-toggle"><input type="checkbox" data-studied="${gid}" ${reviewed?'checked':''}> Reviewed</label>
+        </div>
+        <div class="answer" id="ans-${gid}">${item.a}</div>
+      </div>`;
+    }).join('');
+  }
+  document.querySelectorAll('[data-toggle]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const el = document.getElementById('ans-'+btn.dataset.toggle);
+      const showing = el.classList.toggle('show');
+      btn.textContent = showing ? 'Hide answer' : 'Show answer';
+    };
+  });
+  document.querySelectorAll('[data-studied]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const id = Number(cb.dataset.studied);
+      if(cb.checked) state.reviewed.add(id); else state.reviewed.delete(id);
+      updateProgress();
+      cb.closest('.qcard').classList.toggle('reviewed', cb.checked);
+    };
+  });
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = QUESTIONS.length;
+  const done = state.reviewed.size;
+  document.getElementById('progressLabel').textContent = `${done} / ${total} reviewed`;
+  document.getElementById('progressFill').style.width = (done/total*100)+'%';
+}
+
+document.getElementById('searchInput').addEventListener('input', e=>{
+  state.search = e.target.value; renderCards();
+});
+
+renderTabs(); renderChips(); renderCards();
+
+/* ================= QUIZ MODE ================= */
+let quizDeck = QUESTIONS.filter(q=>q.mark===1).map((q,i)=>({...q, order:i}));
+let quizIdx = 0, quizFlipped = false;
+
+function shuffleArr(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function renderQuiz(){
+  const item = quizDeck[quizIdx];
+  document.getElementById('fcLabel').textContent = quizFlipped ? 'ANSWER — tap to flip back' : `QUESTION — tap to flip · ${item.unit===1?'Helios (Solar)':'Aeolus (Wind)'}`;
+  document.getElementById('fcText').innerHTML = quizFlipped ? item.a : item.q;
+  document.getElementById('quizCount').textContent = `Card ${quizIdx+1} / ${quizDeck.length}`;
+}
+function quizFlip(){ quizFlipped = !quizFlipped; renderQuiz(); }
+function quizNext(){ quizIdx = (quizIdx+1)%quizDeck.length; quizFlipped=false; renderQuiz(); }
+function quizPrev(){ quizIdx = (quizIdx-1+quizDeck.length)%quizDeck.length; quizFlipped=false; renderQuiz(); }
+function quizShuffle(){ shuffleArr(quizDeck); quizIdx=0; quizFlipped=false; renderQuiz(); }
+document.getElementById('flashcard').onclick = quizFlip;
+renderQuiz();
+
+/* ================= HERO ANIMATIONS ================= */
+// sun rays
+const raysEl = document.getElementById('rays');
+for(let i=0;i<16;i++){
+  const s = document.createElement('span');
+  s.style.transform = `rotate(${i*22.5}deg)`;
+  raysEl.appendChild(s);
+}
+
+// drifting particles
+const driftLayer = document.getElementById('driftLayer');
+for(let i=0;i<18;i++){
+  const d = document.createElement('div');
+  const size = 3 + Math.random()*5;
+  d.className='drift';
+  d.style.width = size+'px';
+  d.style.height = size+'px';
+  d.style.left = (Math.random()*100)+'%';
+  d.style.bottom = (Math.random()*60)+'px';
+  d.style.animationDuration = (6+Math.random()*8)+'s';
+  d.style.animationDelay = (Math.random()*8)+'s';
+  driftLayer.appendChild(d);
+}
+
+// quotes
+const quotes = [
+  "The sun provides in one hour what the world uses in a year.",
+  "Wind is just sunlight, one step removed.",
+  "P = ½ρAV³ — memorize it, live it.",
+  "59.3% isn't a limit. It's a promise kept by physics.",
+  "Beam, diffuse, global — three radiations, one exam question.",
+  "Every heliostat points at the same goal: your CT-1 score."
+];
+document.getElementById('quoteBox').innerHTML = quotes.map(q=>`<p>${q}</p>`).join('');
+
+// hero particle canvas (connecting network, wind/solar motif)
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function resizeCanvas(){
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+function initParticles(){
+  particles = [];
+  const count = Math.floor((canvas.width*canvas.height)/26000);
+  for(let i=0;i<count;i++){
+    particles.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      vx: (Math.random()-0.5)*0.35,
+      vy: (Math.random()-0.15)*0.25,
+      r: 1+Math.random()*1.6
+    });
+  }
+}
+function tick(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(const p of particles){
+    p.x += p.vx; p.y += p.vy;
+    if(p.x<0) p.x=canvas.width; if(p.x>canvas.width) p.x=0;
+    if(p.y<0) p.y=canvas.height; if(p.y>canvas.height) p.y=0;
+  }
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const a=particles[i], b=particles[j];
+      const dx=a.x-b.x, dy=a.y-b.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist<110){
+        ctx.strokeStyle = `rgba(237,227,210,${0.14*(1-dist/110)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.fillStyle = 'rgba(169,187,140,0.55)';
+  for(const p of particles){
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+  }
+  requestAnimationFrame(tick);
+}
+resizeCanvas(); initParticles(); tick();
+window.addEventListener('resize', ()=>{ resizeCanvas(); initParticles(); });
+</script>
+</body>
+</html>

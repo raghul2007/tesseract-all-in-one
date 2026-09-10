@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synapse Prep · Artificial Neural Networks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<style>
+  :root{
+    --bg:#12141c;
+    --bg-soft:#171a25;
+    --panel:#1c2130;
+    --panel-2:#232939;
+    --line: rgba(158,178,201,0.14);
+    --line-strong: rgba(158,178,201,0.28);
+    --blue:#8CA3C0;
+    --blue-dim:#54698c;
+    --pink:#E6AEB0;
+    --pink-dim:#c58789;
+    --gold:#D8B26E;
+    --gold-dim:#a8854e;
+    --ink:#ECE8E1;
+    --muted:#9aa1b3;
+    --faint:#6c7386;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color:inherit; }
+  ::selection{ background:var(--gold-dim); color:#12141c; }
+
+  :focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  #netbg{
+    position:fixed; inset:0;
+    width:100%; height:100%;
+    z-index:0;
+    opacity:0.55;
+    pointer-events:none;
+  }
+
+  #app{ position:relative; z-index:1; min-height:100vh; }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px clamp(20px,5vw,56px);
+    background:rgba(18,20,28,0.72);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-size:1.15rem; }
+  .brand-mark{ width:22px; height:22px; }
+  .navlinks{ display:flex; gap:6px; }
+  .navlinks button{
+    background:none; border:none; color:var(--muted);
+    font-family:'Space Grotesk', sans-serif; font-size:0.92rem;
+    padding:8px 14px; border-radius:100px; cursor:pointer;
+    transition: color .2s ease, background .2s ease;
+  }
+  .navlinks a.home-link{ color:var(--muted); text-decoration:none; padding:8px 10px; border-radius:8px; font-size:0.95rem; transition:color .15s; }
+  .navlinks a.home-link:hover{ color:var(--ink); }
+  .navlinks button:hover{ color:var(--ink); }
+  .navlinks button.active{ color:var(--bg); background:var(--gold); font-weight:600; }
+
+  /* ---------- BUTTONS ---------- */
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 24px; border-radius:100px;
+    border:1px solid var(--line-strong);
+    background:transparent; color:var(--ink);
+    font-family:'Space Grotesk', sans-serif; font-size:0.95rem; font-weight:500;
+    cursor:pointer; transition: all .2s ease;
+  }
+  .btn-primary{ background:var(--gold); color:#1b1408; border-color:var(--gold); font-weight:600; }
+  .btn-primary:hover{ background:#e3c184; }
+  .btn-ghost:hover{ border-color:var(--pink); color:var(--pink); }
+  .btn-sm{ padding:8px 16px; font-size:0.85rem; }
+
+  /* ---------- VIEWS ---------- */
+  .view{ display:none; }
+  .view.active{ display:block; animation: viewIn .5s ease both; }
+  @keyframes viewIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height:min(88vh, 780px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:100px 20px 60px;
+    position:relative;
+  }
+  .hero::after{
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(18,20,28,0) 0%, var(--bg) 92%);
+    pointer-events:none;
+  }
+  .eyebrow-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 16px; border-radius:100px;
+    border:1px solid var(--line-strong);
+    color:var(--pink); font-size:0.82rem; font-family:'IBM Plex Mono',monospace;
+    margin-bottom:28px; position:relative; z-index:2;
+  }
+  .eyebrow-badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--pink); animation:blink 2.4s ease-in-out infinite; }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
+
+  .hero h1{
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
+    max-width:15ch;
+    position:relative; z-index:2;
+  }
+  .hero h1 em{ font-style:italic; color:var(--gold); font-weight:500;}
+  .hero p.sub{
+    max-width:52ch; color:var(--muted); margin:22px auto 0;
+    font-size:1.08rem; position:relative; z-index:2;
+  }
+  .countdown{
+    display:flex; gap:14px; margin:34px 0 8px; position:relative; z-index:2; flex-wrap:wrap; justify-content:center;
+  }
+  .countdown .cell{
+    background:var(--panel); border:1px solid var(--line);
+    padding:14px 18px; border-radius:12px; min-width:76px;
+  }
+  .countdown .cell b{ display:block; font-family:'Fraunces',serif; font-size:1.7rem; color:var(--gold); }
+  .countdown .cell span{ font-size:0.72rem; color:var(--faint); text-transform:lowercase; letter-spacing:.03em; }
+  .hero-cta{ display:flex; gap:14px; margin-top:34px; position:relative; z-index:2; flex-wrap:wrap; justify-content:center; }
+
+  .quote-rail{
+    max-width:640px; margin:56px auto 0; min-height:70px;
+    position:relative; z-index:2; padding:0 20px;
+  }
+  .quote-rail p{
+    font-family:'Fraunces', serif; font-style:italic; font-size:1.15rem; color:var(--blue);
+    opacity:0; position:absolute; inset:0; transition:opacity 1s ease;
+  }
+  .quote-rail p.active{ opacity:1; position:relative; }
+
+  /* ---------- FEATURES ---------- */
+  .section-pad{ padding: 90px clamp(20px,6vw,64px); position:relative; }
+  .section-head{ max-width:640px; margin:0 auto 48px; text-align:center; }
+  .section-head h2{ font-size:clamp(1.8rem,3.4vw,2.5rem); }
+  .section-head p{ color:var(--muted); margin-top:14px; }
+
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+    max-width:1080px; margin:0 auto;
+  }
+  .feature-card{ background:var(--bg-soft); padding:30px 26px; }
+  .feature-card .num{ font-family:'IBM Plex Mono',monospace; color:var(--gold-dim); font-size:0.8rem; }
+  .feature-card h3{ font-size:1.12rem; margin:14px 0 8px; font-weight:600; font-family:'Space Grotesk',sans-serif;}
+  .feature-card p{ color:var(--muted); font-size:0.92rem; margin:0; }
+
+  /* ---------- QUESTION BANK ---------- */
+  .bank-wrap{ max-width:920px; margin:0 auto; padding: 40px clamp(18px,5vw,40px) 100px; }
+  .unit-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px; }
+  .unit-tabs button{
+    background:var(--panel); border:1px solid var(--line); color:var(--muted);
+    padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:0.9rem;
+    transition: all .2s ease;
+  }
+  .unit-tabs button.active{ background:var(--blue-dim); color:var(--ink); border-color:var(--blue); }
+
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:30px; }
+  .chip{
+    background:transparent; border:1px solid var(--line); color:var(--faint);
+    padding:6px 14px; border-radius:100px; font-size:0.8rem; cursor:pointer;
+    font-family:'IBM Plex Mono',monospace; transition: all .2s ease;
+  }
+  .chip.active{ background:var(--pink-dim); border-color:var(--pink); color:#1b1013; font-weight:500; }
+
+  .qcount{ color:var(--faint); font-size:0.85rem; margin-bottom:18px; }
+
+  .qcard{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; margin-bottom:14px;
+  }
+  .qcard .tags{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .tag{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; padding:3px 10px; border-radius:100px; border:1px solid var(--line-strong); color:var(--muted); }
+  .tag.pyq{ color:var(--gold); border-color:var(--gold-dim); }
+  .tag.pred{ color:var(--pink); border-color:var(--pink-dim); }
+  .tag.pri{ color:var(--ink); background:var(--panel-2); }
+  .qcard .qtext{ font-size:1.02rem; margin-bottom:4px; }
+  .qcard .ans{
+    margin-top:16px; padding-top:16px; border-top:1px dashed var(--line-strong);
+    color:var(--muted); font-size:0.95rem; display:none;
+  }
+  .qcard .ans.show{ display:block; animation:ansIn .35s ease; }
+  @keyframes ansIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:none;} }
+  .reveal-btn{
+    margin-top:14px; background:none; border:1px solid var(--line-strong); color:var(--blue);
+    padding:7px 16px; border-radius:8px; font-size:0.82rem; cursor:pointer; font-family:'Space Grotesk',sans-serif;
+  }
+  .reveal-btn:hover{ border-color:var(--blue); background:rgba(140,163,192,0.08); }
+
+  /* ---------- STUDY MODE ---------- */
+  .study-wrap{ max-width:680px; margin:0 auto; padding:40px 20px 100px; }
+  .study-controls{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:26px; justify-content:center; }
+  .study-stats{ display:flex; gap:24px; justify-content:center; margin-bottom:30px; }
+  .study-stats div{ text-align:center; }
+  .study-stats b{ display:block; font-family:'Fraunces',serif; font-size:1.5rem; }
+  .study-stats span{ font-size:0.75rem; color:var(--faint); }
+  .stat-known b{ color:var(--gold); } .stat-review b{ color:var(--pink); } .stat-left b{ color:var(--blue); }
+
+  .flash{
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    min-height:320px; padding:40px 34px; display:flex; flex-direction:column;
+    justify-content:center; position:relative; overflow:hidden;
+  }
+  .flash::before{
+    content:''; position:absolute; top:-40%; right:-20%; width:280px; height:280px; border-radius:50%;
+    background:radial-gradient(circle, rgba(230,174,176,0.14), transparent 70%);
+  }
+  .flash .flash-tags{ display:flex; gap:8px; margin-bottom:18px; position:relative; z-index:1;}
+  .flash .flash-q{ font-family:'Fraunces',serif; font-size:1.35rem; line-height:1.5; position:relative; z-index:1; }
+  .flash .flash-a{
+    margin-top:20px; padding-top:20px; border-top:1px dashed var(--line-strong);
+    color:var(--muted); display:none; position:relative; z-index:1;
+  }
+  .flash .flash-a.show{ display:block; }
+  .flash-progress{ text-align:center; color:var(--faint); font-size:0.8rem; margin:14px 0 20px; font-family:'IBM Plex Mono',monospace; }
+  .flash-nav{ display:flex; gap:10px; justify-content:center; margin-top:22px; flex-wrap:wrap; }
+  .flash-nav .btn-know{ background:var(--gold); color:#1b1408; border-color:var(--gold); }
+  .flash-nav .btn-review{ background:var(--pink); color:#2a1113; border-color:var(--pink); }
+  .flash-empty{ text-align:center; color:var(--muted); padding:60px 20px; }
+
+  /* ---------- PREDICTIONS ---------- */
+  .predict-wrap{ max-width:880px; margin:0 auto; padding:40px 20px 100px; }
+  .predict-block{ margin-bottom:56px; }
+  .predict-block h3{ font-size:1.3rem; margin-bottom:18px; }
+  .rank-list{ list-style:none; padding:0; margin:0; counter-reset:rank; }
+  .rank-list li{
+    counter-increment:rank; display:flex; gap:16px; align-items:flex-start;
+    padding:14px 0; border-bottom:1px solid var(--line);
+  }
+  .rank-list li::before{
+    content: counter(rank);
+    font-family:'Fraunces',serif; color:var(--gold); font-size:1.1rem; min-width:26px;
+  }
+  .rank-list li .fire{ margin-left:auto; font-size:0.8rem; color:var(--pink); white-space:nowrap; }
+
+  .recall-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px; }
+  .recall-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:16px; min-height:78px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    text-align:center; transition: border-color .2s ease;
+  }
+  .recall-card:hover{ border-color:var(--blue); }
+  .recall-card .term{ font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .recall-card .def{ color:var(--gold); font-size:0.92rem; display:none; }
+  .recall-card.flip .term{ display:none; }
+  .recall-card.flip .def{ display:block; }
+
+  .trend-table{ width:100%; border-collapse:collapse; font-size:0.9rem; }
+  .trend-table th, .trend-table td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); }
+  .trend-table th{ color:var(--faint); font-weight:500; font-family:'IBM Plex Mono',monospace; font-size:0.75rem; }
+  .trend-table td.hl{ color:var(--pink); }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    padding:40px clamp(20px,5vw,56px); border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    color:var(--faint); font-size:0.85rem;
+  }
+
+  @media (max-width:760px){
+    .feature-grid{ grid-template-columns:1fr; }
+    .navlinks{ display:none; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="netbg"></canvas>
+
+<div id="app">
+
+  <nav>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none">
+        <circle cx="4" cy="12" r="2.4" fill="#8CA3C0"/>
+        <circle cx="12" cy="5" r="2.4" fill="#E6AEB0"/>
+        <circle cx="12" cy="19" r="2.4" fill="#E6AEB0"/>
+        <circle cx="20" cy="12" r="2.4" fill="#D8B26E"/>
+        <path d="M6 12 L18 12 M6 12 L12 5 M6 12 L12 19 M12 5 L20 12 M12 19 L20 12" stroke="#54698c" stroke-width="1"/>
+      </svg>
+      Synapse Prep
+    </div>
+    <div class="navlinks">
+      <a class="home-link" href="index.html">🏠 All Subjects</a>
+      <button data-view="home" class="active">Home</button>
+      <button data-view="bank">Question Bank</button>
+      <button data-view="study">Study Mode</button>
+      <button data-view="predict">Predictions</button>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="switchView('bank')">Open Bank</button>
+  </nav>
+
+  <!-- ================= HOME ================= -->
+  <section id="view-home" class="view active">
+    <div class="hero">
+      <div class="eyebrow-badge"><span class="dot"></span> Artificial Neural Networks · Unit 1 &amp; Unit 2</div>
+      <h1>Study the network<br>the way it <em>learns</em> — layer by layer.</h1>
+      <p class="sub">Every question below is pulled from your Unit 1 &amp; 2 notes and the last three semester papers, ranked by how often it actually fires on exam day.</p>
+
+      <div class="countdown" id="countdown"></div>
+
+      <div class="hero-cta">
+        <button class="btn btn-primary" onclick="switchView('bank')">Open the Question Bank</button>
+        <button class="btn btn-ghost" onclick="switchView('study')">Start a Study Session</button>
+      </div>
+
+      <div class="quote-rail" id="quoteRail"></div>
+    </div>
+
+    <div class="section-pad">
+      <div class="section-head">
+        <h2>A study toolkit built like the model itself</h2>
+        <p>Six ways to move through the same 70+ questions, depending on how much time you have left.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card"><div class="num">01</div><h3>Unit-wise question bank</h3><p>Every question sorted under Unit 1 (biological &amp; artificial neurons) and Unit 2 (perceptrons &amp; activation functions).</p></div>
+        <div class="feature-card"><div class="num">02</div><h3>Priority tags</h3><p>🔥 to 🔥🔥🔥 ranking shows what's worth your last hour versus your last five minutes.</p></div>
+        <div class="feature-card"><div class="num">03</div><h3>Tap-to-reveal answers</h3><p>Read the question cold, then reveal the worked answer inline — no page reload, no scrolling away.</p></div>
+        <div class="feature-card"><div class="num">04</div><h3>Flashcard study mode</h3><p>A distraction-free, one-question-at-a-time session that tracks what you know and what still needs review.</p></div>
+        <div class="feature-card"><div class="num">05</div><h3>Marks-based filtering</h3><p>Filter by 1-mark recall, 5/8-mark explanations, or 10/15-mark long answers in one tap.</p></div>
+        <div class="feature-card"><div class="num">06</div><h3>Prediction rankings</h3><p>The top 10 questions and top 5 long-answer bets, drawn straight from the semester-paper trend analysis.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BANK ================= -->
+  <section id="view-bank" class="view">
+    <div class="bank-wrap">
+      <div class="unit-tabs" id="unitTabs">
+        <button data-unit="all" class="active">All units</button>
+        <button data-unit="1">Unit 1 — Biological &amp; Artificial Neurons</button>
+        <button data-unit="2">Unit 2 — Perceptron &amp; Activation Functions</button>
+      </div>
+      <div class="chip-row" id="chipRow">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="pyq">PYQ only</button>
+        <button class="chip" data-filter="pred">Predicted only</button>
+        <button class="chip" data-filter="m1">1 mark</button>
+        <button class="chip" data-filter="m8">5/8 mark</button>
+        <button class="chip" data-filter="m15">10/15 mark</button>
+        <button class="chip" data-filter="hot">High priority 🔥</button>
+      </div>
+      <div class="qcount" id="qCount"></div>
+      <div id="cardList"></div>
+    </div>
+  </section>
+
+  <!-- ================= STUDY MODE ================= -->
+  <section id="view-study" class="view">
+    <div class="study-wrap">
+      <div class="section-head" style="margin-bottom:28px;">
+        <h2>Study Mode</h2>
+        <p>One question at a time. Mark it <b style="color:var(--gold)">Know it</b> or <b style="color:var(--pink)">Review again</b> and keep moving — no scores saved, just this session.</p>
+      </div>
+      <div class="study-controls">
+        <button class="chip active" data-sunit="all">All units</button>
+        <button class="chip" data-sunit="1">Unit 1</button>
+        <button class="chip" data-sunit="2">Unit 2</button>
+        <button class="chip" data-shot="hot">🔥🔥🔥 only</button>
+        <button class="chip" id="shuffleBtn">🔀 Shuffle</button>
+      </div>
+      <div class="study-stats">
+        <div class="stat-known"><b id="statKnown">0</b><span>known</span></div>
+        <div class="stat-review"><b id="statReview">0</b><span>to review</span></div>
+        <div class="stat-left"><b id="statLeft">0</b><span>left</span></div>
+      </div>
+      <div class="flash" id="flashCard"></div>
+      <div class="flash-progress" id="flashProgress"></div>
+      <div class="flash-nav">
+        <button class="btn btn-sm btn-ghost" id="prevBtn">← Prev</button>
+        <button class="btn btn-sm btn-ghost" id="flipBtn">Show answer</button>
+        <button class="btn btn-sm flash-nav btn-review" id="reviewBtn">Review again</button>
+        <button class="btn btn-sm flash-nav btn-know" id="knowBtn">Know it →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PREDICTIONS ================= -->
+  <section id="view-predict" class="view">
+    <div class="predict-wrap">
+      <div class="section-head" style="margin-bottom:10px;">
+        <h2>Where to spend your last hour</h2>
+        <p>Based on the pattern across the Nov 2024, July 2025 and Nov 2025 semester papers.</p>
+      </div>
+
+      <div class="predict-block">
+        <h3>Top 10 — if you can only prepare ten questions</h3>
+        <ol class="rank-list" id="top10List"></ol>
+      </div>
+
+      <div class="predict-block">
+        <h3>Top 5 for the 10/15-mark section</h3>
+        <ol class="rank-list" id="top15List"></ol>
+      </div>
+
+      <div class="predict-block">
+        <h3>Rapid recall — tap a card to flip it</h3>
+        <div class="recall-grid" id="recallGrid"></div>
+      </div>
+
+      <div class="predict-block">
+        <h3>Semester trend by topic</h3>
+        <table class="trend-table">
+          <thead><tr><th>Topic</th><th>Nov 2024</th><th>Jul 2025</th><th>Nov 2025</th><th>Outlook</th></tr></thead>
+          <tbody id="trendBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Synapse Prep — built for Unit 1 &amp; 2, ANN</span>
+    <span class="mono" style="font-size:0.75rem;">Set your exam date in the source · dusty blue / blush pink / gold</span>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const QUESTIONS = [
+// ---- UNIT 1 · 1 MARK ----
+{u:1,tier:1,marks:'1 Mark',type:'pyq',pri:3,q:'What is the main function of a neuron in an ANN?',a:'A neuron performs information processing by transforming weighted inputs, a bias and an activation function into an output.'},
+{u:1,tier:1,marks:'1 Mark',type:'pyq',pri:3,q:'What is the purpose of an activation function?',a:'To introduce non-linearity into the network and determine the neuron\'s output.'},
+{u:1,tier:1,marks:'1 Mark',type:'pyq',pri:2,q:'Which is a commonly used activation function?',a:'Sigmoid.'},
+{u:1,tier:1,marks:'1 Mark',type:'pyq',pri:2,q:'What is the range of the sigmoid activation function?',a:'$0 < f(x) < 1$'},
+{u:1,tier:1,marks:'1 Mark',type:'pyq',pri:3,q:'What is the main limitation of a single-layer perceptron?',a:'It cannot solve non-linearly separable problems, such as XOR.'},
+{u:1,tier:1,marks:'1 Mark',type:'pyq',pri:2,q:'What type of problems can an MLP solve that a single-layer perceptron cannot?',a:'Non-linearly separable problems.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Define Artificial Neural Network.',a:'An ANN is a distributed information-processing system made of interconnected processing units called neurons, designed to learn patterns and perform computational tasks.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is a biological neuron?',a:'The basic information-processing cell of the nervous system; it receives, processes and transmits signals.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'What are the four major parts of a biological neuron?',a:'Dendrites, soma (cell body), axon and synapse.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is the function of dendrites?',a:'Dendrites receive signals from other neurons.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is the function of the soma?',a:'The soma processes and integrates the information received by the neuron.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is the function of the axon?',a:'The axon transmits the neuron\'s output signal to other neurons.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is a synapse?',a:'The connection point between two neurons through which signals are transmitted.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'What does a weight represent in an ANN?',a:'The strength of the connection between two neurons.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'What is bias?',a:'An adjustable parameter added to the weighted sum that shifts the neuron\'s decision boundary, letting it output non-zero even when inputs are zero.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'What is an activation function?',a:'A function applied to the weighted sum plus bias that determines the neuron\'s output and introduces non-linearity.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'What is the mathematical equation of an artificial neuron?',a:'$net=\\sum_{i=1}^{n}w_ix_i+b$ and $y=f(net)$'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Who proposed the McCulloch–Pitts neuron?',a:'Warren McCulloch and Walter Pitts, in 1943.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'Who introduced the perceptron?',a:'Frank Rosenblatt.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Who introduced ADALINE?',a:'Bernard Widrow and Marcian Hoff.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Who proposed the Hebbian learning rule?',a:'Donald Hebb.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is ANN mainly inspired by?',a:'The human brain and biological neural networks.'},
+{u:1,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Give two applications of ANN.',a:'Pattern recognition and classification (also: image/speech recognition, prediction, optimization, clustering).'},
+
+// ---- UNIT 1 · 5/8 MARK ----
+{u:1,tier:8,marks:'5/8 Marks',type:'pred',pri:3,q:'Explain the structure and working of a biological neuron with a diagram.',a:'A biological neuron\'s dendrites receive electrical/chemical signals from other neurons; the soma integrates and processes those signals; the axon carries the processed signal away from the cell body; and the synapse is the junction where information passes to the next neuron. Together this chain — receive, process, transmit — is the basis for the ANN model.'},
+{u:1,tier:8,marks:'5/8 Marks',type:'pyq',pri:3,q:'Explain the biological inspiration for Artificial Neural Networks.',a:'The brain is made of billions of interconnected neurons: dendrites receive signals, the soma processes them, the axon transmits output, and synapses connect neurons with a strength that changes during learning. ANN imitates this directly — inputs stand in for dendrites, weights for synapses, the node for the soma, and the output for the axon — and it learns by adjusting those weights. (Asked directly, July 2025.)'},
+{u:1,tier:8,marks:'5/8 Marks',type:'pred',pri:2,q:'Compare Biological Neural Network and Artificial Neural Network.',a:'Biological neuron ↔ artificial node; dendrites ↔ inputs; synapses ↔ weights; soma ↔ processing unit; axon ↔ output; electrical/chemical signals ↔ numerical signals; learning via synaptic change ↔ learning via weight adjustment; highly parallel biology ↔ computationally simulated parallelism.'},
+{u:1,tier:8,marks:'5/8 Marks',type:'pred',pri:3,q:'Explain the mathematical model of an artificial neuron.',a:'Each input $x_i$ carries a weight $w_i$. The neuron computes the weighted sum plus bias, $net=\\sum_{i=1}^{n} w_ix_i+b$, then applies an activation function: $y=f(net)$. So overall, $y=f\\left(\\sum_{i=1}^n w_ix_i+b\\right)$.'},
+{u:1,tier:8,marks:'5/8 Marks',type:'pyq',pri:3,q:'Explain the information-processing mechanism of a neuron and relate it to ANN.',a:'Biologically: input signal → dendrites → soma (processing) → activation/decision → axon → output signal. In ANN: inputs $x_1..x_n$ → weights $w_1..w_n$ → weighted sum → add bias → activation function → output $y$, i.e. $net=\\sum w_ix_i+b$, $y=f(net)$. (Asked directly, Nov 2024.)'},
+{u:1,tier:8,marks:'5/8 Marks',type:'pred',pri:2,q:'Explain the history of Artificial Neural Networks.',a:'1943 McCulloch &amp; Pitts — mathematical neuron; 1949 Hebb — Hebbian learning; 1957–58 Rosenblatt — perceptron; 1959 perceptron convergence theorem; 1960 Widrow &amp; Hoff — ADALINE; 1969 Minsky &amp; Papert — limitations of the perceptron; 1974 Werbos — backpropagation procedure; 1976–80 Grossberg — ART; 1982 Kohonen — self-organizing feature maps; 1986 Rumelhart, Hinton &amp; Williams — backpropagation.'},
+{u:1,tier:8,marks:'5/8 Marks',type:'pred',pri:1,q:'Explain the applications of Artificial Neural Networks.',a:'Image and face recognition, speech recognition, pattern classification, medical diagnosis, stock/market prediction, weather prediction, function approximation, optimization and data clustering.'},
+
+// ---- UNIT 1 · 10/15 MARK ----
+{u:1,tier:15,marks:'10/15 Marks',type:'pred',pri:3,q:'Explain the biological neuron and artificial neuron model in detail. Compare BNN and ANN.',a:'Cover: dendrite/soma/axon/synapse structure → the mathematical neuron model ($net=\\sum w_ix_i+b$, $y=f(net)$) → a point-by-point BNN vs ANN comparison table. This combination question rewards writing both halves fully rather than one in depth.'},
+{u:1,tier:15,marks:'10/15 Marks',type:'pred',pri:3,q:'Explain the complete information-processing mechanism of biological neurons and show how it is implemented computationally in ANN.',a:'Trace the biological pipeline (input → dendrites → soma → activation/decision → axon → output) alongside the computational pipeline (inputs → weights → weighted sum → bias → activation function → output), ending with the equations $net=\\sum w_ix_i+b$ and $y=f(net)$.'},
+{u:1,tier:15,marks:'10/15 Marks',type:'pred',pri:2,q:'Discuss the history and evolution of ANN from the McCulloch–Pitts neuron to modern networks.',a:'Walk chronologically through 1943 (McCulloch–Pitts) → 1949 (Hebb) → 1957–60 (Rosenblatt\'s perceptron, then ADALINE) → 1969 (Minsky &amp; Papert\'s critique) → 1974–86 (backpropagation era) → 1980s (ART, self-organizing maps), noting what each milestone contributed.'},
+{u:1,tier:15,marks:'10/15 Marks',type:'pred',pri:3,q:'Explain the mathematical model of an artificial neuron with a diagram. Discuss inputs, weights, bias, weighted sum and activation function with an example.',a:'Define each term individually (inputs $x_i$, weights $w_i$, bias $b$, weighted sum $net=\\sum w_ix_i+b$, activation $y=f(net)$), draw the neuron diagram, then work one full numerical example end to end.'},
+{u:1,tier:15,marks:'10/15 Marks',type:'pred',pri:2,q:'Discuss the applications, advantages and limitations of Artificial Neural Networks.',a:'Applications: pattern/image/speech recognition, prediction, optimization, clustering. Advantages: learns from data, handles nonlinearity, fault tolerant. Limitations: needs large data, black-box behaviour, training cost, risk of overfitting.'},
+
+// ---- UNIT 2 · 1 MARK ----
+{u:2,tier:1,marks:'1 Mark',type:'pyq',pri:3,q:'The perceptron algorithm is mainly used for:',a:'Classification.'},
+{u:2,tier:1,marks:'1 Mark',type:'pyq',pri:2,q:'Which activation function is commonly used in the perceptron?',a:'Sigmoid.'},
+{u:2,tier:1,marks:'1 Mark',type:'pyq',pri:3,q:'What is the major limitation of a single-layer perceptron?',a:'It cannot solve non-linearly separable problems.'},
+{u:2,tier:1,marks:'1 Mark',type:'pyq',pri:2,q:'What is the difference between a single-layer and a multi-layer perceptron?',a:'A single-layer perceptron has no hidden layer and solves only linearly separable problems; an MLP has one or more hidden layers and can solve nonlinear problems.'},
+{u:2,tier:1,marks:'1 Mark',type:'pyq',pri:2,q:'What type of activation function lets a multilayer network solve XOR?',a:'A nonlinear activation, such as sigmoid or tanh.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Define perceptron.',a:'A simple feed-forward neural network used mainly to classify linearly separable patterns.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'What is a decision boundary?',a:'The boundary that separates different classes of input pattern; for a perceptron, $w^Tx+b=0$.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is a single-neuron perceptron?',a:'A perceptron with one computational neuron that classifies inputs into two categories.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'How many categories can a single-neuron perceptron classify?',a:'Two categories.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is a multiple-neuron perceptron?',a:'A perceptron with several output neurons that can classify inputs into multiple categories.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What determines the decision boundary?',a:'The weight vector and the bias.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What happens if bias is removed?',a:'The decision boundary is forced to pass through the origin.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is the output rule of a hard-limit perceptron?',a:'$y=1$ if $net\\geq0$, otherwise $y=0$.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'Can a single-layer perceptron solve XOR?',a:'No — XOR is not linearly separable.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:2,q:'Which network can solve XOR?',a:'A Multi-Layer Perceptron (MLP).'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Give the sigmoid equation and its range.',a:'$f(x)=\\dfrac{1}{1+e^{-x}}$, range $(0,1)$.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is the range of tanh?',a:'$-1$ to $1$.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Give the ReLU equation.',a:'$f(x)=\\max(0,x)$'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'Give the linear activation equation and its range.',a:'$f(x)=x$, range $(-\\infty,\\infty)$.'},
+{u:2,tier:1,marks:'1 Mark',type:'pred',pri:1,q:'What is the purpose of a nonlinear activation function?',a:'It lets the network learn complex, nonlinear relationships instead of only straight-line ones.'},
+
+// ---- UNIT 2 · 5/8 MARK ----
+{u:2,tier:8,marks:'5/8 Marks',type:'pyq',pri:3,q:'Describe the architecture and working of a perceptron network.',a:'Inputs $x_1..x_n$ each carry a weight $w_1..w_n$; the neuron sums them with a bias, $net=w_1x_1+w_2x_2+\\cdots+w_nx_n+b$, then applies an activation function, $y=f(net)$. With a hard-limit function, $y=1$ if $net\\geq0$ else $y=0$. The perceptron separates inputs into two categories with a linear decision boundary. (Asked directly, July 2025.)'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:3,q:'Explain the single-neuron perceptron and its decision boundary.',a:'The boundary is $w^Tx+b=0$; for two inputs this is $w_1x_1+w_2x_2+b=0$, a straight line. One side of the line is one class, the other side the second class, and the weight vector is perpendicular to the boundary.'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:2,q:'Explain the multiple-neuron perceptron.',a:'It has multiple output neurons, each with its own decision boundary. With $s$ neurons, the network can produce up to $2^s$ possible output combinations — e.g. three neurons give $2^3=8$ patterns.'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pyq',pri:3,q:'Construct XOR using a 2–2–1 neural network.',a:'Two input neurons feed two hidden neurons ($H_1$, $H_2$), which feed a single output neuron $Y$. A single-layer perceptron cannot draw the nonlinear boundary XOR needs, but a hidden layer with nonlinear activation can. XOR truth table: (0,0)→0, (0,1)→1, (1,0)→1, (1,1)→0. (Asked directly, Nov 2025.)'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:3,q:'Explain all important activation/transfer functions with their equations and ranges.',a:'Linear: $f(x)=x$, range $(-\\infty,\\infty)$. Binary step: $f(x)=1$ if $x\\geq0$ else $0$. Sigmoid: $f(x)=\\dfrac{1}{1+e^{-x}}$, range $(0,1)$. Tanh: $f(x)=\\tanh(x)$, range $(-1,1)$. ReLU: $f(x)=\\max(0,x)$, range $[0,\\infty)$.'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:1,q:'Differentiate between a transfer function and an activation function.',a:'A transfer function is any general transformation of the input and can be linear or nonlinear (e.g. linear, step); an activation function specifically determines neuron activation/output and is usually nonlinear (e.g. ReLU, sigmoid, tanh), which is what makes deep nonlinear networks possible.'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:3,q:'Explain the perceptron learning rule.',a:'Weight update: $w_i(new)=w_i(old)+\\eta(t-y)x_i$. Bias update: $b(new)=b(old)+\\eta(t-y)$. Procedure: initialize weights/bias → pick an input vector → compute net input → apply activation → compare output to target → compute error → update weights and bias → repeat until convergence.'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:3,q:'Solve: given $x=[2,1]$, $w=[0.5,-0.3]$, $b=0.2$, find the perceptron output using hard-limit activation.',a:'$net=(0.5)(2)+(-0.3)(1)+0.2=1-0.3+0.2=0.9$. Since $net>0$, the hard-limit output is $y=1$.'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:2,q:'Explain the limitations of a single-layer perceptron.',a:'Solves only linearly separable problems; cannot solve XOR; cannot represent complex nonlinear boundaries; has no hidden layer; limited to simple classification tasks.'},
+{u:2,tier:8,marks:'5/8 Marks',type:'pred',pri:1,q:'Solve: given $x_1=0.4,x_2=0.6$, $w_1=0.5,w_2=0.3,b=0.1$, find the sigmoid output.',a:'$net=(0.4)(0.5)+(0.6)(0.3)+0.1=0.2+0.18+0.1=0.48$. So $y=\\dfrac{1}{1+e^{-0.48}}\\approx0.618$.'},
+
+// ---- UNIT 2 · 10/15 MARK ----
+{u:2,tier:15,marks:'10/15 Marks',type:'pyq',pri:3,q:'Construct XOR using a 2–2–1 multilayer perceptron with suitable weights and biases.',a:'Very high probability — appeared as a direct 15-mark question in Nov 2025, and single-layer perceptron limitations came up repeatedly across all three papers. Structure your answer as: why single-layer fails → 2 inputs, 2 hidden neurons, 1 output → assign weights/biases → forward-calculate each XOR case → confirm the truth table.'},
+{u:2,tier:15,marks:'10/15 Marks',type:'pred',pri:3,q:'Explain the complete architecture, working and training of a perceptron with a numerical example.',a:'Cover the forward pass (inputs → weighted sum → bias → activation → output), then the training loop (compare to target → compute error → update weights/bias with the perceptron learning rule → repeat), finishing with one worked numerical example.'},
+{u:2,tier:15,marks:'10/15 Marks',type:'pred',pri:3,q:'Explain single-neuron and multiple-neuron perceptrons, their decision boundaries, weights and biases.',a:'Single-neuron: one boundary, $w^Tx+b=0$, two classes. Multiple-neuron: several boundaries at once, up to $2^s$ output categories for $s$ neurons. Tie both back to how weights orient and bias shifts each boundary.'},
+{u:2,tier:15,marks:'10/15 Marks',type:'pyq',pri:3,q:'Explain all transfer/activation functions with equations, ranges, graphs and applications.',a:'Linear, binary step, sigmoid, tanh and ReLU — for each, give the equation, the range, a rough sketch of the curve, and one situation it suits (e.g. sigmoid for probability-like outputs, ReLU for hidden layers in deep nets).'},
+{u:2,tier:15,marks:'10/15 Marks',type:'pred',pri:2,q:'Compare single-layer perceptron and multilayer perceptron. Explain why MLP can solve nonlinear problems.',a:'Single-layer: no hidden layer, linear boundary only, cannot solve XOR. MLP: one or more hidden layers with nonlinear activation, which lets it combine several linear boundaries into a nonlinear decision region — this is exactly what solves XOR.'},
+{u:2,tier:15,marks:'10/15 Marks',type:'pred',pri:2,q:'Design a neural network for a classification task. Explain its architecture, training and performance.',a:'Pick a concrete task (e.g. classifying two clusters of points), define input/hidden/output layer sizes, choose an activation function, describe the training loop (forward pass → error → weight update), and discuss what would indicate good performance (correct classification, convergence of error).'},
+];
+
+const RAPID_RECALL = [
+ ['Dendrites','receive signals'],['Soma','processes information'],['Axon','transmits output'],
+ ['Synapse','connection point'],['Weight','connection strength'],['Bias','adjustable offset'],
+ ['ANN','brain-inspired information-processing system'],['McCulloch–Pitts','1943'],['Hebb','Hebbian learning'],
+ ['Rosenblatt','Perceptron'],['Widrow–Hoff','ADALINE'],['Single-layer perceptron','linearly separable only'],
+ ['XOR','non-linearly separable'],['MLP','solves nonlinear problems'],['Sigmoid','0 to 1'],
+ ['Tanh','−1 to +1'],['Linear','−∞ to +∞'],['ReLU','max(0, x)'],['Perceptron','classification'],
+ ['Decision boundary','wᵀx + b = 0'],['No bias','boundary passes through origin'],['2–2–1','the XOR network'],
+];
+
+const TOP10 = [
+ ['Biological neuron + BNN vs ANN comparison','🔥🔥🔥'],
+ ['Mathematical model of an artificial neuron, with example','🔥🔥🔥'],
+ ['All activation/transfer functions — equations, ranges, diagrams','🔥🔥🔥'],
+ ['Perceptron architecture and working','🔥🔥🔥'],
+ ['Single-neuron perceptron and decision boundary','🔥🔥🔥'],
+ ['Perceptron learning rule and weight/bias update','🔥🔥'],
+ ['Perceptron numerical problem (weights, bias, activation)','🔥🔥🔥'],
+ ['Construct XOR using a 2–2–1 MLP','🔥🔥🔥'],
+ ['Single-layer vs multilayer perceptron, and why XOR needs MLP','🔥🔥'],
+ ['Find weight/bias values from a decision boundary','🔥🔥'],
+];
+
+const TOP15 = [
+ ['XOR using a 2–2–1 MLP','Very high'],
+ ['Perceptron classification + decision boundary + finding weights/bias','Very high'],
+ ['Complete perceptron architecture, working and training','High'],
+ ['Design an ANN for a classification task','High'],
+ ['Mathematical artificial neuron + activation functions + numerical example','High'],
+];
+
+const TREND = [
+ ['Biological neuron','🔥','🔥','🔥','⭐⭐⭐'],
+ ['Artificial neuron','🔥','🔥','🔥','⭐⭐⭐'],
+ ['ANN vs BNN','🔥','🔥','—','⭐⭐'],
+ ['Activation functions','🔥','🔥','🔥','⭐⭐⭐'],
+ ['Perceptron','🔥','🔥','🔥','⭐⭐⭐'],
+ ['Single-layer limitation','🔥','🔥','🔥','⭐⭐⭐'],
+ ['XOR','🔥','🔥','🔥','⭐⭐⭐'],
+ ['Decision boundary','—','—','🔥🔥','⭐⭐⭐'],
+ ['Weights &amp; bias numerical','—','—','🔥🔥','⭐⭐⭐'],
+ ['Transfer functions','—','—','🔥🔥','⭐⭐⭐'],
+];
+
+const QUOTES = [
+ 'A weight nudged today is an error corrected tomorrow.',
+ 'Every axon has somewhere to be.',
+ 'Non-linearity is just the world admitting it isn\u2019t a straight line.',
+ 'Bias isn\u2019t a flaw \u2014 it\u2019s what lets you speak at zero.',
+ 'XOR broke the single-layer perceptron so the hidden layer could fix it.',
+ 'Study in layers: input, hidden, mastered.',
+];
+
+/* set your real exam / CT date here */
+const EXAM_DATE = new Date('2026-09-30T09:00:00');
+
+/* ============================================================
+   NEURON NETWORK BACKGROUND
+   ============================================================ */
+(function(){
+  const canvas = document.getElementById('netbg');
+  const ctx = canvas.getContext('2d');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W,H, nodes=[], edges=[], pulses=[];
+  const LAYER_COUNTS = [4,6,6,3];
+  const COLORS = ['#8CA3C0','#E6AEB0','#D8B26E'];
+
+  function build(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    nodes = []; edges = [];
+    const layerGap = W / (LAYER_COUNTS.length + 1);
+    LAYER_COUNTS.forEach((count, li) => {
+      const x = layerGap * (li + 1);
+      const vGap = H / (count + 1);
+      for(let i=0;i<count;i++){
+        nodes.push({
+          x, y: vGap*(i+1) + (Math.sin(i*13+li)*18),
+          r: 2.4 + Math.random()*1.6,
+          layer: li,
+          phase: Math.random()*Math.PI*2
+        });
+      }
+    });
+    for(let li=0; li<LAYER_COUNTS.length-1; li++){
+      const from = nodes.filter(n=>n.layer===li);
+      const to = nodes.filter(n=>n.layer===li+1);
+      from.forEach((a,ai)=>{
+        to.forEach((b,bi)=>{
+          if(Math.random() < 0.55){
+            edges.push({a,b});
+          }
+        });
+      });
+    }
+  }
+
+  function spawnPulse(){
+    if(!edges.length) return;
+    const e = edges[Math.floor(Math.random()*edges.length)];
+    pulses.push({ edge:e, t:0, speed: 0.006 + Math.random()*0.01, color: COLORS[Math.floor(Math.random()*COLORS.length)] });
+  }
+
+  let last=0, spawnAcc=0;
+  function frame(ts){
+    requestAnimationFrame(frame);
+    if(reduced) return;
+    const dt = Math.min(50, ts-last); last = ts;
+    spawnAcc += dt;
+    if(spawnAcc > 90){ spawnAcc = 0; if(Math.random()<0.9) spawnPulse(); }
+
+    ctx.clearRect(0,0,W,H);
+
+    ctx.lineWidth = 1;
+    edges.forEach(e=>{
+      ctx.strokeStyle = 'rgba(140,163,192,0.10)';
+      ctx.beginPath();
+      ctx.moveTo(e.a.x, e.a.y);
+      ctx.lineTo(e.b.x, e.b.y);
+      ctx.stroke();
+    });
+
+    nodes.forEach(n=>{
+      n.phase += 0.02;
+      const glow = 0.5 + Math.sin(n.phase)*0.5;
+      const grad = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r*5);
+      grad.addColorStop(0, `rgba(216,178,110,${0.25+glow*0.25})`);
+      grad.addColorStop(1, 'rgba(216,178,110,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r*5,0,Math.PI*2); ctx.fill();
+
+      ctx.fillStyle = `rgba(236,232,225,${0.5+glow*0.3})`;
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
+    });
+
+    pulses.forEach(p=>{
+      p.t += p.speed;
+      const x = p.edge.a.x + (p.edge.b.x - p.edge.a.x)*p.t;
+      const y = p.edge.a.y + (p.edge.b.y - p.edge.a.y)*p.t;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.arc(x,y,2.6,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+    pulses = pulses.filter(p=>p.t < 1);
+  }
+
+  build();
+  window.addEventListener('resize', build);
+  requestAnimationFrame(frame);
+})();
+
+/* ============================================================
+   VIEW SWITCHING
+   ============================================================ */
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.navlinks button').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  window.scrollTo({top:0, behavior:'instant' in document.documentElement.style ? 'instant':'auto'});
+  if(name==='bank') renderCards();
+  if(name==='study') renderFlash();
+  if(name==='predict') renderPredict();
+}
+document.querySelectorAll('.navlinks button').forEach(b=>{
+  b.addEventListener('click', ()=>switchView(b.dataset.view));
+});
+
+/* ============================================================
+   QUOTE ROTATOR
+   ============================================================ */
+(function(){
+  const rail = document.getElementById('quoteRail');
+  QUOTES.forEach((q,i)=>{
+    const p = document.createElement('p');
+    p.textContent = '\u201C'+q+'\u201D';
+    if(i===0) p.classList.add('active');
+    rail.appendChild(p);
+  });
+  let idx = 0;
+  const ps = rail.querySelectorAll('p');
+  setInterval(()=>{
+    ps[idx].classList.remove('active');
+    idx = (idx+1) % ps.length;
+    ps[idx].classList.add('active');
+  }, 4200);
+})();
+
+/* ============================================================
+   COUNTDOWN
+   ============================================================ */
+(function(){
+  const el = document.getElementById('countdown');
+  function render(){
+    const diff = EXAM_DATE - new Date();
+    const cells = diff > 0 ? [
+      [Math.floor(diff/86400000), 'days'],
+      [Math.floor(diff/3600000)%24, 'hours'],
+      [Math.floor(diff/60000)%60, 'mins'],
+      [Math.floor(diff/1000)%60, 'secs'],
+    ] : [[0,'days'],[0,'hours'],[0,'mins'],[0,'secs']];
+    el.innerHTML = cells.map(([v,l])=>`<div class="cell"><b>${String(v).padStart(2,'0')}</b><span>${l}</span></div>`).join('');
+  }
+  render();
+  setInterval(render, 1000);
+})();
+
+/* ============================================================
+   QUESTION BANK
+   ============================================================ */
+let currentUnit = 'all';
+let currentFilter = 'all';
+
+document.getElementById('unitTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  document.querySelectorAll('#unitTabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentUnit = btn.dataset.unit;
+  renderCards();
+});
+document.getElementById('chipRow').addEventListener('click', e=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  document.querySelectorAll('#chipRow .chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.filter;
+  renderCards();
+});
+
+function matches(q, unit, filter){
+  if(unit!=='all' && q.u!=Number(unit)) return false;
+  switch(filter){
+    case 'pyq': return q.type==='pyq';
+    case 'pred': return q.type==='pred';
+    case 'm1': return q.tier===1;
+    case 'm8': return q.tier===8;
+    case 'm15': return q.tier===15;
+    case 'hot': return q.pri===3;
+    default: return true;
+  }
+}
+
+function priFire(pri){ return '🔥'.repeat(pri) || '⭐'; }
+
+function renderCards(){
+  const list = QUESTIONS.filter(q=>matches(q, currentUnit, currentFilter));
+  document.getElementById('qCount').textContent = `${list.length} question${list.length!==1?'s':''}`;
+  const wrap = document.getElementById('cardList');
+  wrap.innerHTML = list.map((q,i)=>`
+    <div class="qcard">
+      <div class="tags">
+        <span class="tag pri">Unit ${q.u}</span>
+        <span class="tag ${q.type}">${q.type==='pyq'?'✅ PYQ':'⭐ Predicted'}</span>
+        <span class="tag pri">${q.marks}</span>
+        <span class="tag pri">${priFire(q.pri)}</span>
+      </div>
+      <div class="qtext">${q.q}</div>
+      <button class="reveal-btn" onclick="toggleAns(this)">Show answer</button>
+      <div class="ans">${q.a}</div>
+    </div>
+  `).join('') || `<p style="color:var(--muted)">No questions match this combination — try a different filter.</p>`;
+  renderMath(wrap);
+}
+function toggleAns(btn){
+  const ans = btn.nextElementSibling;
+  const showing = ans.classList.toggle('show');
+  btn.textContent = showing ? 'Hide answer' : 'Show answer';
+}
+
+/* ============================================================
+   STUDY MODE (flashcards, in-memory only)
+   ============================================================ */
+let studyUnit = 'all', studyHot = false, queue = [], qi = 0, flipped=false;
+let known = 0, review = 0;
+
+document.querySelectorAll('.study-controls [data-sunit]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.study-controls [data-sunit]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    studyUnit = b.dataset.sunit;
+    buildQueue();
+  });
+});
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{ shuffle(queue); qi=0; renderFlash(); });
+document.querySelector('[data-shot="hot"]').addEventListener('click', function(){
+  studyHot = !studyHot;
+  this.classList.toggle('active', studyHot);
+  buildQueue();
+});
+
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
+
+function buildQueue(){
+  queue = QUESTIONS.filter(q=> (studyUnit==='all'||q.u==Number(studyUnit)) && (!studyHot || q.pri===3) );
+  shuffle(queue);
+  qi = 0; flipped = false; known = 0; review = 0;
+  renderFlash();
+}
+
+function renderFlash(){
+  if(!queue.length) buildQueue();
+  const card = document.getElementById('flashCard');
+  const progress = document.getElementById('flashProgress');
+  document.getElementById('statKnown').textContent = known;
+  document.getElementById('statReview').textContent = review;
+  document.getElementById('statLeft').textContent = Math.max(queue.length - qi, 0);
+
+  if(!queue.length){
+    card.innerHTML = `<div class="flash-empty">No questions in this filter yet — try a different unit.</div>`;
+    progress.textContent = '';
+    return;
+  }
+  if(qi >= queue.length){
+    card.innerHTML = `<div class="flash-empty">Session complete \u2014 ${known} known, ${review} to review.<br><br><button class="btn btn-primary btn-sm" onclick="buildQueue()">Start again</button></div>`;
+    progress.textContent = '';
+    return;
+  }
+  const q = queue[qi];
+  progress.textContent = `Card ${qi+1} of ${queue.length}`;
+  card.innerHTML = `
+    <div class="flash-tags">
+      <span class="tag pri">Unit ${q.u}</span>
+      <span class="tag ${q.type}">${q.type==='pyq'?'✅ PYQ':'⭐ Predicted'}</span>
+      <span class="tag pri">${q.marks}</span>
+      <span class="tag pri">${priFire(q.pri)}</span>
+    </div>
+    <div class="flash-q">${q.q}</div>
+    <div class="flash-a ${flipped?'show':''}">${q.a}</div>
+  `;
+  document.getElementById('flipBtn').textContent = flipped ? 'Hide answer' : 'Show answer';
+  renderMath(card);
+}
+
+document.getElementById('flipBtn').addEventListener('click', ()=>{ flipped = !flipped; renderFlash(); });
+document.getElementById('prevBtn').addEventListener('click', ()=>{ if(qi>0){ qi--; flipped=false; renderFlash(); } });
+document.getElementById('knowBtn').addEventListener('click', ()=>{ known++; qi++; flipped=false; renderFlash(); });
+document.getElementById('reviewBtn').addEventListener('click', ()=>{ review++; qi++; flipped=false; renderFlash(); });
+
+/* ============================================================
+   PREDICTIONS VIEW
+   ============================================================ */
+let predictRendered = false;
+function renderPredict(){
+  if(predictRendered) return;
+  predictRendered = true;
+  document.getElementById('top10List').innerHTML = TOP10.map(([t,f])=>`<li>${t}<span class="fire">${f}</span></li>`).join('');
+  document.getElementById('top15List').innerHTML = TOP15.map(([t,f])=>`<li>${t}<span class="fire">${f}</span></li>`).join('');
+  document.getElementById('recallGrid').innerHTML = RAPID_RECALL.map(([term,def])=>`
+    <div class="recall-card" onclick="this.classList.toggle('flip')">
+      <div class="term">${term}</div>
+      <div class="def">${def}</div>
+    </div>
+  `).join('');
+  document.getElementById('trendBody').innerHTML = TREND.map(row=>`
+    <tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td class="hl">${row[4]}</td></tr>
+  `).join('');
+}
+
+/* ============================================================
+   MATH RENDERING
+   ============================================================ */
+function renderMath(container){
+  if(window.renderMathInElement){
+    renderMathInElement(container, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+      ],
+      throwOnError: false
+    });
+  }
+}
+
+/* init */
+buildQueue();
+</script>
+</body>
+</html>

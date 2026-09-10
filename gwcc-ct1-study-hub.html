@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GWCC · 21CEO310T — CT-1 Study Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#080f1c;
+    --navy-900:#0c1a2d;
+    --navy-800:#14263f;
+    --navy-700:#1c3453;
+    --navy-600:#274468;
+    --coral:#ff7a5c;
+    --coral-dim:#e2634a;
+    --coral-soft:rgba(255,122,92,0.14);
+    --olive:#9aab68;
+    --olive-dim:#71824a;
+    --olive-soft:rgba(154,171,104,0.14);
+    --cream:#f4efe3;
+    --muted:#9fb0c9;
+    --muted-dim:#6f829e;
+    --line:rgba(244,239,227,0.1);
+    --line-strong:rgba(244,239,227,0.18);
+    --radius-s:6px;
+    --radius-m:10px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--navy-950);
+    color:var(--cream);
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    margin:0 0 0.4em;
+    letter-spacing:-0.01em;
+  }
+  p{margin:0 0 1em;color:var(--muted);max-width:62ch;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--coral);outline-offset:3px;}
+
+  /* ---------- layout shell ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+  @media(max-width:640px){.wrap{padding:0 18px;}}
+
+  /* ---------- nav ---------- */
+  nav.topnav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(8,15,28,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topnav-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 0;
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand-mark{
+    font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem;color:var(--cream);
+  }
+  .brand-code{
+    font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--olive);
+    padding:2px 8px;border:1px solid var(--olive-dim);border-radius:20px;
+  }
+  .nav-links{display:flex;align-items:center;gap:22px;font-size:0.92rem;color:var(--muted);}
+  .nav-links a{text-decoration:none;transition:color .15s;}
+  .nav-links a:hover{color:var(--cream);}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:11px 20px;border-radius:var(--radius-s);
+    font-size:0.92rem;font-weight:600;cursor:pointer;border:1px solid transparent;
+    text-decoration:none;transition:transform .15s, background .15s, border-color .15s;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-coral{background:var(--coral);color:#1a0d08;}
+  .btn-coral:hover{background:var(--coral-dim);}
+  .btn-ghost{background:transparent;border-color:var(--line-strong);color:var(--cream);}
+  .btn-ghost:hover{border-color:var(--coral);}
+  @media(max-width:760px){.nav-links a.hide-mobile{display:none;}}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;overflow:hidden;
+    padding:76px 0 60px;
+    border-bottom:1px solid var(--line);
+  }
+  #particleField{position:absolute;inset:0;width:100%;height:100%;opacity:0.55;}
+  .hero-grid{
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 75%);
+    opacity:0.4;
+  }
+  .hero-inner{
+    position:relative;z-index:2;
+    display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:center;
+  }
+  @media(max-width:900px){.hero-inner{grid-template-columns:1fr;}}
+  .eyebrow-line{
+    display:flex;align-items:center;gap:10px;margin-bottom:18px;color:var(--olive);
+    font-family:'IBM Plex Mono',monospace;font-size:0.78rem;
+  }
+  .eyebrow-line .dot{width:6px;height:6px;border-radius:50%;background:var(--coral);box-shadow:0 0 10px var(--coral);}
+  .hero h1{
+    font-size:clamp(2.1rem, 4.4vw, 3.4rem);
+    color:var(--cream);
+    line-height:1.06;
+    max-width:14ch;
+  }
+  .hero h1 .accent{color:var(--coral);}
+  .hero-sub{font-size:1.05rem;max-width:46ch;color:var(--muted);}
+  .hero-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--cream);
+    background:var(--navy-800);border:1px solid var(--line-strong);
+    padding:8px 14px;border-radius:20px;margin-bottom:22px;
+  }
+  .hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;}
+
+  .quote-strip{
+    margin-top:44px;padding-top:22px;border-top:1px solid var(--line);
+    min-height:52px;position:relative;
+  }
+  .quote-strip blockquote{
+    margin:0;font-family:'Fraunces',serif;font-style:italic;font-size:1.05rem;
+    color:var(--cream);opacity:0;position:absolute;inset:22px 0 0 0;
+    transition:opacity 1s ease;
+  }
+  .quote-strip blockquote.active{opacity:1;position:relative;}
+  .quote-strip blockquote::before{content:"\201C";color:var(--coral);margin-right:4px;}
+
+  /* earth visual */
+  .earth-stage{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    min-height:340px;
+  }
+  .earth-glow{
+    position:absolute;width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,122,92,0.35), rgba(255,122,92,0.05) 55%, transparent 70%);
+    filter:blur(6px);
+    animation:pulseGlow 5s ease-in-out infinite;
+  }
+  @keyframes pulseGlow{0%,100%{transform:scale(1);opacity:0.7;}50%{transform:scale(1.12);opacity:1;}}
+  #earthCanvas, #co2Canvas{position:relative;z-index:2;}
+  #co2Canvas{position:absolute;inset:0;z-index:3;pointer-events:none;}
+
+  /* ---------- features ---------- */
+  .section{padding:70px 0;}
+  .section-head{max-width:56ch;margin-bottom:38px;}
+  .section-head .kicker{
+    font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--coral);
+    text-transform:none;margin-bottom:10px;display:block;
+  }
+  .section h2{font-size:clamp(1.5rem,2.6vw,2.1rem);color:var(--cream);}
+
+  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden;}
+  @media(max-width:860px){.feature-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.feature-grid{grid-template-columns:1fr;}}
+  .feature-card{background:var(--navy-900);padding:26px 24px;}
+  .feature-card .fnum{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--olive);}
+  .feature-card h3{font-size:1.05rem;color:var(--cream);margin-top:10px;}
+  .feature-card p{font-size:0.92rem;margin-bottom:0;}
+
+  /* ---------- study hub ---------- */
+  #studyhub{background:var(--navy-900);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .hub-top{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:20px;margin-bottom:28px;}
+  .unit-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .unit-tab{
+    padding:10px 18px;border-radius:20px;border:1px solid var(--line-strong);
+    background:transparent;color:var(--muted);font-size:0.9rem;font-weight:600;cursor:pointer;
+    transition:all .15s;
+  }
+  .unit-tab.active{background:var(--coral);border-color:var(--coral);color:#1a0d08;}
+  .unit-tab:hover:not(.active){border-color:var(--coral);color:var(--cream);}
+
+  .topic-rank{
+    background:var(--navy-800);border:1px solid var(--line);border-radius:var(--radius-m);
+    padding:20px 22px;margin-bottom:28px;
+  }
+  .topic-rank h4{font-size:0.95rem;color:var(--cream);margin-bottom:14px;}
+  .topic-rank ol{margin:0;padding-left:0;list-style:none;display:grid;gap:8px;}
+  .topic-rank li{
+    display:flex;align-items:baseline;gap:12px;font-size:0.9rem;color:var(--muted);
+    padding-bottom:8px;border-bottom:1px dashed var(--line);
+  }
+  .topic-rank li:last-child{border-bottom:none;padding-bottom:0;}
+  .topic-rank .flames{font-size:0.8rem;flex-shrink:0;width:64px;}
+  .topic-rank .tname{color:var(--cream);font-weight:500;}
+
+  .filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;}
+  .chip{
+    padding:8px 14px;border-radius:20px;border:1px solid var(--line-strong);
+    background:var(--navy-800);color:var(--muted);font-size:0.82rem;cursor:pointer;
+    transition:all .15s;
+  }
+  .chip.active{background:var(--olive);border-color:var(--olive);color:#101a08;font-weight:600;}
+  .chip:hover:not(.active){color:var(--cream);border-color:var(--olive);}
+
+  .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .qcard{
+    background:var(--navy-800);border:1px solid var(--line);border-radius:var(--radius-m);
+    padding:20px;display:flex;flex-direction:column;gap:12px;
+  }
+  .qcard-tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:3px 8px;border-radius:4px;
+    letter-spacing:0.02em;
+  }
+  .tag.marks{background:var(--navy-700);color:var(--muted);}
+  .tag.pyq{background:var(--olive-soft);color:var(--olive);}
+  .tag.predicted{background:var(--coral-soft);color:var(--coral);}
+  .tag.priority{background:rgba(255,122,92,0.18);color:var(--coral);}
+  .qcard h4{font-size:0.98rem;color:var(--cream);font-family:'IBM Plex Sans',sans-serif;font-weight:600;margin:0;}
+  .qcard h4 .mcq-opts{display:block;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;font-weight:400;color:var(--muted);line-height:1.6;}
+  .qcard .reveal-btn{
+    align-self:flex-start;background:transparent;border:1px solid var(--line-strong);
+    color:var(--cream);padding:8px 14px;border-radius:var(--radius-s);font-size:0.82rem;
+    cursor:pointer;font-weight:600;
+  }
+  .qcard .reveal-btn:hover{border-color:var(--coral);}
+  .qcard .answer{
+    display:none;font-size:0.88rem;color:var(--muted);
+    border-top:1px dashed var(--line);padding-top:12px;
+  }
+  .qcard .answer.open{display:block;}
+  .qcard .answer ul{margin:0 0 8px;padding-left:18px;}
+  .qcard .answer li{margin-bottom:3px;}
+  .qcard .answer p{margin:0 0 8px;font-size:0.88rem;}
+  .qcard .answer pre.diagram{
+    background:var(--navy-950);border:1px solid var(--line);border-radius:6px;
+    padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--olive);
+    overflow-x:auto;line-height:1.4;
+  }
+  .empty-state{color:var(--muted-dim);font-size:0.9rem;padding:30px 0;}
+
+  /* accordion extras */
+  .extras{margin-top:44px;display:grid;gap:14px;}
+  .accordion{background:var(--navy-800);border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden;}
+  .accordion summary{
+    cursor:pointer;padding:18px 22px;font-weight:600;color:var(--cream);
+    list-style:none;display:flex;justify-content:space-between;align-items:center;font-size:0.95rem;
+  }
+  .accordion summary::-webkit-details-marker{display:none;}
+  .accordion summary::after{content:"+";color:var(--coral);font-size:1.2rem;}
+  .accordion[open] summary::after{content:"–";}
+  .accordion-body{padding:0 22px 22px;}
+  table.mini{width:100%;border-collapse:collapse;font-size:0.86rem;}
+  table.mini th{text-align:left;color:var(--olive);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line-strong);font-size:0.78rem;font-family:'IBM Plex Mono',monospace;}
+  table.mini td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--muted);}
+  table.mini tr:last-child td{border-bottom:none;}
+  .rank-badge{
+    display:inline-block;min-width:26px;text-align:center;background:var(--coral);color:#1a0d08;
+    font-weight:700;border-radius:4px;padding:2px 6px;font-size:0.78rem;margin-right:8px;
+  }
+
+  /* ---------- footer ---------- */
+  footer{padding:44px 0 34px;border-top:1px solid var(--line);}
+  .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+  .footer-inner p{margin:0;font-size:0.85rem;color:var(--muted-dim);}
+  .footer-links{display:flex;gap:18px;font-size:0.85rem;}
+  .footer-links a{text-decoration:none;color:var(--muted);}
+  .footer-links a:hover{color:var(--coral);}
+
+  /* ---------- feedback modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(8,15,28,0.72);backdrop-filter:blur(4px);
+    display:none;align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--navy-800);border:1px solid var(--line-strong);border-radius:var(--radius-m);
+    max-width:440px;width:100%;padding:28px;
+  }
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+  .modal h3{color:var(--cream);font-size:1.2rem;margin:0;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;}
+  .modal p.lead{font-size:0.88rem;margin-bottom:20px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:0.8rem;color:var(--muted);margin-bottom:6px;font-weight:500;}
+  .field input, .field textarea{
+    width:100%;background:var(--navy-950);border:1px solid var(--line-strong);border-radius:var(--radius-s);
+    padding:11px 12px;color:var(--cream);font-family:inherit;font-size:0.92rem;
+  }
+  .field input:focus, .field textarea:focus{border-color:var(--coral);}
+  .field textarea{resize:vertical;min-height:90px;}
+  .modal .btn{width:100%;justify-content:center;margin-top:6px;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .earth-glow{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap topnav-inner">
+    <div class="brand">
+      <span class="brand-mark">GWCC Study Hub</span>
+      <span class="brand-code">21CEO310T</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html">🏠 All Subjects</a>
+      <a href="#studyhub" class="hide-mobile">CT Prep Hub</a>
+      <a href="#features" class="hide-mobile">Toolkit</a>
+      <button class="btn btn-ghost" id="openFeedbackNav">Feedback</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <canvas id="particleField"></canvas>
+  <div class="hero-grid"></div>
+  <div class="wrap hero-inner">
+    <div>
+      <div class="eyebrow-line"><span class="dot"></span> CT-1 · Unit 1 &amp; Unit 2</div>
+      <div class="hero-tag">Global Warming and Climate Change · 21CEO310T</div>
+      <h1>One planet, one syllabus, <span class="accent">zero wasted revision.</span></h1>
+      <p class="hero-sub">Every PYQ, prediction and priority topic from your Unit 1 &amp; Unit 2 material, sorted by what's actually worth your time before CT-1.</p>
+      <div class="hero-actions">
+        <a href="#studyhub" class="btn btn-coral">Open the CT Prep Hub</a>
+        <button class="btn btn-ghost" id="openFeedbackHero">Send feedback</button>
+      </div>
+      <div class="quote-strip" id="quoteStrip"></div>
+    </div>
+    <div class="earth-stage">
+      <div class="earth-glow"></div>
+      <canvas id="earthCanvas" width="300" height="300"></canvas>
+      <canvas id="co2Canvas" width="300" height="300"></canvas>
+    </div>
+  </div>
+</header>
+
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">The toolkit</span>
+      <h2>Built to cut a 40-page handout down to an evening.</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="fnum">01</span>
+        <h3>Unit-wise question bank</h3>
+        <p>Every question from Unit 1 and Unit 2 sorted into its own tab, so you're never scrolling past the wrong topic.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fnum">02</span>
+        <h3>Priority tags</h3>
+        <p>Each question is flagged by how often it's actually shown up, from must-study to lower priority.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fnum">03</span>
+        <h3>Tap-to-reveal answers</h3>
+        <p>Test yourself first — answers stay hidden until you tap, right inline, no new page to lose your place on.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fnum">04</span>
+        <h3>High-yield ranking</h3>
+        <p>A ranked list of the topics repeated across past semester papers, so you know exactly where to start.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fnum">05</span>
+        <h3>Marks-based filtering</h3>
+        <p>Short on time before the exam? Filter down to just 1-mark questions, or just the 8-markers that matter most.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fnum">06</span>
+        <h3>Direct feedback</h3>
+        <p>Spotted a wrong answer or a missing PYQ? Flag it in one tap — it opens straight in your email app.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="studyhub">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">CT Prep Hub</span>
+      <h2>Unit 1 &amp; Unit 2 — full question bank</h2>
+    </div>
+
+    <div class="hub-top">
+      <div class="unit-tabs" id="unitTabs">
+        <button class="unit-tab active" data-unit="1">Unit 1 — Earth Systems &amp; Atmosphere</button>
+        <button class="unit-tab" data-unit="2">Unit 2 — Paleoclimate &amp; Change</button>
+      </div>
+    </div>
+
+    <div class="topic-rank" id="topicRank"></div>
+
+    <div class="filter-row" id="filterRow">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="pyq">PYQ only</button>
+      <button class="chip" data-filter="predicted">Predicted only</button>
+      <button class="chip" data-marks="1">1 mark</button>
+      <button class="chip" data-marks="5">5 mark</button>
+      <button class="chip" data-marks="8">8 mark</button>
+      <button class="chip" data-marks="15">15 mark</button>
+      <button class="chip" data-priority="high">High priority 🔥</button>
+    </div>
+
+    <div class="qgrid" id="qgrid"></div>
+
+    <div class="extras">
+      <details class="accordion">
+        <summary>Top 10 predictions for CT-1</summary>
+        <div class="accordion-body" id="top10Body"></div>
+      </details>
+      <details class="accordion">
+        <summary>1-mark rapid revision sheet</summary>
+        <div class="accordion-body" id="rapidBody"></div>
+      </details>
+      <details class="accordion">
+        <summary>Final study order — if you're studying tonight</summary>
+        <div class="accordion-body" id="studyOrderBody"></div>
+      </details>
+      <details class="accordion">
+        <summary>Final CT-1 predicted question paper</summary>
+        <div class="accordion-body" id="predictedPaperBody"></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <p>GWCC Study Hub — built for 21CEO310T CT-1 prep.</p>
+    <div class="footer-links">
+      <a href="#studyhub">CT Prep Hub</a>
+      <a href="#" id="openFeedbackFooter">Feedback</a>
+    </div>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="feedbackOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Send feedback</h3>
+      <button class="modal-close" id="closeFeedback" aria-label="Close">&times;</button>
+    </div>
+    <p class="lead">Wrong answer, missing PYQ, or a topic that needs more detail — this opens a pre-filled email in your mail app.</p>
+    <form id="feedbackForm">
+      <div class="field">
+        <label for="fbName">Name</label>
+        <input type="text" id="fbName" placeholder="Your name" required>
+      </div>
+      <div class="field">
+        <label for="fbEmail">Email (optional)</label>
+        <input type="email" id="fbEmail" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="fbMessage">Message</label>
+        <textarea id="fbMessage" placeholder="e.g. Unit 2 Q4 answer needs a correction..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-coral">Open in email app</button>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+// Update this to the address CT feedback should be sent to.
+const FEEDBACK_EMAIL = "your-email@example.com";
+
+/* ============ QUOTES ============ */
+const QUOTES = [
+  "The syllabus doesn't shrink. Your list of what actually matters does.",
+  "Every degree of warming was once a line in someone's notes.",
+  "Study the pattern, not just the page — the papers repeat themselves.",
+  "You don't need to know everything. You need to know what's asked.",
+  "Ice melts one degree at a time. So does a syllabus, if you start tonight.",
+  "The highest-yield topic is the one that already showed up twice."
+];
+
+/* ============ QUESTION DATA ============ */
+const QUESTIONS = [
+/* ---------------- UNIT 1 · 1 MARK ---------------- */
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Identify the climate system component which determines the nature of rocks.",a:"<p><strong>Lithosphere.</strong> It is the solid rocky crust of Earth and contains rocks, minerals and soil.</p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Which determines the amount of water vapour in the atmosphere?",a:"<p><strong>Humidity.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Identify the type of rainfall which frequently occurs near mountains beside the sea.",a:"<p><strong>Relief / Orographic rainfall.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"Gravity pulls gas molecules towards Earth's surface, causing what?",a:"<p><strong>An increase in air pressure.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Wind blowing across the ocean surface pushes water away and water rises to replace it. What is this process called?",a:"<p><strong>Upwelling.</strong> Ocean circulation includes horizontal circulation and vertical circulation such as upwelling and downwelling.</p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"What is frontal inversion?",a:"<p><strong>Cold air blowing in under warmer air.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"What is a stable atmosphere?",a:"<p><strong>One that discourages vertical motion.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"By approximately how much does the atmospheric lapse rate decrease?",a:"<p><strong>6.5°C per km.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"Which combination means less soil moisture is available for crop growth?",a:"<p><strong>Less rainfall combined with more evaporation.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Which has a pH value of approximately 8.1?",a:"<p><strong>Sea water.</strong> This connects to ocean acidification, where increasing CO₂ lowers seawater pH.</p>"},
+{unit:1,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"Sea-level rise is less apparent in locations subject to what?",a:"<p><strong>Geologic uplift.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Which instrument measures relative humidity?",a:"<p><strong>Hygrometer.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Which climate-system component specifies glaciers, sea ice and permafrost?",a:"<p><strong>Cryosphere</strong> — Earth's frozen components such as glaciers, ice sheets and sea ice.</p>"},
+{unit:1,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"Large quantities of ______ can be released to the atmosphere through geologic processes.",a:"<p><strong>Carbon.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"Which gases constitute approximately 78% and 21% of Earth's atmosphere?",a:"<p><strong>Nitrogen (≈78%) and Oxygen (≈21%).</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"Gravity pulling gas molecules towards Earth's surface causes what?",a:"<p><strong>Air pressure to increase.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"How can climate be defined?",a:"<p><strong>Long-term changes / average conditions of the atmosphere.</strong> Climate is best understood as the long-term prevailing, average weather of a place.</p>"},
+{unit:1,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"Where is Hadley cell flow located?",a:"<p><strong>Near the equator.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"Lapse rate is related to which quantity?",a:"<p><strong>Temperature.</strong> The lapse rate is the change of an atmospheric variable with altitude, normally referring to temperature.</p>"},
+{unit:1,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"What does a stable atmosphere mean?",a:"<p><strong>It discourages vertical motion.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Over what range is albedo measured?",a:"<p><strong>0.0 to 1.0</strong>, where 1.0 represents maximum reflection and 0.0 represents maximum absorption.</p>"},
+{unit:1,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"What does climate-change mitigation primarily involve?",a:"<p><strong>Stabilizing greenhouse-gas levels.</strong></p>"},
+
+/* ---------------- UNIT 1 · 8 MARK PYQs ---------------- */
+{unit:1,marks:8,type:"pyq",priority:"high",label:"PYQ · Dec 2023",q:"What do you understand by the Coriolis effect? Discuss.",a:`<p>The Coriolis effect is the apparent deflection of moving objects such as winds and ocean currents due to Earth's rotation.</p>
+<ul>
+<li>In the Northern Hemisphere, moving air and ocean currents are deflected towards the right.</li>
+<li>In the Southern Hemisphere, they are deflected towards the left.</li>
+<li>It influences atmospheric circulation and ocean currents.</li>
+<li>It contributes to the formation and movement of large-scale wind systems.</li>
+<li>Without Earth's rotation, atmospheric circulation would be far simpler.</li>
+<li>It is a key factor in determining global wind and ocean circulation patterns.</li>
+</ul>
+<pre class="diagram">          North Pole
+              ↑
+     Deflect right
+              ↗
+Equator ───────────────
+              ↘
+     Deflect left
+              ↓
+          South Pole</pre>`},
+{unit:1,marks:8,type:"pyq",priority:"high",label:"PYQ · Dec 2023",q:"List the different strata of the atmosphere and discuss.",a:`<p>Based on temperature, Earth's atmosphere is divided into five major layers:</p>
+<ul>
+<li><strong>Troposphere</strong> — lowest layer; most weather occurs here; holds most of the atmosphere's water vapour.</li>
+<li><strong>Stratosphere</strong> — above the troposphere; contains the ozone layer; temperature generally increases with altitude.</li>
+<li><strong>Mesosphere</strong> — above the stratosphere; temperature decreases with altitude; most meteors burn up here.</li>
+<li><strong>Thermosphere</strong> — above the mesosphere; temperature rises considerably with altitude; contains ionized particles.</li>
+<li><strong>Exosphere</strong> — outermost layer; gradually merges with outer space.</li>
+</ul>
+<pre class="diagram">     EXOSPHERE
+         ↑
+    THERMOSPHERE
+         ↑
+     MESOSPHERE
+         ↑
+    STRATOSPHERE
+         ↑
+    TROPOSPHERE
+         ↑
+       EARTH</pre>`},
+{unit:1,marks:8,type:"pyq",priority:"high",label:"PYQ · Dec 2023",q:"Explain in brief about frontal inversion.",a:`<p>A temperature inversion occurs when temperature increases with altitude instead of decreasing normally.</p>
+<ul>
+<li>A warm air mass and a cold air mass meet.</li>
+<li>The denser cold air moves in underneath the warmer air.</li>
+<li>The warm air is forced to remain above the cold air, producing an inversion layer.</li>
+<li>Vertical mixing of air is reduced.</li>
+<li>Pollutants can become trapped near the ground under these stable conditions.</li>
+</ul>
+<pre class="diagram">    Warm air
+ ─────────────
+    Warm air
+ ─────────────
+    Cold air
+ ─────────────
+     Ground</pre>`},
+{unit:1,marks:8,type:"pyq",priority:"high",label:"PYQ · Dec 2023",q:"State the important gases in Earth's atmosphere.",a:`<p>The major gases include:</p>
+<ul><li>Nitrogen — about 78%</li><li>Oxygen — about 21%</li><li>Argon</li><li>Carbon dioxide</li><li>Water vapour</li><li>Other trace gases</li></ul>
+<p>Important greenhouse gases specifically include CO₂, CH₄, N₂O, SF₆, HFCs and PFCs.</p>`},
+{unit:1,marks:8,type:"pyq",priority:"high",label:"PYQ · May 2024",q:"What are the importance of the Earth system? Explain with a suitable diagram.",a:`<p>The Earth climate system is a complex interactive system of five components: the atmosphere (air), hydrosphere (water), cryosphere (ice and permafrost), lithosphere (Earth's rocky surface) and biosphere (living organisms) — continuously interacting and exchanging energy, water and carbon.</p>
+<p><strong>Importance:</strong></p>
+<ul>
+<li>Regulates Earth's temperature and controls the movement of heat.</li>
+<li>Controls water circulation and maintains atmospheric composition.</li>
+<li>Supports life and regulates climate.</li>
+<li>Connects oceans, atmosphere, land, ice and living organisms.</li>
+</ul>
+<pre class="diagram">        ATMOSPHERE
+         ↕     ↕
+    ┌─────┼─────┐
+    ↓     ↓     ↓
+  OCEAN   ICE   LAND
+    ↕     ↕     ↕
+       BIOSPHERE</pre>`},
+{unit:1,marks:8,type:"pyq",priority:"high",label:"PYQ · May 2024",q:"Explain the hydrological cycle and carbon cycle with suitable diagrams.",a:`<p><strong>Hydrological cycle:</strong> the continuous circulation of water between Earth and the atmosphere, through evaporation, transpiration, condensation, precipitation, infiltration, groundwater flow, surface runoff, and collection in oceans and lakes.</p>
+<p>The governing relationship is P = E + R, where P is precipitation, E is evaporation, and R is runoff.</p>
+<pre class="diagram">         CLOUDS
+           ↓
+      PRECIPITATION
+           ↓
+    ┌──────┴──────┐
+    ↓             ↓
+  RUNOFF     INFILTRATION
+    ↓             ↓
+  RIVERS      GROUNDWATER
+    └──────┬──────┘
+           ↓
+         OCEAN
+           ↑
+      EVAPORATION
+           ↑
+          SUN</pre>
+<p><strong>Carbon cycle:</strong> the continuous movement of carbon among the atmosphere, biosphere, oceans, soil, crust and fossil fuels, through photosynthesis, respiration, decomposition, burial, weathering, volcanism and combustion. It regulates atmospheric CO₂ and CH₄, two important greenhouse gases.</p>
+<pre class="diagram">      ATMOSPHERIC CO₂
+         ↓       ↑
+ Photosynthesis Respiration
+         ↓       ↑
+       PLANTS → ANIMALS
+         ↓
+   Decomposition
+         ↓
+    SOIL CARBON
+         ↓
+   Fossil carbon
+         ↓
+    Combustion
+         ↓
+   Atmospheric CO₂</pre>`},
+
+/* ---------------- UNIT 1 · OTHER 8-MARK ---------------- */
+{unit:1,marks:8,type:"predicted",priority:"med",label:"Predicted",q:"Explain ocean circulation and its importance.",a:`<ul>
+<li>Ocean circulation is the large-scale movement of ocean water, driven mainly by wind and by density differences.</li>
+<li>Density depends mainly on temperature and salinity.</li>
+<li>Horizontal circulation includes surface and deep currents; vertical circulation includes upwelling and downwelling.</li>
+<li>It transfers heat around Earth, influences global climate, stores CO₂ and recycles nutrients.</li>
+</ul>`},
+{unit:1,marks:8,type:"predicted",priority:"high",label:"Predicted",q:"Explain atmospheric stability and lapse rate.",a:`<ul>
+<li>Atmospheric stability describes the tendency of air to move vertically.</li>
+<li>A stable atmosphere discourages vertical movement; an unstable one encourages it.</li>
+<li>Lapse rate describes temperature change with altitude, commonly expressed in °C/km.</li>
+<li>Stability influences cloud formation, rainfall and pollution dispersion.</li>
+</ul>`},
+{unit:1,marks:8,type:"predicted",priority:"med",label:"Predicted",q:"Explain wind and atmospheric circulation.",a:`<ul>
+<li>Large-scale movement of air redistributes heat across the planet.</li>
+<li>Unequal solar heating produces temperature differences; warm equatorial air rises and cooler air moves in to replace it.</li>
+<li>This produces large-scale atmospheric circulation cells.</li>
+<li>Earth's rotation introduces Coriolis deflection into these patterns.</li>
+</ul>`},
+{unit:1,marks:8,type:"predicted",priority:"high",label:"Predicted",q:"Explain the greenhouse effect and its causes.",a:`<p>The greenhouse effect is the warming caused when atmospheric gases absorb and re-radiate outgoing infrared radiation.</p>
+<pre class="diagram">        SUN
+         ↓
+ Short-wave radiation
+         ↓
+  EARTH SURFACE
+         ↓
+Earth emits long-wave IR
+         ↓
+Greenhouse gases absorb heat
+         ↓
+ Some heat returns to Earth
+         ↓
+      WARMING</pre>
+<p>Important greenhouse gases: CO₂, CH₄, N₂O, HFCs, PFCs, SF₆, and water vapour. Major human causes include burning fossil fuels, deforestation, agriculture, industrial activity and landfills.</p>`},
+{unit:1,marks:8,type:"predicted",priority:"high",label:"Predicted",q:"Explain ozone depletion.",a:`<ul>
+<li>Meaning and importance of the ozone layer.</li>
+<li>Ozone-depleting substances: CFCs, halons, carbon tetrachloride, HCFCs.</li>
+<li>Effects of ozone depletion.</li>
+<li>Prevention measures.</li>
+</ul>`},
+{unit:1,marks:8,type:"predicted",priority:"high",label:"Predicted",q:"Explain El Niño and La Niña and their impacts.",a:`<p><strong>El Niño:</strong> warming of the central/eastern tropical Pacific Ocean, which changes atmospheric circulation and produces climate fluctuations worldwide.</p>
+<p><strong>La Niña:</strong> the opposite phase — sustained cooling of the central/eastern tropical Pacific.</p>
+<p>Impacts can include changes in rainfall, temperature, agriculture, drought, floods and global weather patterns.</p>`},
+
+/* ---------------- UNIT 1 · PREDICTED 10/15 ---------------- */
+{unit:1,marks:15,type:"predicted",priority:"high",label:"Predicted · 10/15",q:"Explain the complete Earth climate system and discuss the interaction of atmosphere, hydrosphere, cryosphere, lithosphere and biosphere.",a:"<p>Prepare: the five components, their functions, and an interaction diagram showing how they exchange energy, water and carbon.</p>"},
+{unit:1,marks:15,type:"predicted",priority:"high",label:"Predicted · 10/15",q:"Explain the hydrological cycle and carbon cycle in detail with suitable diagrams. Discuss their importance in climate regulation.",a:"<p>This is the strongest Unit 1 prediction — the May 2024 paper already asked the combined cycle question for 8 marks. Prepare both diagrams plus the P = E + R relationship.</p>"},
+{unit:1,marks:15,type:"predicted",priority:"high",label:"Predicted · 10/15",q:"Explain the atmosphere, its composition and different strata with a temperature profile.",a:"<p>Prepare: composition, then Troposphere → Stratosphere → Mesosphere → Thermosphere → Exosphere with the temperature variation across each.</p>"},
+{unit:1,marks:15,type:"predicted",priority:"med",label:"Predicted · 10/15",q:"Explain ocean circulation, Coriolis effect and atmospheric circulation, and discuss their role in regulating global climate.",a:"<p>Combine Coriolis effect + ocean circulation + wind circulation into one connected answer.</p>"},
+{unit:1,marks:15,type:"predicted",priority:"med",label:"Predicted · 10/15",q:"Explain the greenhouse effect, greenhouse gases, causes of enhanced greenhouse effect, and global warming.",a:"<p>Cover the mechanism, the key gases, human causes, and how enhancement of the natural effect drives warming.</p>"},
+{unit:1,marks:15,type:"predicted",priority:"low",label:"Predicted · 10/15",q:"Explain ozone depletion and El Niño / La Niña with their impacts.",a:"<p>Combine both topics into one answer, covering causes and impacts for each.</p>"},
+
+/* ---------------- UNIT 2 · 1 MARK ---------------- */
+{unit:2,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"What is climatology?",a:"<p>The scientific study of Earth's climate and long-term weather patterns.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"What is paleoclimatology?",a:"<p>The study of Earth's past climates.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"What are climate proxies?",a:"<p>Preserved physical characteristics or natural records that substitute for direct past meteorological measurements.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"Give two examples of climate proxies.",a:"<p>Tree rings and ice cores. Other examples include pollen, corals, ocean sediments and fossil records.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"Tree-ring analysis is also known as?",a:"<p>Dendrochronology.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Pollen analysis is also known as?",a:"<p>Palynology.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"Name the three Milankovitch cycles.",a:"<p>Eccentricity, obliquity and precession.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"What is albedo?",a:"<p>The fraction of incoming solar radiation reflected by a surface back to space.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"What is the albedo of fresh snow, approximately?",a:"<p>About 0.9.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"What happens when Earth's albedo decreases?",a:"<p>More solar energy is absorbed, and warming increases.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"high",label:"PYQ",q:"What happens when ice melts, in terms of albedo?",a:"<p>Less sunlight is reflected and more energy is absorbed by land or ocean, causing further warming — a positive ice–albedo feedback.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"What is ocean acidification?",a:"<p>The decrease in ocean pH caused primarily by absorption of atmospheric CO₂ and the resulting formation of carbonic acid.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"What is the pH of seawater, approximately?",a:"<p>About 8.1.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"What is the major cause of present-day ocean acidification?",a:"<p>Increased atmospheric CO₂.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"med",label:"PYQ",q:"Name two types of floods.",a:"<p>River floods and coastal floods. Flash floods are another important type.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"What is the effect of increasing albedo?",a:"<p>Cooling.</p>"},
+{unit:2,marks:1,type:"pyq",priority:"low",label:"PYQ",q:"What is the effect of decreasing albedo?",a:"<p>Warming.</p>"},
+
+/* ---------------- UNIT 2 · 8 MARK PYQs ---------------- */
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ · May 2024",q:"Discuss Paleoclimatology with proxy examples.",a:`<p>Paleoclimatology is the study of Earth's past climate, especially periods for which direct instrumental measurements are unavailable. Because instrumental records cover only a small fraction of Earth's history, scientists rely on climate proxies.</p>
+<ul>
+<li><strong>Tree rings (dendrochronology)</strong> — each ring generally represents one year; ring characteristics reveal past temperature and moisture variation.</li>
+<li><strong>Pollen (palynology)</strong> — pollen preserved in sediments shows past vegetation, which indicates climate change.</li>
+<li><strong>Isotopes</strong> — oxygen isotopes (¹⁶O, ¹⁷O, ¹⁸O) in ice cores and marine sediments reveal past climate.</li>
+<li><strong>Ice cores</strong> — preserve ancient atmospheric information.</li>
+<li><strong>Ocean sediments</strong> — preserve biological and chemical indicators of ancient climate.</li>
+</ul>
+<p>Paleoclimatology helps us understand natural climate variability, reconstruct ancient climates, and compare natural changes with current warming.</p>`},
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ · May 2024",q:"Explain Milankovitch theory.",a:`<p>The Milankovitch theory explains long-term climate change through variations in Earth's orbital position and orientation relative to the Sun, across three cycles:</p>
+<ul>
+<li><strong>Eccentricity</strong> — changes in the shape of Earth's orbit, between nearly circular and more elliptical, altering the amount and seasonal distribution of solar radiation.</li>
+<li><strong>Obliquity</strong> — changes in the tilt of Earth's axis, affecting seasons and the distribution of solar radiation, particularly at higher latitudes.</li>
+<li><strong>Precession</strong> — the wobble of Earth's rotational axis, changing its orientation relative to the stars and orbital position.</li>
+</ul>
+<p>The combined effect of these three cycles changes the distribution of solar radiation and contributes to long-term climate variation and ice-age cycles.</p>`},
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ · Dec 2023",q:"Describe types of floods and their impacts.",a:`<p>Floods occur when water exceeds the carrying capacity of rivers, drainage systems or land surfaces.</p>
+<ul>
+<li><strong>Flash floods</strong> — occur suddenly, common in hilly areas; heavy rainfall over a small area creates rapid water flow.</li>
+<li><strong>River floods</strong> — caused by heavy rainfall, snowmelt, intense storms or excessive river inflow.</li>
+<li><strong>Coastal floods</strong> — caused by cyclones, tsunamis or heavy coastal rainfall.</li>
+</ul>
+<p><strong>Impacts:</strong> human and property loss, road damage, disruption of transport services, spread of water-borne disease, communication and electricity breakdown, and wider economic, social and environmental disruption.</p>`},
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ · Dec 2023",q:"Write a short note on polar ice melting.",a:`<p>Polar ice melting is an important consequence of global warming.</p>
+<p><strong>Causes:</strong> rising global temperature, warming of polar regions, and increased absorption of solar radiation as ice disappears.</p>
+<p><strong>Effects:</strong> loss of glaciers, melting ice sheets, sea-level rise, coastal flooding, changes in ocean circulation, habitat loss, and reduced surface reflectivity leading to further warming.</p>
+<pre class="diagram">Temperature increases
+       ↓
+   Ice melts
+       ↓
+ Albedo decreases
+       ↓
+More solar radiation absorbed
+       ↓
+  More warming
+       ↓
+More ice melting</pre>`},
+
+/* ---------------- UNIT 2 · OTHER 8-MARK ---------------- */
+{unit:2,marks:8,type:"predicted",priority:"med",label:"Predicted",q:"Explain Indian climatic classification.",a:`<p><strong>Stamp's classification:</strong> uses the 18°C January isotherm to divide India into Temperate/continental India and Tropical India, further subdivided mainly by rainfall and temperature.</p>
+<p><strong>Koeppen's classification:</strong> based on mean annual and monthly temperature, precipitation and vegetation, with major groups A (Tropical), B (Dry), C (Warm temperate), D (Cold snow-forest), E (Cold) and H (Highland).</p>`},
+{unit:2,marks:8,type:"predicted",priority:"med",label:"Predicted",q:"Explain the role of land and ocean in regulating climate.",a:`<p><strong>Land:</strong> both a source and sink of greenhouse gases; exchanges energy and water with the atmosphere; land-use change affects GHG concentration; sustainable land management can reduce climate impacts.</p>
+<p><strong>Ocean:</strong> covers over 70% of Earth's surface; provides a major temperature boundary for the atmosphere; absorbs solar radiation and supplies water vapour; stores and exchanges heat and gases; currents distribute heat globally.</p>`},
+{unit:2,marks:8,type:"predicted",priority:"med",label:"Predicted",q:"Explain the role of ice and wind in climate regulation.",a:`<p><strong>Ice:</strong> reflects solar radiation, keeps polar areas cooler, and influences ocean circulation; reduced ice causes a positive feedback of further warming.</p>
+<p><strong>Wind:</strong> transfers heat and moisture; winds from oceans bring rainfall; atmospheric circulation redistributes heat — the Indian monsoon circulation is strongly influenced by wind and pressure patterns.</p>`},
+{unit:2,marks:8,type:"predicted",priority:"high",label:"Predicted",q:"Explain ocean acidification.",a:`<pre class="diagram">Atmospheric CO₂
+       ↓
+CO₂ dissolves in seawater
+       ↓
+Carbonic acid formation
+       ↓
+Increase in H⁺ ions
+       ↓
+   pH decreases
+       ↓
+Ocean acidification</pre>
+<p><strong>Effects:</strong> affects coral reefs, oysters and mussels and other calcium-carbonate-shell organisms; reduces calcification; can affect marine food webs, fisheries, coastal protection and tourism. Ocean warming, acidification and oxygen loss together are sometimes called the "deadly trio" of pressures on marine environments.</p>`},
+{unit:2,marks:8,type:"predicted",priority:"high",label:"Predicted",q:"Explain sea-level rise and its impacts.",a:`<p><strong>Causes:</strong> thermal expansion of seawater, melting glaciers, melting ice sheets, and general ice loss.</p>
+<p><strong>Impacts:</strong> coastal flooding, coastal erosion, salt-water intrusion, damage to settlements, ecosystem damage, and greater risk to low-lying regions.</p>`},
+{unit:2,marks:8,type:"predicted",priority:"high",label:"Predicted",q:"Explain climate change impacts due to ice melting and albedo.",a:"<p>A very strong CT prediction. Prepare the chain: global warming → ice melting → albedo reduction → increased absorption → additional warming. Albedo ranges from 0.0–1.0, with fresh snow around 0.9.</p>"},
+
+/* ---------------- UNIT 2 · PREDICTED 10/15 ---------------- */
+{unit:2,marks:15,type:"predicted",priority:"high",label:"Predicted · 10/15",q:"Explain paleoclimatology and discuss different climate proxies in detail.",a:"<p>Include: definition, the need for paleoclimate reconstruction, tree rings, pollen, ice cores, isotopes, ocean sediments, and their overall importance.</p>"},
+{unit:2,marks:15,type:"predicted",priority:"high",label:"Predicted · 10/15",q:"Explain Milankovitch theory and discuss eccentricity, obliquity and precession with their role in climate change.",a:"<p>A very high-probability topic — it appeared as an exact 8-mark question in May 2024.</p>"},
+{unit:2,marks:15,type:"predicted",priority:"high",label:"Predicted · 10/15",q:"Explain global warming impacts with special reference to ice melting, albedo and sea-level rise.",a:`<pre class="diagram">Global warming
+      ↓
+ Ice melting
+      ↓
+Albedo decreases
+      ↓
+More solar energy absorbed
+      ↓
+Further warming
+      ↓
+Glacier / ice-sheet loss
+      ↓
+Sea-level rise
+      ↓
+Coastal flooding / erosion</pre>`},
+{unit:2,marks:15,type:"predicted",priority:"high",label:"Predicted · 10/15",q:"Explain floods, their types, impacts and measures to reduce flood damage.",a:"<p>Prepare flash, river and coastal flood types alongside their human, property, transport, disease, communication/electricity and economic impacts.</p>"},
+{unit:2,marks:15,type:"predicted",priority:"med",label:"Predicted · 10/15",q:"Explain ocean acidification, its causes, effects on marine organisms and possible control measures.",a:"<p>Combine the causal chain (CO₂ → carbonic acid → lower pH) with effects on marine life and any mitigation measures you can add.</p>"},
+{unit:2,marks:15,type:"predicted",priority:"med",label:"Predicted · 10/15",q:"Discuss the role of land, ocean, ice and wind in regulating Earth's climate.",a:"<p>Combine all four regulators into one structured answer, one sub-section each.</p>"},
+
+/* ---------------- CT-1 PREDICTION SET · UNIT 1 · 1 MARK MCQs ---------------- */
+{unit:1,marks:1,type:"pyq",priority:"high",label:"PYQ · 2023 ODD CLA",q:"Which layer of the atmosphere is responsible for weather changes?<br><span class='mcq-opts'>A) Stratosphere &nbsp; B) Mesosphere &nbsp; C) Troposphere &nbsp; D) Exosphere</span>",a:"<p><strong>C) Troposphere.</strong> The 2023 ODD paper asked essentially this exact question.</p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Which component of the climate system determines the nature of rocks?<br><span class='mcq-opts'>A) Atmosphere &nbsp; B) Biosphere &nbsp; C) Cryosphere &nbsp; D) Lithosphere</span>",a:"<p><strong>D) Lithosphere.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"The Earth's climate system consists of how many major components?<br><span class='mcq-opts'>A) 3 &nbsp; B) 4 &nbsp; C) 5 &nbsp; D) 6</span>",a:"<p><strong>C) 5</strong> — Atmosphere, Hydrosphere, Cryosphere, Lithosphere, Biosphere.</p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Which component represents Earth's water?<br><span class='mcq-opts'>A) Atmosphere &nbsp; B) Hydrosphere &nbsp; C) Lithosphere &nbsp; D) Biosphere</span>",a:"<p><strong>B) Hydrosphere.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Which component consists of ice and permafrost?<br><span class='mcq-opts'>A) Hydrosphere &nbsp; B) Lithosphere &nbsp; C) Cryosphere &nbsp; D) Biosphere</span>",a:"<p><strong>C) Cryosphere.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"What is the simplest way to assess global climate?<br><span class='mcq-opts'>A) Wind speed &nbsp; B) Rainfall only &nbsp; C) Global average temperature &nbsp; D) Atmospheric pressure</span>",a:"<p><strong>C) Global average temperature.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"Which gas is a major greenhouse gas?<br><span class='mcq-opts'>A) Nitrogen &nbsp; B) Oxygen &nbsp; C) Carbon dioxide &nbsp; D) Argon</span>",a:"<p><strong>C) Carbon dioxide.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Which of the following is NOT a greenhouse gas?<br><span class='mcq-opts'>A) CO₂ &nbsp; B) CH₄ &nbsp; C) N₂O &nbsp; D) O₂</span>",a:"<p><strong>D) O₂.</strong> Oxygen doesn't trap outgoing infrared radiation the way CO₂, CH₄ and N₂O do.</p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"The natural heat-trapping process of the atmosphere is called:<br><span class='mcq-opts'>A) Global circulation &nbsp; B) Greenhouse effect &nbsp; C) Coriolis effect &nbsp; D) Albedo effect</span>",a:"<p><strong>B) Greenhouse effect.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Which gas is released in large quantities by fossil-fuel combustion?<br><span class='mcq-opts'>A) Oxygen &nbsp; B) Nitrogen &nbsp; C) CO₂ &nbsp; D) Hydrogen</span>",a:"<p><strong>C) CO₂.</strong></p>"},
+{unit:1,marks:1,type:"pyq",priority:"high",label:"PYQ · 2023 ODD CLA",q:"What is the ratio of actual vapour pressure to saturation vapour pressure called?<br><span class='mcq-opts'>A) Specific humidity &nbsp; B) Absolute humidity &nbsp; C) Relative humidity &nbsp; D) Mixing ratio</span>",a:"<p><strong>C) Relative humidity.</strong> RH = (Actual vapour pressure ÷ Saturation vapour pressure) × 100. This exact concept appeared in the 2023 ODD CLA.</p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"The force that deflects winds and ocean currents due to Earth's rotation is:<br><span class='mcq-opts'>A) El Niño &nbsp; B) La Niña &nbsp; C) Coriolis force &nbsp; D) Greenhouse effect</span>",a:"<p><strong>C) Coriolis force.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"In the Northern Hemisphere, Coriolis force deflects moving objects to:<br><span class='mcq-opts'>A) Left &nbsp; B) Right &nbsp; C) Upward &nbsp; D) Downward</span>",a:"<p><strong>B) Right.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"In the Southern Hemisphere, which direction does Coriolis force deflect moving objects?",a:"<p><strong>Left.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Rainfall produced when warm tropical air meets cold polar air is:<br><span class='mcq-opts'>A) Convectional &nbsp; B) Relief &nbsp; C) Frontal &nbsp; D) Orographic</span>",a:"<p><strong>C) Frontal rainfall.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"Which cycle describes the continuous movement of water between Earth and the atmosphere?",a:"<p><strong>The hydrological cycle.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"The hydrological cycle has:<br><span class='mcq-opts'>A) A definite beginning &nbsp; B) A definite end &nbsp; C) No beginning or end</span>",a:"<p><strong>C) No beginning or end.</strong> Water remains in continuous cyclic motion.</p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"Plants remove which gas from the atmosphere during photosynthesis?",a:"<p><strong>Carbon dioxide (CO₂).</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"The carbon cycle regulates the concentration of which two important greenhouse gases?",a:"<p><strong>CO₂ and CH₄.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"high",label:"Predicted MCQ",q:"El Niño is associated with:<br><span class='mcq-opts'>A) Cooling of tropical Pacific &nbsp; B) Warming of central/eastern tropical Pacific &nbsp; C) Cooling of Atlantic &nbsp; D) Warming of Arctic</span>",a:"<p><strong>B) Warming of the central/eastern tropical Pacific.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"La Niña is associated with what?",a:"<p><strong>Sustained cooling of the central and eastern tropical Pacific.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Which sphere contains all forms of water?",a:"<p><strong>Hydrosphere.</strong></p>"},
+{unit:1,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Which sphere contains living organisms?",a:"<p><strong>Biosphere.</strong></p>"},
+
+/* ---------------- CT-1 PREDICTION SET · UNIT 1 · 8 & 15 MARK ---------------- */
+{unit:1,marks:8,type:"predicted",priority:"high",label:"Predicted · Very High",q:"Explain the various components of Earth's climate system.",a:`<p>Earth's climate arises from interaction between five major components:</p>
+<ul>
+<li><strong>Atmosphere</strong> — the gaseous envelope surrounding Earth, containing mainly nitrogen and oxygen along with greenhouse gases and aerosols; regulates climate by absorbing and redistributing energy.</li>
+<li><strong>Hydrosphere</strong> — all forms of water: oceans, lakes, rivers, groundwater, snow and glaciers; covers about 70% of Earth's surface and plays a key role in heat storage and transport.</li>
+<li><strong>Cryosphere</strong> — Earth's frozen water, including glaciers, ice sheets, sea ice, snow and permafrost; snow and ice reflect solar radiation and influence Earth's temperature.</li>
+<li><strong>Lithosphere</strong> — Earth's solid rocky outer layer, including rocks, minerals, soil, mountains and valleys; interacts with the atmosphere, hydrosphere and biosphere.</li>
+<li><strong>Biosphere</strong> — all living organisms; plants and oceanic microorganisms absorb CO₂ through photosynthesis, helping regulate climate.</li>
+</ul>
+<p>These five components continuously exchange energy, water and carbon, thereby controlling Earth's climate system.</p>`},
+{unit:1,marks:8,type:"predicted",priority:"high",label:"Predicted · Very High",q:"Explain the role of land and ocean in regulating climate.",a:`<p><strong>Role of oceans:</strong></p>
+<ul>
+<li>Oceans store large quantities of heat — the upper 200 m of the world's oceans store about 30 times as much heat as the atmosphere.</li>
+<li>Ocean currents transport heat from warm equatorial regions toward colder polar regions.</li>
+<li>Oceans absorb CO₂ and act as important carbon sinks.</li>
+<li>Evaporation from oceans supplies moisture to the atmosphere; condensation contributes to cloud formation and rainfall.</li>
+</ul>
+<p><strong>Role of land:</strong></p>
+<ul>
+<li>Land heats and cools faster than oceans, and this temperature difference creates pressure differences that produce winds.</li>
+<li>Landforms such as mountains influence rainfall.</li>
+<li>Vegetation affects carbon storage and evapotranspiration.</li>
+<li>Land surfaces reflect or absorb solar radiation through their albedo.</li>
+</ul>
+<p>This is a strong prediction — a 2025 uploaded paper directly included "Explain the role of land and ocean in regulating climate system" as an 8-mark question.</p>`},
+{unit:1,marks:15,type:"predicted",priority:"high",label:"Predicted · 95%",q:"Explain in detail the hydrological cycle with a neat sketch.",a:`<p>The hydrological cycle is the continuous circulation of water between the atmosphere, Earth's surface and subsurface. Water exists in three states — liquid, solid and gas — and the cycle has no definite beginning or end.</p>
+<ul>
+<li><strong>Evaporation</strong> — solar energy heats oceans, lakes and other water bodies, turning liquid water into vapour.</li>
+<li><strong>Transpiration</strong> — plants release water vapour into the atmosphere through their leaves.</li>
+<li><strong>Condensation</strong> — water vapour rises, cools and condenses to form clouds.</li>
+<li><strong>Precipitation</strong> — water falls as rain, snow, sleet or hail.</li>
+<li><strong>Infiltration</strong> — some precipitation enters the soil.</li>
+<li><strong>Percolation</strong> — water moves downward through soil and rock to become groundwater.</li>
+<li><strong>Surface runoff</strong> — water flows over land into streams and rivers.</li>
+<li><strong>Groundwater flow</strong> — groundwater moves underground and eventually reaches rivers, lakes or oceans.</li>
+<li><strong>Collection</strong> — water collects in oceans, lakes, rivers, glaciers and groundwater, and the cycle continues through evaporation.</li>
+</ul>
+<pre class="diagram">                ☀ SUN
+                 ↓
+          Evaporation
+                 ↑
+                 │
+         ┌─────────────┐
+         │    CLOUDS   │
+         └─────────────┘
+                 ↓
+          Precipitation
+           ↓          ↓
+        Runoff      Snow
+           ↓          ↓
+         Rivers     Glaciers
+           ↓
+          OCEAN
+           ↑
+           │
+      Evaporation
+
+    ↓ Infiltration
+    ↓ Percolation
+    ↓
+ Groundwater</pre>
+<p>A previous ODD CLA asked "Explain in detail about Hydrological cycle with a neat sketches" for 12 marks — one of the strongest repeat candidates.</p>`},
+{unit:1,marks:15,type:"predicted",priority:"high",label:"Predicted · 95%",q:"Explain in detail about the carbon cycle with a neat sketch.",a:`<p>The carbon cycle is the continuous movement of carbon among the atmosphere, living organisms, oceans, soil, rocks and fossil fuels. It divides into a biological and a geological carbon cycle.</p>
+<p><strong>Biological carbon cycle:</strong></p>
+<ul>
+<li><strong>Photosynthesis</strong> — plants and algae absorb atmospheric CO₂ and convert it into organic compounds using sunlight (CO₂ + H₂O → organic compounds + O₂).</li>
+<li><strong>Consumption</strong> — animals consume plants and obtain carbon through food chains.</li>
+<li><strong>Respiration</strong> — plants and animals release CO₂ back into the atmosphere.</li>
+<li><strong>Decomposition</strong> — decomposers break down dead organic matter, returning carbon to soil and atmosphere.</li>
+<li><strong>Ocean uptake</strong> — oceans absorb atmospheric CO₂, and marine organisms use dissolved carbon for biological processes.</li>
+</ul>
+<p><strong>Geological carbon cycle</strong> operates over millions of years — carbon is stored in rocks, ocean sediments, fossil fuels, soil, oceans and Earth's interior, and returns to the atmosphere through volcanic eruptions, weathering, geological activity and combustion of fossil fuels.</p>
+<pre class="diagram">             ATMOSPHERIC CO₂
+              ↑         ↓
+         Respiration   Photosynthesis
+              ↑         ↓
+          ANIMALS ← PLANTS
+              ↓         ↑
+         Decomposition
+              ↓
+             SOIL
+              ↓
+      Fossil fuels / rocks
+              ↓
+         Combustion
+              ↓
+         ATMOSPHERIC CO₂
+
+   ATMOSPHERE ↔ OCEANS</pre>
+<p>The 2023 EVEN CLA directly asked "Explain in detail about Carbon cycle with a neat sketch," with the answer key dividing it into biological and geological cycles.</p>`},
+{unit:1,marks:15,type:"predicted",priority:"high",label:"Predicted · 90%",q:"Explain in detail the types and effects of greenhouse gases.",a:`<p>Greenhouse gases absorb infrared radiation and trap heat in the atmosphere — the process is called the greenhouse effect.</p>
+<p><strong>How it works:</strong> the Sun sends short-wave radiation to Earth; the surface absorbs energy and warms; Earth emits long-wave infrared radiation; greenhouse gases absorb part of this outgoing radiation and retain heat in the atmosphere; increased greenhouse gases enhance warming.</p>
+<p><strong>Major greenhouse gases and sources:</strong></p>
+<ul>
+<li>CO₂ — fossil-fuel combustion, deforestation</li>
+<li>CH₄ — agriculture, wetlands, waste</li>
+<li>N₂O — agriculture and industrial activities</li>
+<li>SF₆, PFCs — industrial applications</li>
+<li>HFCs — refrigeration and industrial applications</li>
+</ul>
+<p><strong>Effects:</strong> global warming, climate change, melting glaciers and ice sheets, sea-level rise, changes in rainfall, extreme weather events, and ecosystem disturbances.</p>
+<p>The 2023 EVEN CLA directly asked "Explain in detail about the types and effects of Greenhouse gases" as a 12-mark question.</p>`},
+{unit:1,marks:15,type:"predicted",priority:"high",label:"Predicted · 90%",q:"Explain the various components of Earth's climate system with a neat sketch.",a:`<p>Answer structure for full marks: introduce the climate system, then cover the Atmosphere, Hydrosphere, Cryosphere, Lithosphere and Biosphere in turn, explain how they interact, describe their role in climate regulation, include a neat diagram, and close with a conclusion. Earth's climate arises from the interaction of these five major components.</p>`},
+{unit:1,marks:15,type:"predicted",priority:"med",label:"Predicted · 85%",q:"Explain the role of land and ocean in regulating the climate system.",a:"<p>This appeared as an 8-mark question in a 2025 paper — prepare it at full length for 15 marks, covering both the ocean's heat storage/currents/CO₂ absorption and land's faster heating/cooling and its effect on pressure, wind and rainfall.</p>"},
+
+/* ---------------- CT-1 PREDICTION SET · UNIT 2 · 8 MARK ---------------- */
+{unit:2,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Global climate refers to what?",a:"<p>The general state of the world's climate, considering conditions over the entire Earth rather than a specific region.</p>"},
+{unit:2,marks:1,type:"predicted",priority:"med",label:"Predicted MCQ",q:"Regional climate describes what?",a:"<p>Weather patterns within particular countries or climate zones (e.g. tropical, subtropical, desert, savannah, temperate, polar).</p>"},
+{unit:2,marks:8,type:"predicted",priority:"med",label:"Predicted · High",q:"Explain different classifications of climate systems.",a:`<ul>
+<li><strong>Köppen classification</strong> — based mainly on temperature and precipitation, relating climate to vegetation, with major groups: Tropical, Dry, Temperate, Cold and Polar.</li>
+<li><strong>Trewartha classification</strong> — a modification of Köppen's system giving greater importance to temperature ranges and vegetation, particularly for middle latitudes.</li>
+<li><strong>Thornthwaite classification</strong> — based on moisture availability, precipitation and evapotranspiration; useful for agriculture and hydrological studies.</li>
+<li><strong>Alisov classification</strong> — based mainly on dominant air masses, pressure patterns and seasonal climatic changes.</li>
+</ul>
+<p>A 2025 uploaded paper directly contains this as an 8-mark question.</p>`},
+{unit:2,marks:8,type:"predicted",priority:"med",label:"Predicted · High",q:"Explain Indian climate classification.",a:`<p>India has a tropical monsoon climate with considerable regional variation in rainfall and temperature.</p>
+<p><strong>Stamp's classification:</strong> uses the 18°C January mean monthly temperature isotherm to divide India into Temperate/Continental India and Tropical India, further split into 11 regions based on rainfall and temperature.</p>
+<p><strong>Köppen's classification:</strong> an empirical system based on mean annual and monthly temperature, precipitation and vegetation, dividing India into nine climatic regions. Symbols: A – Tropical, B – Dry, C – Warm temperate, D – Cold, E – Polar; and for precipitation/season: f – no dry season, m – monsoon, w – winter dry, s – summer dry.</p>`},
+{unit:2,marks:8,type:"pyq",priority:"med",label:"PYQ · 2023 EVEN CLA",q:"Define Global Climate.",a:"<p>Global climate refers to the general state of the world's climate — it considers conditions over the entire Earth rather than a specific region. The simplest way to assess global climate is by measuring the global average temperature of Earth's surface and atmosphere.</p>"},
+{unit:2,marks:8,type:"pyq",priority:"med",label:"PYQ · 2023 ODD CLA",q:"Define Regional Climate.",a:"<p>Regional climate describes the patterns of weather within a particular country, region or climatic zone — examples include tropical, subtropical, desert, savannah, temperate and polar zones.</p>"},
+{unit:2,marks:8,type:"pyq",priority:"med",label:"PYQ · 2023 EVEN CLA",q:"Define Atmospheric Pressure.",a:"<p>Atmospheric pressure is the force per unit area exerted by the weight of air above a surface. High pressure means a greater atmospheric mass above the location; low pressure means less. Atmospheric pressure decreases with increasing altitude.</p>"},
+{unit:2,marks:8,type:"pyq",priority:"med",label:"PYQ · 2023 EVEN CLA",q:"Explain Convectional Rainfall.",a:`<p>Convectional rainfall occurs when the Sun strongly heats Earth's surface:</p>
+<ul>
+<li>The Sun heats the ground; air near the ground becomes warm and rises.</li>
+<li>Rising air expands and cools; water vapour condenses to form cumulus clouds.</li>
+<li>Saturated clouds produce heavy rainfall, and thunderstorms may occur.</li>
+</ul>`},
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ · 2023 ODD CLA",q:"Explain El Niño and La Niña.",a:"<p><strong>El Niño</strong> is associated with warming of the central and eastern tropical Pacific Ocean. <strong>La Niña</strong> is associated with sustained cooling of the same region. Both are natural parts of the global climate system and affect weather and climate patterns worldwide.</p>"},
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ",q:"Explain Coriolis force.",a:"<p>Coriolis force is the apparent deflection of moving air and ocean currents caused by Earth's rotation — deflecting right in the Northern Hemisphere and left in the Southern Hemisphere. It influences wind direction, ocean currents, atmospheric circulation and cyclonic systems. It was directly tested as a 1-mark question in a previous CLA.</p>"},
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ",q:"What is paleoclimatology?",a:`<p>Paleoclimatology is the scientific study of past climates, particularly periods for which direct instrumental measurements are unavailable. Scientists use climate proxies — tree rings, ice cores, fossil pollen, ocean sediments, corals, isotopes and historical records — to reconstruct ancient climate.</p>
+<p><strong>Possible 1-mark add-ons:</strong> tree-ring analysis is also called dendrochronology; pollen analysis is also called palynology.</p>`},
+{unit:2,marks:8,type:"pyq",priority:"high",label:"PYQ",q:"What are climate proxies?",a:"<p>Climate proxies are preserved physical or biological characteristics of the past that act as substitutes for direct meteorological measurements — examples include ice cores, tree rings, fossil leaves, boreholes, corals, pollen grains, lake/ocean sediments and water isotopes. They let scientists reconstruct climate conditions from before instrumental records existed.</p>"}
+];
+
+/* ============ TOPIC PRIORITY TABLES ============ */
+const TOPIC_RANK = {
+  1: [
+    ["🔥🔥🔥","Earth system – 5 components","Direct 8-mark PYQ"],
+    ["🔥🔥🔥","Hydrological cycle","Direct 8-mark PYQ"],
+    ["🔥🔥🔥","Carbon cycle","Direct 8-mark PYQ"],
+    ["🔥🔥🔥","Atmosphere & its strata","Direct 8-mark PYQ"],
+    ["🔥🔥🔥","Coriolis effect","Direct 8-mark PYQ"],
+    ["🔥🔥🔥","Atmospheric stability & lapse rate","Repeated 1-mark PYQs"],
+    ["🔥🔥🔥","Land and ocean regulating climate","2025 paper, very high probability"],
+    ["🔥🔥","Greenhouse gases & greenhouse effect","Core topic"],
+    ["🔥🔥","Ocean circulation","Important concept"],
+    ["🔥🔥","Weather vs climate / temperature / pressure","1-mark potential"],
+    ["🔥🔥","Humidity & rainfall","1-mark + short answer"],
+    ["🔥🔥","Ozone depletion","Important 8-mark"],
+    ["🔥🔥","El Niño / La Niña","Important 8-mark"],
+    ["🔥","Photochemical smog","Possible short question"],
+    ["🔥","Pollution dispersion","Possible question"]
+  ],
+  2: [
+    ["🔥🔥🔥","Paleoclimatology","Direct 8-mark PYQ, May 2024"],
+    ["🔥🔥🔥","Climate proxies","Core to paleoclimatology"],
+    ["🔥🔥🔥","Milankovitch theory","Direct 8-mark PYQ, May 2024"],
+    ["🔥🔥🔥","Ice melting + albedo","Direct 8-mark PYQ, Dec 2023"],
+    ["🔥🔥🔥","Sea-level rise","Follows directly from ice melting"],
+    ["🔥🔥🔥","Floods","Direct 8-mark PYQ, Dec 2023"],
+    ["🔥🔥","Indian climate classification","Stamp's & Köppen's"],
+    ["🔥🔥","General climate classifications","Köppen, Trewartha, Thornthwaite, Alisov — 2025 paper"],
+    ["🔥🔥","Role of land and ocean","Climate regulation"],
+    ["🔥🔥","Role of ice and wind","Climate regulation"],
+    ["🔥🔥","Global / Regional / Local climate","Definitions, repeated PYQs"],
+    ["🔥🔥","Atmospheric pressure & rainfall types","Convectional & frontal rainfall, 2023 CLAs"],
+    ["🔥🔥","Ocean acidification","Strong prediction"],
+    ["🔥🔥","Human-induced climate change","Core topic"],
+    ["🔥","Precipitation pattern","Lower priority"],
+    ["🔥","Global radiance balance","Lower priority"],
+    ["🔥","Global temperature changes","Lower priority"]
+  ]
+};
+
+/* ============ TOP 10 PREDICTIONS ============ */
+const TOP10 = [
+  ["Hydrological cycle + Carbon cycle","8/10/15"],
+  ["Earth system – five components + diagram","8/10"],
+  ["Paleoclimatology + climate proxies","8/10"],
+  ["Milankovitch theory","8/10"],
+  ["Atmosphere + five strata + temperature profile","8/10"],
+  ["Ice melting + albedo feedback + sea-level rise","8/10/15"],
+  ["Coriolis effect + atmospheric circulation","5/8"],
+  ["Greenhouse effect + GHGs + global warming","8/10/15"],
+  ["Ocean acidification","8/10"],
+  ["Flood types + impacts","8/10"]
+];
+
+/* ============ RAPID REVISION SHEET ============ */
+const RAPID = [
+  ["Climate system component related to rocks","Lithosphere"],
+  ["Component containing ice/permafrost","Cryosphere"],
+  ["Earth's atmospheric nitrogen","78%"],
+  ["Earth's atmospheric oxygen","21%"],
+  ["Gravity causes","Air pressure increase"],
+  ["Relative humidity instrument","Hygrometer"],
+  ["Mountain rainfall","Relief / Orographic rainfall"],
+  ["Vertical upward water movement","Upwelling"],
+  ["Stable atmosphere","Discourages vertical motion"],
+  ["Lapse rate","6.5°C/km"],
+  ["Hadley cell","Near equator"],
+  ["Climate","Long-term / average weather"],
+  ["Albedo range","0–1"],
+  ["Fresh snow albedo","≈0.9"],
+  ["Higher albedo","Cooling"],
+  ["Lower albedo","Warming"],
+  ["Past climate study","Paleoclimatology"],
+  ["Tree-ring study","Dendrochronology"],
+  ["Pollen study","Palynology"],
+  ["Milankovitch cycles","Eccentricity, Obliquity, Precession"],
+  ["Ocean acidification","CO₂ → carbonic acid → lower pH"],
+  ["Approx. seawater pH","8.1"],
+  ["Flash flood","Sudden heavy-flow flood"],
+  ["River flood causes","Heavy rain / snowmelt / storms"],
+  ["Coastal flood causes","Cyclones / tsunamis"],
+  ["Greenhouse gases","CO₂, CH₄, N₂O etc."],
+  ["Northern Hemisphere Coriolis","Right"],
+  ["Southern Hemisphere Coriolis","Left"]
+];
+
+/* ============ FINAL PREDICTED PAPER ============ */
+const PREDICTED_PAPER = {
+  partA: [
+    ["Which layer is responsible for weather changes?","Troposphere"],
+    ["Which climate component determines the nature of rocks?","Lithosphere"],
+    ["How many major components make up Earth's climate system?","Five"],
+    ["Which sphere contains all forms of water?","Hydrosphere"],
+    ["What is the force responsible for deflection of winds?","Coriolis force"],
+    ["In the Northern Hemisphere, Coriolis force deflects winds to which side?","Right"],
+    ["Define relative humidity / identify its formula.","Actual vapour pressure ÷ saturation vapour pressure × 100"],
+    ["Which rainfall occurs when warm and cold air masses meet?","Frontal rainfall"],
+    ["El Niño is associated with what?","Warming of central/eastern tropical Pacific"],
+    ["Which gas is primarily absorbed by plants during photosynthesis?","CO₂"],
+    ["Name the process by which plants absorb CO₂.","Photosynthesis"],
+    ["Name the continuous circulation of water.","Hydrological cycle"],
+    ["Name the two major parts of the carbon cycle.","Biological and geological"],
+    ["Give two greenhouse gases.","CO₂ and CH₄"],
+    ["What is global climate?","General state of the world's climate"]
+  ],
+  partB: [
+    "Explain the various components of Earth's climate system.",
+    "Explain the role of land and ocean in regulating the climate system.",
+    "Explain various classifications of climate systems.",
+    "Explain Indian climate classification — Stamp and Köppen."
+  ],
+  partC: [
+    "Explain the hydrological cycle with a neat sketch.",
+    "Explain the carbon cycle with a neat sketch.",
+    "Explain the types and effects of greenhouse gases.",
+    "Explain the components of Earth's climate system with a neat sketch."
+  ],
+  lastNight: [
+    "Hydrological cycle","Carbon cycle","Earth's 5 climate components","Greenhouse gases + greenhouse effect",
+    "Land and ocean role","Global / Regional / Local climate","Atmospheric pressure + Relative humidity",
+    "Rainfall types","El Niño + La Niña","Indian climate classification"
+  ]
+};
+
+/* ============ STUDY ORDER ============ */
+const STUDY_ORDER = {
+  first:{unit1:["Earth system + diagram","Hydrological cycle + equation + diagram","Carbon cycle + diagram","Atmosphere + five strata","Coriolis effect","Greenhouse effect"],
+         unit2:["Paleoclimatology + proxies","Milankovitch theory","Ice melting + albedo","Sea-level rise","Floods + impacts","Ocean acidification"]},
+  second:["Humidity","Hygrometer","Rainfall types","Air pressure","Lapse rate","Atmospheric stability","Hadley cell","Upwelling/downwelling","Indian climate classification","Tree rings","Pollen","Isotopes","Albedo","Ocean pH"],
+  third:["Photochemical smog","Ozone depletion","El Niño/La Niña","Pollution dispersion","Precipitation pattern","Global radiance balance"]
+};
+
+/* ============ STATE ============ */
+let state = {unit:1, typeFilter:"all", marksFilter:null, priorityFilter:null};
+
+function renderTopicRank(){
+  const el = document.getElementById("topicRank");
+  const rows = TOPIC_RANK[state.unit].map(r=>`<li><span class="flames">${r[0]}</span><span><span class="tname">${r[1]}</span> — ${r[2]}</span></li>`).join("");
+  el.innerHTML = `<h4>Unit ${state.unit} — high-yield topic ranking</h4><ol>${rows}</ol>`;
+}
+
+function matchesFilters(item){
+  if(item.unit !== state.unit) return false;
+  if(state.typeFilter !== "all" && item.type !== state.typeFilter) return false;
+  if(state.marksFilter && item.marks !== state.marksFilter) return false;
+  if(state.priorityFilter && item.priority !== state.priorityFilter) return false;
+  return true;
+}
+
+function renderQuestions(){
+  const grid = document.getElementById("qgrid");
+  const items = QUESTIONS.filter(matchesFilters);
+  if(items.length === 0){
+    grid.innerHTML = `<div class="empty-state">No questions match this filter yet — try "All" or a different mark value.</div>`;
+    return;
+  }
+  grid.innerHTML = items.map((item, idx)=>{
+    const priorityTag = item.priority === "high" ? `<span class="tag priority">🔥 High priority</span>` : "";
+    const typeTag = item.type === "pyq" ? `<span class="tag pyq">${item.label}</span>` : `<span class="tag predicted">${item.label}</span>`;
+    return `<div class="qcard">
+      <div class="qcard-tags">
+        <span class="tag marks">${item.marks} mark${item.marks>1?"s":""}</span>
+        ${typeTag}
+        ${priorityTag}
+      </div>
+      <h4>${item.q}</h4>
+      <button class="reveal-btn" data-idx="${idx}">Show answer</button>
+      <div class="answer" data-ans="${idx}">${item.a}</div>
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".reveal-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const idx = btn.getAttribute("data-idx");
+      const ans = grid.querySelector(`.answer[data-ans="${idx}"]`);
+      const open = ans.classList.toggle("open");
+      btn.textContent = open ? "Hide answer" : "Show answer";
+    });
+  });
+}
+
+function renderExtras(){
+  document.getElementById("top10Body").innerHTML = `<table class="mini"><thead><tr><th>#</th><th>Predicted question</th><th>Marks</th></tr></thead><tbody>
+    ${TOP10.map((r,i)=>`<tr><td><span class="rank-badge">${i+1}</span></td><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}
+  </tbody></table>`;
+
+  document.getElementById("rapidBody").innerHTML = `<table class="mini"><thead><tr><th>Prompt</th><th>Answer</th></tr></thead><tbody>
+    ${RAPID.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}
+  </tbody></table>`;
+
+  document.getElementById("studyOrderBody").innerHTML = `
+    <p style="font-size:0.88rem;margin-bottom:14px;">If you're studying tonight, don't read every page equally — work through these in order.</p>
+    <p style="font-size:0.85rem;color:var(--cream);margin-bottom:4px;"><strong>First — master these (🔥🔥🔥)</strong></p>
+    <p style="font-size:0.85rem;margin-bottom:10px;"><strong>Unit 1:</strong> ${STUDY_ORDER.first.unit1.join(" · ")}<br><strong>Unit 2:</strong> ${STUDY_ORDER.first.unit2.join(" · ")}</p>
+    <p style="font-size:0.85rem;color:var(--cream);margin-bottom:4px;"><strong>Second — learn for 1-markers (🔥🔥)</strong></p>
+    <p style="font-size:0.85rem;margin-bottom:10px;">${STUDY_ORDER.second.join(" · ")}</p>
+    <p style="font-size:0.85rem;color:var(--cream);margin-bottom:4px;"><strong>Third — if time remains (🔥)</strong></p>
+    <p style="font-size:0.85rem;margin-bottom:0;">${STUDY_ORDER.third.join(" · ")}</p>
+  `;
+
+  document.getElementById("predictedPaperBody").innerHTML = `
+    <p style="font-size:0.85rem;color:var(--cream);margin-bottom:8px;"><strong>Part A — 1 mark (choose any)</strong></p>
+    <table class="mini"><thead><tr><th>Prompt</th><th>Answer</th></tr></thead><tbody>
+      ${PREDICTED_PAPER.partA.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}
+    </tbody></table>
+    <p style="font-size:0.85rem;color:var(--cream);margin:18px 0 8px;"><strong>Part B — 8 mark (pick one)</strong></p>
+    <p style="font-size:0.85rem;margin-bottom:0;">${PREDICTED_PAPER.partB.join(" &nbsp;·&nbsp; ")}</p>
+    <p style="font-size:0.85rem;color:var(--cream);margin:18px 0 8px;"><strong>Part C — 15 mark (pick one)</strong></p>
+    <p style="font-size:0.85rem;margin-bottom:0;">${PREDICTED_PAPER.partC.join(" &nbsp;·&nbsp; ")}</p>
+    <p style="font-size:0.85rem;color:var(--cream);margin:18px 0 8px;"><strong>If you have very little time, study these first</strong></p>
+    <p style="font-size:0.85rem;margin-bottom:0;">${PREDICTED_PAPER.lastNight.map((t,i)=>`${i+1}. ${t}`).join(" &nbsp;·&nbsp; ")}</p>
+  `;
+}
+
+/* ============ UNIT TABS ============ */
+document.getElementById("unitTabs").addEventListener("click", e=>{
+  const btn = e.target.closest(".unit-tab");
+  if(!btn) return;
+  document.querySelectorAll(".unit-tab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  state.unit = Number(btn.getAttribute("data-unit"));
+  renderTopicRank();
+  renderQuestions();
+});
+
+/* ============ FILTER CHIPS ============ */
+document.getElementById("filterRow").addEventListener("click", e=>{
+  const chip = e.target.closest(".chip");
+  if(!chip) return;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+
+  if(chip.dataset.filter){
+    state = {unit:state.unit, typeFilter:chip.dataset.filter, marksFilter:null, priorityFilter:null};
+    chip.classList.add("active");
+  } else if(chip.dataset.marks){
+    state.typeFilter = "all"; state.priorityFilter = null;
+    state.marksFilter = Number(chip.dataset.marks);
+    chip.classList.add("active");
+  } else if(chip.dataset.priority){
+    state.typeFilter = "all"; state.marksFilter = null;
+    state.priorityFilter = chip.dataset.priority;
+    chip.classList.add("active");
+  }
+  renderQuestions();
+});
+
+/* ============ QUOTE ROTATION ============ */
+(function initQuotes(){
+  const strip = document.getElementById("quoteStrip");
+  strip.innerHTML = QUOTES.map((q,i)=>`<blockquote class="${i===0?'active':''}">${q}</blockquote>`).join("");
+  const items = strip.querySelectorAll("blockquote");
+  let cur = 0;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduced) return;
+  setInterval(()=>{
+    items[cur].classList.remove("active");
+    cur = (cur+1) % items.length;
+    items[cur].classList.add("active");
+  }, 4200);
+})();
+
+/* ============ FEEDBACK MODAL ============ */
+const overlay = document.getElementById("feedbackOverlay");
+function openModal(){ overlay.classList.add("open"); }
+function closeModal(){ overlay.classList.remove("open"); }
+["openFeedbackNav","openFeedbackHero","openFeedbackFooter"].forEach(id=>{
+  document.getElementById(id).addEventListener("click", (e)=>{ e.preventDefault(); openModal(); });
+});
+document.getElementById("closeFeedback").addEventListener("click", closeModal);
+overlay.addEventListener("click", e=>{ if(e.target === overlay) closeModal(); });
+
+document.getElementById("feedbackForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const name = document.getElementById("fbName").value.trim();
+  const email = document.getElementById("fbEmail").value.trim();
+  const msg = document.getElementById("fbMessage").value.trim();
+  const subject = encodeURIComponent(`GWCC Study Hub feedback — ${name}`);
+  const body = encodeURIComponent(`Name: ${name}\nReply-to: ${email || "not provided"}\n\n${msg}`);
+  window.location.href = `mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${body}`;
+  closeModal();
+  this.reset();
+});
+
+/* ============ PARTICLE BACKGROUND ============ */
+(function particles(){
+  const canvas = document.getElementById("particleField");
+  const ctx = canvas.getContext("2d");
+  const hero = canvas.parentElement;
+  let w,h,pts=[];
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function resize(){
+    w = canvas.width = hero.clientWidth;
+    h = canvas.height = hero.clientHeight;
+  }
+  function makePoints(){
+    const count = reduced ? 0 : Math.min(60, Math.floor(w/22));
+    pts = Array.from({length:count}, ()=>({
+      x:Math.random()*w, y:Math.random()*h,
+      vx:(Math.random()-0.5)*0.25, vy:(Math.random()-0.5)*0.25
+    }));
+  }
+  function tick(){
+    ctx.clearRect(0,0,w,h);
+    pts.forEach(p=>{
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0||p.x>w) p.vx*=-1;
+      if(p.y<0||p.y>h) p.vy*=-1;
+    });
+    for(let i=0;i<pts.length;i++){
+      ctx.beginPath();
+      ctx.arc(pts[i].x, pts[i].y, 1.6, 0, Math.PI*2);
+      ctx.fillStyle = i % 3 === 0 ? "rgba(154,171,104,0.7)" : "rgba(255,122,92,0.55)";
+      ctx.fill();
+      for(let j=i+1;j<pts.length;j++){
+        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < 130){
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.strokeStyle = `rgba(159,176,201,${0.16*(1-dist/130)})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  window.addEventListener("resize", ()=>{resize(); makePoints();});
+  resize(); makePoints();
+  requestAnimationFrame(tick);
+})();
+
+/* ============ 3D-ish ROTATING EARTH ============ */
+(function earth(){
+  const canvas = document.getElementById("earthCanvas");
+  const ctx = canvas.getContext("2d");
+  const size = 300, cx = size/2, cy = size/2, radius = 118;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // rough continent blob centers (lat, long in degrees)
+  const blobs = [
+    {lat:45,lon:-100,r:26},{lat:10,lon:-65,r:22},{lat:-15,lon:-60,r:20},
+    {lat:15,lon:18,r:22},{lat:-10,lon:22,r:20},{lat:50,lon:20,r:18},
+    {lat:45,lon:90,r:30},{lat:20,lon:78,r:16},{lat:-25,lon:135,r:16}
+  ];
+
+  // build sphere points (fibonacci sphere)
+  const N = 900;
+  const points = [];
+  for(let i=0;i<N;i++){
+    const y = 1 - (i/(N-1))*2;
+    const rad = Math.sqrt(1-y*y);
+    const theta = Math.PI * (1+Math.sqrt(5)) * i;
+    const x = Math.cos(theta)*rad;
+    const z = Math.sin(theta)*rad;
+    const lat = Math.asin(y) * 180/Math.PI;
+    const lon = Math.atan2(z,x) * 180/Math.PI;
+    let isLand = false;
+    for(const b of blobs){
+      let dLon = Math.abs(lon-b.lon); if(dLon>180) dLon = 360-dLon;
+      const dLat = Math.abs(lat-b.lat);
+      if(Math.sqrt(dLon*dLon+dLat*dLat) < b.r){ isLand = true; break; }
+    }
+    points.push({x,y,z,isLand});
+  }
+
+  let angle = 0;
+  function draw(){
+    ctx.clearRect(0,0,size,size);
+    const cosA = Math.cos(angle), sinA = Math.sin(angle);
+    const projected = points.map(p=>{
+      const x = p.x*cosA - p.z*sinA;
+      const z = p.x*sinA + p.z*cosA;
+      return {sx: cx + x*radius, sy: cy - p.y*radius, z, isLand:p.isLand};
+    }).sort((a,b)=>a.z-b.z);
+
+    projected.forEach(p=>{
+      if(p.z < -0.15) return; // back of sphere
+      const shade = 0.4 + (p.z+1)/2*0.6;
+      const size_ = 1.6 + (p.z+1)*0.9;
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, size_, 0, Math.PI*2);
+      if(p.isLand){
+        ctx.fillStyle = `rgba(154,171,104,${shade})`;
+      } else {
+        ctx.fillStyle = `rgba(255,122,92,${shade*0.55})`;
+      }
+      ctx.fill();
+    });
+
+    // faint outer ring
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius+2,0,Math.PI*2);
+    ctx.strokeStyle = "rgba(244,239,227,0.08)";
+    ctx.stroke();
+
+    if(!reduced) angle += 0.0055;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============ RISING CO2 PARTICLES ============ */
+(function co2(){
+  const canvas = document.getElementById("co2Canvas");
+  const ctx = canvas.getContext("2d");
+  const size = 300;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduced) return;
+
+  let particles = Array.from({length:22}, spawn);
+  function spawn(){
+    return {
+      x: size/2 + (Math.random()-0.5)*170,
+      y: size/2 + 90 + Math.random()*40,
+      vy: 0.25 + Math.random()*0.35,
+      drift: (Math.random()-0.5)*0.15,
+      life: Math.random(),
+      r: 1 + Math.random()*2
+    };
+  }
+  function tick(){
+    ctx.clearRect(0,0,size,size);
+    particles.forEach(p=>{
+      p.y -= p.vy;
+      p.x += p.drift;
+      p.life += 0.004;
+      if(p.life > 1 || p.y < 10){ Object.assign(p, spawn()); p.life = 0; }
+      const alpha = Math.sin(Math.min(p.life,1) * Math.PI) * 0.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,138,114,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ============ INIT ============ */
+renderTopicRank();
+renderQuestions();
+renderExtras();
+</script>
+</body>
+</html>

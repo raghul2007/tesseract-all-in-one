@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesseract Labs — Computer Networks CT1</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0D13'/%3E%3Cpolygon points='30,30 70,30 70,70 30,70' fill='none' stroke='%235FE3C6' stroke-width='4'/%3E%3Cpolygon points='42,42 58,42 58,58 42,58' fill='none' stroke='%23FF9A5A' stroke-width='4'/%3E%3Cline x1='30' y1='30' x2='42' y2='42' stroke='%23FF9A5A' stroke-width='3'/%3E%3Cline x1='70' y1='30' x2='58' y2='42' stroke='%23FF9A5A' stroke-width='3'/%3E%3Cline x1='70' y1='70' x2='58' y2='58' stroke='%23FF9A5A' stroke-width='3'/%3E%3Cline x1='30' y1='70' x2='42' y2='58' stroke='%23FF9A5A' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0D13;
+  --bg-soft:#0D1119;
+  --panel:#121722;
+  --panel-2:#161C29;
+  --line:#232B3B;
+  --line-soft:#1A2130;
+  --text:#E9ECF2;
+  --text-mute:#8A93A6;
+  --text-faint:#5C6579;
+  --teal:#5FE3C6;
+  --teal-dim:#1F3B36;
+  --violet:#9C8CF5;
+  --violet-dim:#332D57;
+  --amber:#FF9A5A;
+  --amber-dim:#4A3222;
+  --slate:#7C93C9;
+  --slate-dim:#28324A;
+  --radius-lg:18px;
+  --radius-md:12px;
+  --radius-sm:8px;
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+  --ease: cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    radial-gradient(1100px 600px at 85% -10%, rgba(95,227,198,.07), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(255,154,90,.05), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+a{color:inherit;}
+button{font-family:inherit;}
+::selection{background:var(--teal); color:#04140F;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line); border-radius:10px;}
+:focus-visible{outline:2px solid var(--teal); outline-offset:2px; border-radius:4px;}
+
+/* ---------- background grid ---------- */
+.bg-grid{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(1200px 800px at 50% 0%, black, transparent 75%);
+}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky; top:0; z-index:40;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 26px;
+  background:rgba(10,13,19,.72);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line-soft);
+}
+.brand{display:flex; align-items:center; gap:10px; cursor:pointer; background:none; border:none; color:var(--text); padding:4px; border-radius:var(--radius-sm);}
+.brand svg{display:block;}
+.brand-name{font-family:var(--font-display); font-weight:700; font-size:16.5px; letter-spacing:.2px;}
+.brand-sub{display:block; font-size:10.5px; color:var(--text-faint); font-weight:400; margin-top:1px; letter-spacing:.3px;}
+.nav-right{display:flex; align-items:center; gap:10px;}
+.crumbs{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mute); flex-wrap:wrap;}
+.crumbs button{background:none; border:none; color:var(--text-mute); cursor:pointer; font-size:13px; padding:4px 6px; border-radius:6px; transition:color .15s var(--ease), background .15s var(--ease);}
+.crumbs button:hover{color:var(--text); background:var(--panel-2);}
+.crumbs .crumb-sep{color:var(--text-faint);}
+.crumbs .crumb-current{color:var(--text); font-weight:500;}
+.btn-home{
+  display:flex; align-items:center; gap:7px;
+  background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+  padding:8px 14px; border-radius:999px; font-size:13.5px; font-weight:500; cursor:pointer;
+  text-decoration:none;
+  transition:transform .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+}
+.btn-home:hover{border-color:var(--teal); transform:translateY(-1px); background:var(--panel);}
+.btn-feedback{
+  display:flex; align-items:center; gap:7px;
+  background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+  padding:8px 14px; border-radius:999px; font-size:13.5px; font-weight:500; cursor:pointer;
+  transition:transform .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+}
+.btn-feedback:hover{border-color:var(--teal); transform:translateY(-1px); background:var(--panel);}
+.btn-feedback:active{transform:translateY(0) scale(.97);}
+
+/* ---------- screens ---------- */
+.screen{display:none; position:relative; z-index:1;}
+.screen.active{display:block;}
+.screen-enter{animation:screenIn .5s var(--ease);}
+@keyframes screenIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ---------- home hero ---------- */
+.hero{
+  max-width:1080px; margin:0 auto; padding:64px 26px 40px;
+  display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center;
+}
+.hero-eyebrow{font-size:13.5px; color:var(--teal); font-weight:500; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.hero-eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 3px var(--teal-dim); animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
+.hero h1{
+  font-family:var(--font-display); font-weight:700; font-size:clamp(32px,4.4vw,50px);
+  line-height:1.08; margin:0 0 18px; letter-spacing:-.5px;
+}
+.hero p.lead{color:var(--text-mute); font-size:16.5px; max-width:46ch; margin:0 0 30px;}
+.btn-primary{
+  display:inline-flex; align-items:center; gap:10px;
+  background:var(--teal); color:#04140F; border:none;
+  padding:15px 26px; border-radius:var(--radius-sm); font-size:15.5px; font-weight:600; cursor:pointer;
+  font-family:var(--font-body);
+  transition:transform .2s var(--ease), box-shadow .2s var(--ease);
+  box-shadow:0 0 0 0 rgba(95,227,198,0);
+}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 30px -8px rgba(95,227,198,.45);}
+.btn-primary:active{transform:translateY(0) scale(.98);}
+.hero-note{margin-top:16px; font-size:13px; color:var(--text-faint);}
+
+.tesseract-wrap{display:flex; align-items:center; justify-content:center; perspective:900px;}
+.tesseract{
+  animation:tesseractTilt 9s ease-in-out infinite;
+  transform-style:preserve-3d;
+  filter:drop-shadow(0 0 26px rgba(95,227,198,.12));
+}
+@keyframes tesseractTilt{
+  0%,100%{transform:rotateX(8deg) rotateY(-10deg);}
+  50%{transform:rotateX(-6deg) rotateY(12deg);}
+}
+.tess-edge{opacity:.85;}
+.tess-node{filter:drop-shadow(0 0 6px currentColor);}
+@media (prefers-reduced-motion: reduce){
+  .tesseract{animation:none;}
+  .hero-eyebrow .dot{animation:none;}
+}
+
+/* ---------- quotes ---------- */
+.quote-strip{
+  max-width:760px; margin:10px auto 60px; padding:0 26px; text-align:center;
+}
+.quote-box{
+  background:var(--panel); border:1px solid var(--line-soft); border-radius:var(--radius-lg);
+  padding:30px 34px; position:relative; min-height:96px;
+  display:flex; align-items:center; justify-content:center;
+}
+.quote-text{font-family:var(--font-display); font-size:19px; font-weight:500; color:var(--text); opacity:1; transition:opacity .5s var(--ease), transform .5s var(--ease); max-width:52ch;}
+.quote-text.swap{opacity:0; transform:translateY(6px);}
+.quote-dots{display:flex; gap:6px; justify-content:center; margin-top:16px;}
+.quote-dots span{width:6px; height:6px; border-radius:50%; background:var(--line); transition:background .3s var(--ease), transform .3s var(--ease);}
+.quote-dots span.on{background:var(--teal); transform:scale(1.3);}
+
+/* ---------- footer ---------- */
+.site-footer{
+  text-align:center; padding:26px 20px 40px; color:var(--text-faint); font-size:13px;
+  border-top:1px solid var(--line-soft); margin-top:20px;
+}
+.site-footer b{color:var(--text-mute); font-weight:600;}
+
+/* ---------- generic content wrap ---------- */
+.wrap{max-width:1080px; margin:0 auto; padding:34px 26px 60px;}
+.page-head{margin-bottom:30px;}
+.page-head h2{font-family:var(--font-display); font-size:clamp(24px,3.4vw,34px); margin:0 0 8px; font-weight:700; letter-spacing:-.3px;}
+.page-head p{color:var(--text-mute); font-size:15px; margin:0; max-width:64ch;}
+
+/* ---------- subject / hub grid ---------- */
+.tile-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin-top:8px;}
+.tile{
+  position:relative; overflow:hidden;
+  background:var(--panel); border:1px solid var(--line-soft); border-radius:var(--radius-lg);
+  padding:26px 24px; cursor:pointer; text-align:left;
+  transition:transform .22s var(--ease), border-color .22s var(--ease), background .22s var(--ease);
+}
+.tile::before{
+  content:""; position:absolute; top:0; left:0; width:3px; height:100%;
+  background:var(--tile-accent, var(--teal)); opacity:.9;
+}
+.tile:hover{transform:translateY(-3px); border-color:var(--line); background:var(--panel-2);}
+.tile:active{transform:translateY(-1px) scale(.99);}
+.tile-icon{width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; background:var(--tile-accent-dim,var(--teal-dim)); color:var(--tile-accent,var(--teal));}
+.tile h3{font-family:var(--font-display); font-size:18px; margin:0 0 6px; font-weight:600;}
+.tile p{color:var(--text-mute); font-size:13.5px; margin:0;}
+.tile .tile-tag{
+  display:inline-block; margin-top:14px; font-size:11.5px; font-weight:600;
+  color:var(--tile-accent,var(--teal)); background:var(--tile-accent-dim,var(--teal-dim));
+  padding:4px 10px; border-radius:999px; letter-spacing:.2px;
+}
+.tile.disabled{cursor:default; opacity:.5;}
+.tile.disabled:hover{transform:none; border-color:var(--line-soft); background:var(--panel);}
+
+/* ---------- exam pattern panel ---------- */
+.panel{
+  background:var(--panel); border:1px solid var(--line-soft); border-radius:var(--radius-lg); padding:26px;
+}
+.section-title{font-family:var(--font-display); font-size:20px; font-weight:600; margin:0 0 4px;}
+.section-sub{color:var(--text-mute); font-size:13.5px; margin:0 0 20px;}
+.marks-total{display:flex; align-items:baseline; gap:10px; margin-bottom:18px;}
+.marks-total .big{font-family:var(--font-display); font-size:38px; font-weight:700; color:var(--text);}
+.marks-total .conv{color:var(--text-mute); font-size:14px;}
+.bar-stack{display:flex; width:100%; height:14px; border-radius:999px; overflow:hidden; background:var(--bg-soft); margin-bottom:18px; border:1px solid var(--line-soft);}
+.bar-seg{height:100%; transition:width 1.1s var(--ease);}
+.pattern-rows{display:grid; gap:10px;}
+.pattern-row{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 14px; background:var(--bg-soft); border-radius:var(--radius-sm); border:1px solid var(--line-soft);}
+.pattern-row .pr-left{display:flex; align-items:center; gap:10px;}
+.pr-dot{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+.pr-name{font-weight:500; font-size:14px;}
+.pr-detail{color:var(--text-faint); font-size:12.5px;}
+.pr-marks{font-family:var(--font-mono); font-size:14px; color:var(--text-mute); white-space:nowrap;}
+
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+@media (max-width:820px){.grid-2{grid-template-columns:1fr;} .hero{grid-template-columns:1fr; text-align:left;} .tesseract-wrap{order:-1;}}
+
+/* ---------- coverage checklist ---------- */
+.unit-block{margin-bottom:22px;}
+.unit-block:last-child{margin-bottom:0;}
+.unit-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.unit-name{font-weight:600; font-size:14.5px;}
+.unit-count{font-family:var(--font-mono); font-size:12.5px; color:var(--text-mute);}
+.progress-track{height:8px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--line-soft); overflow:hidden; margin-bottom:12px;}
+.progress-fill{height:100%; background:linear-gradient(90deg, var(--teal), var(--violet)); border-radius:999px; width:0%; transition:width .5s var(--ease);}
+.check-list{display:grid; gap:8px;}
+.check-item{display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:var(--radius-sm); background:var(--bg-soft); border:1px solid var(--line-soft); cursor:pointer; transition:border-color .18s var(--ease), background .18s var(--ease);}
+.check-item:hover{border-color:var(--line);}
+.check-item input{accent-color:var(--teal); width:16px; height:16px; cursor:pointer; flex-shrink:0;}
+.check-item span{font-size:13.5px; color:var(--text-mute); transition:color .18s var(--ease);}
+.check-item input:checked ~ span{color:var(--text); text-decoration:line-through; text-decoration-color:var(--teal); text-decoration-thickness:1.5px;}
+.session-note{font-size:11.5px; color:var(--text-faint); margin-top:14px;}
+
+/* ---------- study order ---------- */
+.order-list{display:grid; gap:10px; margin-top:6px;}
+.order-item{display:flex; gap:14px; align-items:flex-start; padding:13px 14px; background:var(--bg-soft); border:1px solid var(--line-soft); border-radius:var(--radius-sm);}
+.order-rank{font-family:var(--font-display); font-weight:700; font-size:16px; color:var(--teal); width:24px; flex-shrink:0;}
+.order-item h4{margin:0 0 3px; font-size:14.5px; font-weight:600;}
+.order-item p{margin:0; font-size:12.5px; color:var(--text-mute);}
+.formula-mini{display:grid; gap:6px; margin-top:16px; font-family:var(--font-mono); font-size:13px; color:var(--teal); background:var(--bg-soft); border:1px solid var(--line-soft); border-radius:var(--radius-sm); padding:14px 16px;}
+
+/* ---------- category / bank list ---------- */
+.bank-toolbar{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:22px;}
+.search-wrap{position:relative; flex:1; min-width:220px; max-width:360px;}
+.search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-faint);}
+.search-input{
+  width:100%; background:var(--panel); border:1px solid var(--line-soft); color:var(--text);
+  padding:10px 14px 10px 36px; border-radius:999px; font-size:13.5px; font-family:var(--font-body);
+  transition:border-color .18s var(--ease);
+}
+.search-input:focus{border-color:var(--teal);}
+.bank-actions{display:flex; align-items:center; gap:10px;}
+.mini-btn{background:var(--panel); border:1px solid var(--line-soft); color:var(--text-mute); padding:8px 13px; border-radius:999px; font-size:12.5px; font-weight:500; cursor:pointer; transition:all .18s var(--ease);}
+.mini-btn:hover{color:var(--text); border-color:var(--line);}
+.bank-progress{display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--text-mute); margin-bottom:22px;}
+.bank-progress .progress-track{flex:1; margin-bottom:0;}
+
+.qcard{
+  background:var(--panel); border:1px solid var(--line-soft); border-radius:var(--radius-md);
+  margin-bottom:12px; overflow:hidden; transition:border-color .2s var(--ease);
+}
+.qcard.revised{border-color:var(--teal-dim);}
+.qhead{
+  width:100%; display:flex; align-items:flex-start; gap:14px; text-align:left;
+  background:none; border:none; color:var(--text); padding:18px 20px; cursor:pointer; font-family:inherit;
+}
+.qnum{font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint); padding-top:2px; flex-shrink:0; width:26px;}
+.qtext{flex:1; font-size:15px; font-weight:500; line-height:1.45;}
+.qmeta{display:flex; gap:6px; align-items:center; flex-shrink:0;}
+.badge{font-size:10.5px; font-weight:600; padding:4px 9px; border-radius:999px; letter-spacing:.2px; white-space:nowrap;}
+.badge.unit1{background:var(--slate-dim); color:var(--slate);}
+.badge.unit2{background:var(--violet-dim); color:var(--violet);}
+.chev{flex-shrink:0; margin-top:3px; transition:transform .3s var(--ease); color:var(--text-faint);}
+.qcard.open .chev{transform:rotate(180deg); color:var(--teal);}
+.qbody{max-height:0; overflow:hidden; transition:max-height .38s var(--ease);}
+.qbody-inner{padding:0 20px 6px; color:var(--text-mute); font-size:14.5px;}
+.qbody-inner p{margin:0 0 12px;}
+.qbody-inner h4{color:var(--text); font-size:13.5px; margin:16px 0 8px; font-weight:600;}
+.qbody-inner h4:first-child{margin-top:0;}
+.qbody-inner ul, .qbody-inner ol{margin:0 0 12px; padding-left:20px;}
+.qbody-inner li{margin-bottom:5px;}
+.qbody-inner strong{color:var(--text); font-weight:600;}
+.diagram{
+  background:var(--bg-soft); border:1px solid var(--line-soft); border-radius:var(--radius-sm);
+  padding:14px 16px; font-family:var(--font-mono); font-size:12.5px; color:var(--teal);
+  overflow-x:auto; margin:0 0 14px; line-height:1.6; white-space:pre;
+}
+.formula{
+  background:var(--bg-soft); border:1px solid var(--line-soft); border-left:2px solid var(--amber);
+  border-radius:var(--radius-sm); padding:12px 16px; font-family:var(--font-mono); font-size:13px;
+  color:var(--amber); margin:0 0 14px; overflow-x:auto;
+}
+.answer-final{
+  background:var(--teal-dim); border:1px solid rgba(95,227,198,.3); border-radius:var(--radius-sm);
+  padding:12px 16px; font-family:var(--font-mono); font-size:13.5px; color:var(--teal); margin:0 0 14px;
+  font-weight:500;
+}
+.table-wrap{overflow-x:auto; margin:0 0 14px; border-radius:var(--radius-sm); border:1px solid var(--line-soft);}
+table.ans-table{width:100%; border-collapse:collapse; font-size:13px;}
+table.ans-table th, table.ans-table td{padding:9px 13px; text-align:left; border-bottom:1px solid var(--line-soft); white-space:nowrap;}
+table.ans-table th{background:var(--bg-soft); color:var(--text); font-weight:600; font-size:12px;}
+table.ans-table tr:last-child td{border-bottom:none;}
+table.ans-table td{color:var(--text-mute); font-family:var(--font-mono); font-size:12.5px;}
+.revise-row{display:flex; align-items:center; justify-content:space-between; padding:12px 20px 16px; border-top:1px solid var(--line-soft); margin-top:10px;}
+.revise-toggle{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-mute); cursor:pointer;}
+.revise-toggle input{accent-color:var(--teal); width:15px; height:15px; cursor:pointer;}
+.source-tag{font-size:11px; color:var(--text-faint);}
+
+.bank-note{
+  display:flex; gap:12px; align-items:flex-start; background:var(--panel-2); border:1px solid var(--line-soft);
+  border-radius:var(--radius-md); padding:16px 18px; margin-bottom:24px; font-size:13.5px; color:var(--text-mute);
+}
+.bank-note svg{flex-shrink:0; margin-top:2px; color:var(--amber);}
+.bank-note b{color:var(--text);}
+
+.empty-state{text-align:center; padding:50px 20px; color:var(--text-faint); font-size:14px;}
+
+/* ---------- feedback modal ---------- */
+.modal-overlay{
+  position:fixed; inset:0; z-index:100; background:rgba(6,8,12,.7); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity .25s var(--ease);
+}
+.modal-overlay.show{opacity:1; pointer-events:auto;}
+.modal{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+  width:100%; max-width:440px; padding:28px; transform:translateY(14px) scale(.97); opacity:0;
+  transition:transform .3s var(--ease), opacity .3s var(--ease);
+  max-height:86vh; overflow-y:auto;
+}
+.modal-overlay.show .modal{transform:translateY(0) scale(1); opacity:1;}
+.modal-top{display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px;}
+.modal h3{font-family:var(--font-display); font-size:20px; margin:0; font-weight:600;}
+.modal-close{background:none; border:none; color:var(--text-faint); cursor:pointer; padding:4px; border-radius:6px; transition:color .15s;}
+.modal-close:hover{color:var(--text);}
+.modal p.sub{color:var(--text-mute); font-size:13.5px; margin:0 0 20px;}
+.stars{display:flex; gap:6px; margin-bottom:18px;}
+.star-btn{background:none; border:none; cursor:pointer; padding:2px; color:var(--line); transition:transform .15s var(--ease), color .15s var(--ease);}
+.star-btn.on{color:var(--amber);}
+.star-btn:hover{transform:scale(1.15);}
+.fb-textarea{
+  width:100%; background:var(--bg-soft); border:1px solid var(--line-soft); color:var(--text);
+  border-radius:var(--radius-sm); padding:12px 14px; font-family:inherit; font-size:13.5px; resize:vertical;
+  min-height:90px; margin-bottom:16px; transition:border-color .18s var(--ease);
+}
+.fb-textarea:focus{border-color:var(--teal);}
+.btn-submit{
+  width:100%; background:var(--teal); color:#04140F; border:none; padding:13px; border-radius:var(--radius-sm);
+  font-weight:600; font-size:14.5px; cursor:pointer; transition:transform .18s var(--ease), opacity .18s var(--ease);
+}
+.btn-submit:hover{transform:translateY(-1px);}
+.btn-submit:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+.fb-success{display:none; text-align:center; padding:20px 6px;}
+.fb-success.show{display:block; animation:screenIn .4s var(--ease);}
+.fb-check{margin:0 auto 14px;}
+.fb-check circle{stroke:var(--teal); stroke-width:3; fill:none; stroke-dasharray:126; stroke-dashoffset:126; animation:drawCircle .5s var(--ease) forwards;}
+.fb-check path{stroke:var(--teal); stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:40; stroke-dashoffset:40; animation:drawCheck .35s var(--ease) .45s forwards;}
+@keyframes drawCircle{to{stroke-dashoffset:0;}}
+@keyframes drawCheck{to{stroke-dashoffset:0;}}
+.fb-success h4{font-size:16px; margin:0 0 6px; font-family:var(--font-display);}
+.fb-success p{color:var(--text-mute); font-size:13px; margin:0;}
+
+@media (max-width:640px){
+  .nav{padding:12px 16px;}
+  .crumbs{display:none;}
+  .hero{padding:36px 18px 24px;}
+  .wrap{padding:24px 16px 50px;}
+  .qhead{padding:15px 14px; gap:10px;}
+  .qtext{font-size:14px;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<nav class="nav">
+  <button class="brand" onclick="goHome()" aria-label="Go home">
+    <svg width="30" height="30" viewBox="0 0 100 100" fill="none">
+      <rect width="100" height="100" rx="20" fill="#121722"/>
+      <polygon points="30,30 70,30 70,70 30,70" stroke="#5FE3C6" stroke-width="4"/>
+      <polygon points="42,42 58,42 58,58 42,58" stroke="#FF9A5A" stroke-width="4"/>
+      <line x1="30" y1="30" x2="42" y2="42" stroke="#FF9A5A" stroke-width="3"/>
+      <line x1="70" y1="30" x2="58" y2="42" stroke="#FF9A5A" stroke-width="3"/>
+      <line x1="70" y1="70" x2="58" y2="58" stroke="#FF9A5A" stroke-width="3"/>
+      <line x1="30" y1="70" x2="42" y2="58" stroke="#FF9A5A" stroke-width="3"/>
+    </svg>
+    <span>
+      <span class="brand-name">Tesseract Labs</span>
+      <span class="brand-sub">Exam prep, structured</span>
+    </span>
+  </button>
+  <div class="nav-right">
+    <div class="crumbs" id="crumbs"></div>
+    <a class="btn-home" href="index.html">🏠 All Subjects</a>
+    <button class="btn-feedback" onclick="openFeedback()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Feedback
+    </button>
+  </div>
+</nav>
+
+<!-- ============ HOME ============ -->
+<section class="screen active" id="screen-home">
+  <div class="hero">
+    <div>
+      <div class="hero-eyebrow"><span class="dot"></span> Built for the CT1 grind</div>
+      <h1>Everything you need for CT1, sorted.</h1>
+      <p class="lead">Every PYQ, every answer, and a clear plan for what to study — pulled straight from your CT, FLJ, and semester papers so you're not hunting through screenshots the night before.</p>
+      <button class="btn-primary" onclick="goSubject()">
+        Computer Networks
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <div class="hero-note">One subject live right now — more CTs are on the way.</div>
+    </div>
+    <div class="tesseract-wrap">
+      <svg class="tesseract" width="280" height="280" viewBox="0 0 200 200">
+        <g class="tess-edge" stroke="#FF9A5A" stroke-width="1.4">
+          <line x1="40" y1="40" x2="75" y2="75"/>
+          <line x1="160" y1="40" x2="125" y2="75"/>
+          <line x1="160" y1="160" x2="125" y2="125"/>
+          <line x1="40" y1="160" x2="75" y2="125"/>
+        </g>
+        <polygon points="40,40 160,40 160,160 40,160" fill="none" stroke="#5FE3C6" stroke-width="1.6"/>
+        <polygon points="75,75 125,75 125,125 75,125" fill="none" stroke="#9C8CF5" stroke-width="1.6"/>
+        <g class="tess-node" fill="#5FE3C6">
+          <circle cx="40" cy="40" r="3.4"/><circle cx="160" cy="40" r="3.4"/>
+          <circle cx="160" cy="160" r="3.4"/><circle cx="40" cy="160" r="3.4"/>
+        </g>
+        <g class="tess-node" fill="#9C8CF5">
+          <circle cx="75" cy="75" r="3"/><circle cx="125" cy="75" r="3"/>
+          <circle cx="125" cy="125" r="3"/><circle cx="75" cy="125" r="3"/>
+        </g>
+        <circle r="2.6" fill="#FF9A5A">
+          <animateMotion dur="3.2s" repeatCount="indefinite" path="M40,40 L75,75"/>
+        </circle>
+        <circle r="2.6" fill="#FF9A5A">
+          <animateMotion dur="3.6s" begin="1s" repeatCount="indefinite" path="M160,160 L125,125"/>
+        </circle>
+      </svg>
+    </div>
+  </div>
+
+  <div class="quote-strip">
+    <div class="quote-box">
+      <div class="quote-text" id="quoteText"></div>
+    </div>
+    <div class="quote-dots" id="quoteDots"></div>
+  </div>
+
+  <footer class="site-footer">
+    Built by <b>Raghul S</b> — Tesseract Labs
+  </footer>
+</section>
+
+<!-- ============ SUBJECT (Computer Networks) ============ -->
+<section class="screen" id="screen-subject">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>Computer Networks</h2>
+      <p>21CSC302J — pick a CT to open its question banks, coverage tracker, and exam pattern.</p>
+    </div>
+    <div class="tile-grid">
+      <button class="tile" style="--tile-accent:#5FE3C6; --tile-accent-dim:#1F3B36" onclick="goCT1()">
+        <div class="tile-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H3v10h6zM21 3h-6v18h6zM15 7H9v14h6z"/></svg>
+        </div>
+        <h3>CT 1</h3>
+        <p>Units 1 &amp; 2 — OSI, topologies, switching, subnetting, NAT. 45 questions across 6 practice sets.</p>
+        <span class="tile-tag">Open</span>
+      </button>
+      <button class="tile disabled">
+        <div class="tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></div>
+        <h3>CT 2</h3>
+        <p>Not published yet — will unlock once the paper's out.</p>
+        <span class="tile-tag" style="color:var(--text-faint); background:var(--bg-soft)">Coming soon</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CT1 HUB ============ -->
+<section class="screen" id="screen-ct1">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>CT 1 — Computer Networks</h2>
+      <p>Everything below is built from your CT1, FLJ1, semester PYQ, and IP-addressing material — grouped by how today's exam is actually structured.</p>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="panel">
+        <div class="section-title">Exam pattern</div>
+        <div class="section-sub">Theory — Total 50 marks, converted to 10</div>
+        <div class="marks-total"><span class="big">50</span><span class="conv">marks → scaled to /10</span></div>
+        <div class="bar-stack">
+          <div class="bar-seg" style="width:8%; background:var(--slate)"></div>
+          <div class="bar-seg" style="width:32%; background:var(--teal)"></div>
+          <div class="bar-seg" style="width:60%; background:var(--amber)"></div>
+        </div>
+        <div class="pattern-rows">
+          <div class="pattern-row">
+            <div class="pr-left"><span class="pr-dot" style="background:var(--slate)"></span><div><div class="pr-name">MCQs</div><div class="pr-detail">4 questions × 1 mark</div></div></div>
+            <div class="pr-marks">04 marks</div>
+          </div>
+          <div class="pattern-row">
+            <div class="pr-left"><span class="pr-dot" style="background:var(--teal)"></span><div><div class="pr-name">Concept Understanding</div><div class="pr-detail">2 questions, either/or choice × 8 marks</div></div></div>
+            <div class="pr-marks">16 marks</div>
+          </div>
+          <div class="pattern-row">
+            <div class="pr-left"><span class="pr-dot" style="background:var(--amber)"></span><div><div class="pr-name">Scenario-based</div><div class="pr-detail">2 questions, either/or choice × 15 marks</div></div></div>
+            <div class="pr-marks">30 marks</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Study coverage</div>
+        <div class="section-sub">Tick off topics as you finish them.</div>
+        <div id="coverageArea"></div>
+        <div class="session-note">Progress tracks for this session — it resets on reload.</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:32px;">
+      <div class="section-title">Suggested study order</div>
+      <div class="section-sub">Ranked by how often each topic actually shows up across the CT, FLJ, and semester papers.</div>
+      <div class="order-list">
+        <div class="order-item"><div class="order-rank">1</div><div><h4>OSI Model</h4><p>Shows up in the 5, 10, 8, 15, and 1-mark sets — the single highest-yield topic.</p></div></div>
+        <div class="order-item"><div class="order-rank">2</div><div><h4>Subnetting numericals</h4><p>Network/broadcast address, FLSM, VLSM, mask-from-subnet-count — appears in almost every category.</p></div></div>
+        <div class="order-item"><div class="order-rank">3</div><div><h4>Network topologies</h4><p>Bus, star, ring, mesh — including the mesh-links formula that's shown up directly as a numerical.</p></div></div>
+        <div class="order-item"><div class="order-rank">4</div><div><h4>Switching techniques</h4><p>Circuit, packet, and message switching, with the three circuit-switching phases asked on their own.</p></div></div>
+        <div class="order-item"><div class="order-rank">5</div><div><h4>NAT &amp; transmission media</h4><p>Static/Dynamic NAT and PAT, plus guided vs unguided media including coax's frequency range.</p></div></div>
+        <div class="order-item"><div class="order-rank">6</div><div><h4>Network devices &amp; ARP</h4><p>Hub/switch/router/gateway-to-layer mapping, and ARP — quick wins in the 1-mark set.</p></div></div>
+      </div>
+      <div class="formula-mini">
+        <div>Subnets = 2^(borrowed bits)</div>
+        <div>Usable hosts = 2^(host bits) − 2</div>
+        <div>Host bits = 32 − prefix</div>
+      </div>
+    </div>
+
+    <div class="page-head">
+      <h2 style="font-size:22px;">Question banks</h2>
+      <p>Click into any set — every question opens to reveal its full answer.</p>
+    </div>
+    <div class="tile-grid" id="bankGrid"></div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY (bank) VIEW ============ -->
+<section class="screen" id="screen-bank">
+  <div class="wrap">
+    <div class="page-head" id="bankHead"></div>
+    <div id="bankNoteArea"></div>
+    <div class="bank-progress">
+      <span id="bankProgressLabel">0 of 0 revised</span>
+      <div class="progress-track"><div class="progress-fill" id="bankProgressFill"></div></div>
+    </div>
+    <div class="bank-toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" class="search-input" id="bankSearch" placeholder="Search this set…" oninput="filterBank()">
+      </div>
+      <div class="bank-actions">
+        <button class="mini-btn" onclick="expandAll()">Expand all</button>
+        <button class="mini-btn" onclick="collapseAll()">Collapse all</button>
+      </div>
+    </div>
+    <div id="bankList"></div>
+    <div class="empty-state" id="bankEmpty" style="display:none;">No questions match that search.</div>
+  </div>
+</section>
+
+<!-- ============ FEEDBACK MODAL ============ -->
+<div class="modal-overlay" id="fbOverlay" onclick="if(event.target===this) closeFeedback()">
+  <div class="modal">
+    <div id="fbForm">
+      <div class="modal-top">
+        <h3>Got feedback?</h3>
+        <button class="modal-close" onclick="closeFeedback()" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="sub">Missing a question, spotted a mistake, or want another subject added — let us know.</p>
+      <div class="stars" id="fbStars"></div>
+      <textarea class="fb-textarea" id="fbText" placeholder="What should we fix or add?"></textarea>
+      <button class="btn-submit" id="fbSubmit" onclick="submitFeedback()">Send feedback</button>
+    </div>
+    <div class="fb-success" id="fbSuccess">
+      <svg class="fb-check" width="56" height="56" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="20"/>
+        <path d="M13 22.5 19 28 31 15"/>
+      </svg>
+      <h4>Thanks — noted.</h4>
+      <p>This helps make Tesseract Labs better for the next study session.</p>
+      <button class="mini-btn" style="margin-top:16px;" onclick="closeFeedback()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const QUOTES = [
+  "You don't need to know everything today — just a little more than yesterday.",
+  "Every subnet you solve now is one less surprise in the exam hall.",
+  "Confused is just the first draft of understood.",
+  "We're here for you — one question at a time.",
+  "Small, steady revision beats a last-night panic. Every single time.",
+  "Read the question twice. Write the answer once, calmly."
+];
+
+const COVERAGE = {
+  unit1: {
+    name: "Unit 1 — Networking Fundamentals",
+    topics: [
+      "OSI Model — 7 layers, encapsulation & decapsulation",
+      "Network topologies — bus, star, ring, mesh, hybrid",
+      "Transmission media — guided (twisted pair, coax, fiber) & unguided (radio, microwave, infrared)",
+      "Switching techniques — circuit, packet, message",
+      "Network devices & their OSI layers — hub, switch, router, gateway",
+      "Transmission modes — simplex, half-duplex, full-duplex"
+    ]
+  },
+  unit2: {
+    name: "Unit 2 — Addressing & Subnetting",
+    topics: [
+      "IPv4 addressing & classful addressing (Class A–E)",
+      "Network address & broadcast address calculation",
+      "FLSM — Fixed Length Subnet Masking",
+      "VLSM — Variable Length Subnet Masking",
+      "Subnetting numericals — hosts/subnets → mask/prefix",
+      "NAT — Static, Dynamic, and PAT",
+      "ARP — IP-to-MAC resolution"
+    ]
+  }
+};
+
+const D = `<div class="diagram">`, F = `<div class="formula">`, AF = `<div class="answer-final">`, TW = `<div class="table-wrap"><table class="ans-table">`;
+
+const QUESTION_BANKS = {
+  ct5: {
+    label: "5 Mark Questions",
+    subtitle: "CT / FLJ paper — Part A pattern",
+    icon: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5z",
+    accent: "violet",
+    note: "This is the older CT/FLJ mark pattern — solid for locking down the core concept before you tackle the 8 &amp; 15 mark answers below.",
+    questions: [
+      { unit:1, q:"Explain the three phases of Circuit Switching.",
+        a:`<p>Circuit switching establishes a dedicated communication path before any data transfer begins. There are three phases:</p>
+        <h4>1. Setup phase</h4><p>A dedicated path is established between sender and receiver before communication starts, and the resources required are reserved.</p>
+        <h4>2. Data transfer phase</h4><p>Data is transmitted through the dedicated path. The path stays reserved for the full duration, and communication continues until it's complete.</p>
+        <h4>3. Teardown phase</h4><p>The connection is terminated, reserved resources are released, and the path becomes available for other users.</p>
+        ${D}SETUP
+  ↓
+DATA TRANSFER
+  ↓
+TEARDOWN</div>
+        <p><strong>Conclusion:</strong> circuit switching gives a dedicated path, but resources stay reserved even when no data is actually moving.</p>` },
+      { unit:1, q:"Explain Bus Topology and its disadvantage.",
+        a:`<p>In a bus topology, all devices connect to a single common communication cable called the backbone.</p>
+        ${D}PC1 ─── PC2 ─── PC3 ─── PC4
+       Common Backbone</div>
+        <h4>Advantages</h4><ul><li>Easy to install</li><li>Requires less cable</li><li>Low cost for small networks</li></ul>
+        <h4>Disadvantages</h4><ul><li><strong>Limited scalability</strong></li><li>Backbone failure affects the entire network</li><li>Troubleshooting can be difficult</li><li>Performance drops as more devices communicate</li></ul>
+        <p><strong>Conclusion:</strong> bus topology suits small networks but isn't ideal for large ones, because of scalability and backbone-failure issues.</p>` },
+      { unit:1, q:"Explain the Session Layer of the OSI Model.",
+        a:`<p>The Session Layer is the fifth layer of the OSI model.</p>
+        <h4>Main functions</h4><ul><li>Establishes communication sessions</li><li>Maintains communication sessions</li><li>Coordinates communication between applications</li><li>Terminates sessions once communication is done</li><li>Provides synchronization during communication</li></ul>
+        ${D}Application A
+     ↓
+Session Established
+     ↓
+Data Communication
+     ↓
+Session Terminated</div>
+        <p><strong>Conclusion:</strong> the Session Layer manages the beginning, continuation, and termination of communication sessions.</p>` },
+      { unit:1, q:"Explain Guided and Unguided Transmission Media.",
+        a:`<p>Transmission media is the path data travels through from sender to receiver — divided into guided and unguided.</p>
+        <h4>Guided media</h4><ul><li><strong>Twisted pair cable</strong> — copper wires twisted together; used in Ethernet and telephone networks; low cost</li><li><strong>Coaxial cable</strong> — central conductor with shielding; used in cable TV and broadband</li><li><strong>Optical fiber</strong> — transmits data using light; very high bandwidth; suited to long distances</li></ul>
+        <h4>Unguided media</h4><ul><li><strong>Radio waves</strong> — Wi-Fi, Bluetooth, mobile communication</li><li><strong>Microwaves</strong> — satellite and point-to-point communication</li><li><strong>Infrared</strong> — remote controls, short-range communication</li></ul>
+        ${TW}<tr><th>Guided</th><th>Unguided</th></tr><tr><td>Uses physical cable</td><td>Uses air/space</td></tr><tr><td>Less mobility</td><td>High mobility</td></tr><tr><td>Fiber, coaxial cable</td><td>Radio, microwave</td></tr><tr><td>Controlled path</td><td>Wireless path</td></tr></table></div>` },
+      { unit:2, q:"Explain NAT.",
+        a:`<p>NAT (Network Address Translation) translates private IP addresses used inside a network into public IP addresses used on the internet.</p>
+        ${D}Private Network
+192.168.1.x
+      ↓
+   NAT Router
+      ↓
+ Public IP Address
+      ↓
+   Internet</div>
+        <h4>Steps</h4><ol><li>Internal computer sends a packet</li><li>NAT router receives it</li><li>The private IP is translated into a public IP</li><li>The packet is sent to the internet</li><li>The reply returns to the NAT router</li><li>NAT translates it back to the correct internal device</li></ol>
+        <h4>Advantages</h4><ul><li>Saves public IPv4 addresses</li><li>Allows private addressing</li><li>Multiple devices can share one internet connection</li></ul>` },
+      { unit:2, q:"Explain Static NAT, Dynamic NAT and PAT.",
+        a:`<h4>Static NAT</h4><p>One private IP is permanently mapped to one public IP.</p>${D}Private IP → Public IP
+Example: 192.168.1.10 → 203.0.113.10</div>
+        <h4>Dynamic NAT</h4><p>Private IP addresses are temporarily mapped to available public IPs from a pool.</p>${D}Private IP → Public IP Pool</div>
+        <h4>PAT (Port Address Translation)</h4><p>Multiple private computers share one public IP using different port numbers.</p>${D}PC1 → Public IP : Port 1001
+PC2 → Public IP : Port 1002
+PC3 → Public IP : Port 1003</div>
+        <p><strong>Conclusion:</strong> PAT is the most practical solution when many users need internet access but only one public IP is available.</p>` },
+      { unit:2, q:"Find the Network Address of 192.168.10.75/24.",
+        a:`${F}/24 → 24 network bits, 8 host bits → mask 255.255.255.0</div>
+        <p>The last octet is the host portion — set the host bits to zero:</p>
+        ${D}192.168.10.75  →  192.168.10.0</div>
+        ${AF}Network address = 192.168.10.0</div>` },
+      { unit:2, q:"Find the Broadcast Address of 192.168.10.75/24.",
+        a:`${F}Network address = 192.168.10.0, mask = 255.255.255.0</div>
+        <p>Set all host bits to 1 to get the broadcast address:</p>
+        ${AF}Broadcast address = 192.168.10.255</div>` },
+      { unit:2, q:"Find the subnet of 192.168.1.145/27.",
+        a:`${F}/27 = 255.255.255.224  →  block size = 256 − 224 = 32</div>
+        <p>Subnet ranges: 0–31, 32–63, 64–95, 96–127, <strong>128–159</strong>, 160–191, 192–223, 224–255. Address .145 falls in 128–159.</p>
+        ${TW}<tr><th>Item</th><th>Answer</th></tr><tr><td>Network</td><td>192.168.1.128</td></tr><tr><td>Broadcast</td><td>192.168.1.159</td></tr><tr><td>Host range</td><td>.129 – .158</td></tr></table></div>` }
+    ]
+  },
+
+  ct10: {
+    label: "10 Mark Questions",
+    subtitle: "CT / FLJ paper — Part B pattern",
+    icon: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5z",
+    accent: "violet",
+    note: "Same source pattern as the 5-mark set, but these are the fuller, multi-part answers — good practice for writing under the 15-mark scenario style.",
+    questions: [
+      { unit:1, q:"Explain the OSI Model.",
+        a:`<p>OSI stands for Open Systems Interconnection and consists of seven layers.</p>
+        ${D}7. Application
+6. Presentation
+5. Session
+4. Transport
+3. Network
+2. Data Link
+1. Physical</div>
+        <h4>7 — Application</h4><p>Provides network services directly to user applications: email, file transfer, web services.</p>
+        <h4>6 — Presentation</h4><p>Encryption, decryption, compression, data translation.</p>
+        <h4>5 — Session</h4><p>Establishing, managing, and terminating sessions.</p>
+        <h4>4 — Transport</h4><p>End-to-end communication, segmentation, flow control, error control.</p>
+        <h4>3 — Network</h4><p>Routing, logical addressing, path selection.</p>
+        <h4>2 — Data Link</h4><p>Framing, physical addressing, error detection.</p>
+        <h4>1 — Physical</h4><p>Transmission of bits, cables, signals, connectors.</p>
+        <h4>Encapsulation / decapsulation</h4>${D}Application → Transport → Network → Data Link → Physical
+     (each layer adds control information at the sender,
+      and it's removed layer by layer at the receiver)</div>
+        <p><strong>Conclusion:</strong> the OSI model gives a structured framework for understanding network communication.</p>` },
+      { unit:1, q:"Explain Network Topologies.",
+        a:`<p>Network topology describes how devices and communication links are arranged.</p>
+        <h4>Bus</h4>${D}PC ─ PC ─ PC ─ PC</div><p>Low cost, less cable — but backbone failure affects the whole network and scalability is limited.</p>
+        <h4>Star</h4>${D}       PC
+        |
+PC ── Switch ── PC
+        |
+       PC</div><p>Easy management and expansion — but the central device is a single point of failure.</p>
+        <h4>Ring</h4>${D}PC1 ─ PC2
+ |      |
+PC4 ─ PC3</div><p>Devices form a circular path.</p>
+        <h4>Mesh</h4><p>Every device connects to every other device — high reliability and fault tolerance, but expensive and complex.</p>
+        <h4>Hybrid</h4><p>A combination of two or more topologies.</p>
+        <p><strong>Conclusion:</strong> for most modern LANs, star topology is the common choice, thanks to scalability and easier management.</p>` },
+      { unit:1, q:"Explain Circuit Switching, Packet Switching and Message Switching.",
+        a:`<h4>Circuit switching</h4><p>A dedicated path is established before communication, through setup, data transfer, and teardown phases.</p>
+        <h4>Packet switching</h4><p>Data is divided into packets, which may travel through different paths across the network.</p>${D}Message → Packets → Network (multiple paths)</div><p>Efficient resource use, and well suited to computer networks.</p>
+        <h4>Message switching</h4><p>The complete message is stored and forwarded.</p>${D}Sender → Store → Forward → Receiver</div><p>Store-and-forward networks use message switching.</p>
+        ${TW}<tr><th>Circuit</th><th>Packet</th><th>Message</th></tr><tr><td>Dedicated path</td><td>Packets</td><td>Complete message</td></tr><tr><td>Setup required</td><td>No dedicated path</td><td>Store and forward</td></tr><tr><td>Reserved resources</td><td>Shared resources</td><td>Large storage needed</td></tr></table></div>` },
+      { unit:2, q:"Explain IPv4 Addressing and Classful Addressing.",
+        a:`<p>IPv4 uses 32 bits, e.g. 192.168.10.1, split into a network portion and a host portion.</p>
+        ${TW}<tr><th>Class</th><th>Range</th><th>Default mask</th><th>Prefix</th></tr>
+        <tr><td>A</td><td>1 – 126</td><td>255.0.0.0</td><td>/8</td></tr>
+        <tr><td>B</td><td>128 – 191</td><td>255.255.0.0</td><td>/16</td></tr>
+        <tr><td>C</td><td>192 – 223</td><td>255.255.255.0</td><td>/24</td></tr>
+        <tr><td>D</td><td>224 – 239</td><td colspan="2">Multicast</td></tr>
+        <tr><td>E</td><td>240 – 255</td><td colspan="2">Reserved / experimental</td></tr></table></div>` },
+      { unit:2, q:"Explain FLSM with an example.",
+        a:`<p>FLSM (Fixed Length Subnet Masking) gives every subnet the same mask and equal size.</p>
+        <p><strong>Example:</strong> split 192.168.10.0/24 into 4 equal subnets.</p>
+        ${F}Need 4 subnets → 2² = 4 → borrow 2 bits → new prefix /26 → mask 255.255.255.192
+Block size = 256 − 192 = 64</div>
+        ${TW}<tr><th>Subnet</th><th>Network</th><th>Hosts</th><th>Broadcast</th></tr>
+        <tr><td>1</td><td>.0</td><td>.1–.62</td><td>.63</td></tr>
+        <tr><td>2</td><td>.64</td><td>.65–.126</td><td>.127</td></tr>
+        <tr><td>3</td><td>.128</td><td>.129–.190</td><td>.191</td></tr>
+        <tr><td>4</td><td>.192</td><td>.193–.254</td><td>.255</td></tr></table></div>` },
+      { unit:2, q:"Explain VLSM with an example.",
+        a:`<p>VLSM (Variable Length Subnet Masking) lets different subnets have different sizes — so each department only gets the addresses it actually needs.</p>
+        <p><strong>Example:</strong> allocate 192.168.100.0/24 for departments needing 100, 50, 25, and 10 hosts.</p>
+        ${TW}<tr><th>Dept</th><th>Hosts needed</th><th>Network</th><th>Prefix</th><th>Usable hosts</th></tr>
+        <tr><td>A</td><td>100</td><td>192.168.100.0</td><td>/25</td><td>126</td></tr>
+        <tr><td>B</td><td>50</td><td>192.168.100.128</td><td>/26</td><td>62</td></tr>
+        <tr><td>C</td><td>25</td><td>192.168.100.192</td><td>/27</td><td>30</td></tr>
+        <tr><td>D</td><td>10</td><td>192.168.100.224</td><td>/28</td><td>14</td></tr></table></div>
+        <p><strong>Conclusion:</strong> VLSM saves IP addresses because every department gets only the subnet size it needs.</p>` },
+      { unit:2, q:"Subnet a /24 network for at least 30 hosts.",
+        a:`${F}Need: 2^h − 2 ≥ 30 → try 2⁵ − 2 = 30 → host bits = 5
+New prefix = 32 − 5 = /27 → mask 255.255.255.224
+Borrowed bits = 27 − 24 = 3 → subnets = 2³ = 8</div>
+        ${TW}<tr><th>Prefix</th><th>Mask</th><th>Subnets</th><th>Usable hosts</th></tr><tr><td>/27</td><td>255.255.255.224</td><td>8</td><td>30 per subnet</td></tr></table></div>` },
+      { unit:1, q:"Explain Network Devices and Their Layers.",
+        a:`${TW}<tr><th>Device</th><th>Function</th><th>OSI layer</th></tr>
+        <tr><td>Hub</td><td>Connects devices by broadcasting signals</td><td>Physical</td></tr>
+        <tr><td>Switch</td><td>Forwards frames using MAC addresses</td><td>Data Link</td></tr>
+        <tr><td>Router</td><td>Connects networks using IP addresses</td><td>Network</td></tr>
+        <tr><td>Gateway</td><td>Protocol conversion between networks</td><td>Multiple layers</td></tr></table></div>
+        <p>A <strong>hub</strong> works at the Physical Layer, a <strong>switch</strong> mainly at the Data Link Layer, a <strong>router</strong> at the Network Layer, and a <strong>gateway</strong> acts as a protocol converter across multiple layers.</p>` }
+    ]
+  },
+
+  sem8: {
+    label: "8 Mark Questions",
+    subtitle: "Semester PYQ — maps to today's Concept Understanding section",
+    icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z",
+    accent: "teal",
+    note: "These are exact-semester-PYQ topics, written up in today's 8-mark format. In the actual CT, you'll get <b>2 of these with an either/or choice</b> — 16 marks total.",
+    questions: [
+      { unit:1, q:"Explain Network Topologies with diagrams.",
+        a:`<h4>Bus</h4>${D}PC1 ─── PC2 ─── PC3 ─── PC4
+        Backbone</div><p>Less cable, low cost, easy for small networks — but backbone failure affects everything and scalability is limited.</p>
+        <h4>Star</h4>${D}       PC1
+        |
+PC2 ─ Switch ─ PC3
+        |
+       PC4</div><p>Easy troubleshooting and expansion, centralized management — but the central switch is a single point of failure.</p>
+        <h4>Ring</h4>${D} PC1 ─── PC2
+ |         |
+ PC4 ─── PC3</div><p>Devices are connected in a circular arrangement, often using a token-based mechanism.</p>
+        <h4>Mesh</h4><p>Every device has dedicated connections to every other device.</p>
+        ${F}Links for a fully connected mesh = n(n−1)/2
+For 12 devices: 12×11/2 = 66 links</div>
+        ${AF}66 links</div>
+        <h4>Hybrid</h4><p>A combination of two or more topologies.</p>` },
+      { unit:1, q:"Explain the OSI Model.",
+        a:`<p>OSI = Open Systems Interconnection, seven layers:</p>
+        ${D}7. Application
+6. Presentation
+5. Session
+4. Transport
+3. Network
+2. Data Link
+1. Physical</div>
+        <ul>
+        <li><strong>Physical</strong> — transmits bits, handles signals, cables and connectors</li>
+        <li><strong>Data Link</strong> — framing, MAC addressing, error detection</li>
+        <li><strong>Network</strong> — IP addressing, routing, path selection</li>
+        <li><strong>Transport</strong> — end-to-end communication, segmentation, reliability</li>
+        <li><strong>Session</strong> — establishes, manages, and terminates sessions</li>
+        <li><strong>Presentation</strong> — data formatting, encryption, decryption, compression</li>
+        <li><strong>Application</strong> — provides services directly to applications</li>
+        </ul>
+        <p><strong>Conclusion:</strong> the OSI model divides networking functions into seven layers, making design and troubleshooting easier.</p>` },
+      { unit:1, q:"Explain Transmission Media.",
+        a:`<h4>Guided media</h4><ul><li><strong>Twisted pair</strong> — copper wires twisted together, used in LANs, low cost</li><li><strong>Coaxial cable</strong> — central conductor with insulation and shielding, used in cable communication</li><li><strong>Optical fiber</strong> — light-based, high bandwidth, long distance, low interference</li></ul>
+        ${F}Coaxial cable frequency range: 100 KHz to 500 MHz</div>
+        <h4>Unguided media</h4><ul><li><strong>Radio waves</strong> — Wi-Fi, mobile communication</li><li><strong>Microwaves</strong> — satellite, point-to-point communication</li><li><strong>Infrared</strong> — short-range communication, remote controls</li></ul>` },
+      { unit:2, q:"Subnet 193.103.20.0/24 for 50 subnets — find hosts and subnets.",
+        a:`${F}Need 50 subnets → 2⁶ = 64 (2⁵=32 isn't enough) → borrow 6 bits
+New prefix = 24 + 6 = /30
+Host bits = 32 − 30 = 2 → usable hosts = 2² − 2 = 2
+Number of networks = 2⁶ = 64</div>
+        ${AF}2 usable hosts per subnet, 64 subnets</div>` },
+      { unit:2, q:"Subnet 172.17.32.0/23 into /27 — find subnets and hosts.",
+        a:`${F}Borrowed bits = 27 − 23 = 4 → subnets = 2⁴ = 16
+Host bits = 32 − 27 = 5 → usable hosts = 2⁵ − 2 = 30</div>
+        ${AF}16 subnets, 30 usable hosts per subnet</div>` },
+      { unit:2, q:"Create 12 subnets from a Class C network — find the subnet mask.",
+        a:`${F}Need 12 subnets → 2³=8 isn't enough → 2⁴=16 → borrow 4 bits
+Original Class C prefix /24 → new prefix /28</div>
+        ${AF}Subnet mask = 255.255.255.240 (/28)</div>` }
+    ]
+  },
+
+  sem15: {
+    label: "15 Mark Questions",
+    subtitle: "Semester PYQ — maps to today's Scenario-based section",
+    icon: "M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
+    accent: "amber",
+    note: "In the actual CT, you'll get <b>2 of these with an either/or choice</b> — 15 marks each, 30 marks total. Write these out fully at least once before the exam.",
+    questions: [
+      { unit:1, q:"Explain the OSI Model in detail (full data-flow scenario).",
+        a:`<p>The OSI model is a seven-layer reference model used to understand network communication.</p>
+        ${D}+----------------------+
+| 7 Application        |
++----------------------+
+| 6 Presentation       |
++----------------------+
+| 5 Session            |
++----------------------+
+| 4 Transport          |
++----------------------+
+| 3 Network            |
++----------------------+
+| 2 Data Link          |
++----------------------+
+| 1 Physical           |
++----------------------+</div>
+        <h4>Sender's data flow</h4>${D}Application → Presentation → Session → Transport
+   → Network → Data Link → Physical</div>
+        <h4>Receiver's data flow</h4>${D}Physical → Data Link → Network → Transport
+   → Session → Presentation → Application</div>
+        <p><strong>Encapsulation:</strong> each layer adds its own header on the way down. <strong>Decapsulation:</strong> the receiver removes those headers layer by layer on the way up.</p>
+        <h4>Why it matters</h4><ul><li>Standardization</li><li>Interoperability</li><li>Easier troubleshooting</li><li>Modular network design</li></ul>
+        <p><strong>Conclusion:</strong> the OSI model provides a structured framework for communication between network devices.</p>` },
+      { unit:2, q:"Create 30 subnets for the Class C address 205.11.2.0. Find: (i) subnet mask for max hosts, (ii) hosts per subnet, (iii) first &amp; last host of the first and last subnet, (iv) IP of host 3 on subnet 2.",
+        a:`${F}Need 30 subnets → 2⁵ = 32 → borrow 5 bits → new prefix /29
+Mask = 255.255.255.248
+Host bits = 32 − 29 = 3 → usable hosts = 2³ − 2 = 6
+Block size = 256 − 248 = 8</div>
+        <h4>(i) Subnet mask</h4><p>255.255.255.248 (/29)</p>
+        <h4>(ii) Hosts per subnet</h4><p>6 usable hosts</p>
+        <h4>(iii) First and last subnet</h4>
+        ${TW}<tr><th></th><th>Network</th><th>First host</th><th>Last host</th><th>Broadcast</th></tr>
+        <tr><td>First subnet</td><td>205.11.2.0</td><td>205.11.2.1</td><td>205.11.2.6</td><td>205.11.2.7</td></tr>
+        <tr><td>Last subnet</td><td>205.11.2.248</td><td>205.11.2.249</td><td>205.11.2.254</td><td>205.11.2.255</td></tr></table></div>
+        <h4>(iv) Host 3 on subnet 2</h4><p>Subnet 2's network is 205.11.2.8, so host 1 = .9, host 2 = .10, host 3 = .11.</p>
+        ${AF}Host 3 on subnet 2 = 205.11.2.11</div>` }
+    ]
+  },
+
+  onemarkCT: {
+    label: "1 Mark Questions — CT / FLJ",
+    subtitle: "Quick-answer set from the CT1 / FLJ1 paper",
+    icon: "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+    accent: "slate",
+    note: "These map to today's 4-question MCQ section — fast to revise, easy marks to lock in.",
+    questions: [
+      { unit:1, q:"Which of the following are examples of simplex transmission?",
+        a:`${AF}Data input from a keyboard to a computer, and satellite television broadcasting to home receivers.</div>` },
+      { unit:1, q:"What is a significant disadvantage of a bus topology?",
+        a:`${AF}Limited scalability.</div>` },
+      { unit:1, q:"A store-and-forward network uses ______ switching.",
+        a:`${AF}Message switching.</div>` },
+      { unit:1, q:"Which OSI layer establishes, coordinates, and terminates conversations between applications?",
+        a:`${AF}Session Layer.</div>` },
+      { unit:1, q:"Match the network devices with their layers/functions.",
+        a:`${TW}<tr><th>Device</th><th>Layer / function</th></tr>
+        <tr><td>Router</td><td>Network Layer</td></tr>
+        <tr><td>Hub</td><td>Physical Layer</td></tr>
+        <tr><td>Switch</td><td>Data Link Layer</td></tr>
+        <tr><td>Gateway</td><td>Protocol Converter</td></tr></table></div>
+        ${AF}Correct pairing: 1–ii, 2–iv, 3–i, 4–iii</div>` },
+      { unit:1, q:"When a message is received at an incoming port, what does a switch do?",
+        a:`${AF}It inspects the incoming message and forwards it only to the specific destination device.</div>` },
+      { unit:2, q:"A network has IP 192.168.1.0 and mask 255.255.255.192. How many usable hosts per subnet?",
+        a:`${F}255.255.255.192 = /26 → host bits = 32 − 26 = 6 → usable hosts = 2⁶ − 2 = 62</div>${AF}62 usable hosts</div>` },
+      { unit:2, q:"Calculate the subnet mask required to create 10 subnets from a /24 network.",
+        a:`${F}Need 2ⁿ ≥ 10 → borrow 4 bits → new prefix /24+4 = /28</div>${AF}255.255.255.240</div>` },
+      { unit:2, q:"Find the network address for IP 172.16.10.200 with mask 255.255.255.224.",
+        a:`${F}255.255.255.224 = /27 → block size = 256 − 224 = 32 → ranges include 192–223, and .200 falls in that range</div>${AF}172.16.10.192</div>` },
+      { unit:2, q:"A network has IP 172.17.16.0 and mask 255.255.255.240. What is the second subnet range?",
+        a:`${F}Block size = 256 − 240 = 16 → subnets: 0–15 (first), 16–31 (second)</div>${AF}172.17.16.16 – 172.17.16.31</div>` }
+    ]
+  },
+
+  onemarkSem: {
+    label: "1 Mark Questions — Semester PYQ",
+    subtitle: "Quick-answer set from Part A of the semester paper",
+    icon: "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+    accent: "slate",
+    note: "The semester paper runs Part A as 20 × 1 mark — these are the exact ones covering Unit 1 &amp; Unit 2.",
+    questions: [
+      { unit:1, q:"In the OSI model, encryption and decryption are functions of which layer?",
+        a:`${AF}Presentation Layer.</div>` },
+      { unit:1, q:"Which topology involves tokens?",
+        a:`${AF}Ring topology.</div>` },
+      { unit:1, q:"How many links are required to connect 12 devices in a fully connected mesh network?",
+        a:`${F}Links = n(n−1)/2 = 12×11/2 = 66</div>${AF}66 links</div>` },
+      { unit:1, q:"What is the frequency range of coaxial cable?",
+        a:`${AF}100 KHz to 500 MHz.</div>` },
+      { unit:2, q:"Given 193.103.20.0/24 with a requirement of 50 subnets, how many hosts and subnets are obtained?",
+        a:`${F}Need 50 subnets → 2⁶=64 → borrow 6 bits → /30 → host bits = 2 → usable hosts = 2²−2 = 2</div>${AF}2 hosts and 64 subnets</div>` },
+      { unit:2, q:"______ means all subnets are obtained using the same subnet mask.",
+        a:`${AF}Static subnetting.</div><p>Your study material may also call this concept FLSM (Fixed Length Subnet Masking) — for this exact semester question, the marked answer is "Static subnetting".</p>` },
+      { unit:2, q:"How many subnets are obtained by subnetting 172.17.32.0/23 into /27, and how many usable hosts per subnet?",
+        a:`${F}Borrowed bits = 27−23 = 4 → subnets = 2⁴ = 16
+Host bits = 32−27 = 5 → usable hosts = 2⁵−2 = 30</div>${AF}16 subnets, 30 usable hosts</div>` },
+      { unit:2, q:"Which subnet mask is required for 12 subnets with a Class C network ID?",
+        a:`${F}Need 2⁴ = 16 → borrow 4 bits → /24+4 = /28</div>${AF}255.255.255.240</div>` },
+      { unit:2, q:"Packets of the same session may be routed through different paths in:",
+        a:`${AF}TCP and UDP.</div>` },
+      { unit:2, q:"ARP is used for:",
+        a:`${AF}Finding the MAC address corresponding to an IP address.</div>` }
+    ]
+  }
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentBank = null;
+let revisedMap = {}; // key: bankKey#index -> true
+let coveredTopics = {}; // key: unit#index -> true
+let quoteIdx = 0;
+let quoteTimer = null;
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','screen-enter'));
+  const el = document.getElementById(id);
+  el.classList.add('active','screen-enter');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function setCrumbs(items){
+  const c = document.getElementById('crumbs');
+  c.innerHTML = items.map((it,i) => {
+    const isLast = i === items.length-1;
+    if(isLast) return `<span class="crumb-current">${it.label}</span>`;
+    return `<button onclick="${it.action}">${it.label}</button><span class="crumb-sep">/</span>`;
+  }).join('');
+}
+function goHome(){
+  showScreen('screen-home');
+  setCrumbs([{label:'Home'}]);
+  startQuoteRotation();
+}
+function goSubject(){
+  showScreen('screen-subject');
+  setCrumbs([{label:'Home', action:'goHome()'},{label:'Computer Networks'}]);
+  stopQuoteRotation();
+}
+function goCT1(){
+  showScreen('screen-ct1');
+  setCrumbs([{label:'Home', action:'goHome()'},{label:'Computer Networks', action:'goSubject()'},{label:'CT 1'}]);
+  renderCoverage();
+  renderBankGrid();
+  stopQuoteRotation();
+}
+function openBank(key){
+  currentBank = key;
+  const bank = QUESTION_BANKS[key];
+  showScreen('screen-bank');
+  setCrumbs([{label:'Home', action:'goHome()'},{label:'Computer Networks', action:'goSubject()'},{label:'CT 1', action:'goCT1()'},{label:bank.label}]);
+  document.getElementById('bankHead').innerHTML = `<h2>${bank.label}</h2><p>${bank.subtitle} — ${bank.questions.length} questions.</p>`;
+  document.getElementById('bankNoteArea').innerHTML = bank.note ? `
+    <div class="bank-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>${bank.note}</div>
+    </div>` : '';
+  document.getElementById('bankSearch').value = '';
+  renderBankList();
+}
+
+/* ============================================================
+   RENDER: bank grid on CT1 hub
+   ============================================================ */
+const ACCENTS = {
+  teal:   {c:'#5FE3C6', d:'#1F3B36'},
+  violet: {c:'#9C8CF5', d:'#332D57'},
+  amber:  {c:'#FF9A5A', d:'#4A3222'},
+  slate:  {c:'#7C93C9', d:'#28324A'}
+};
+function renderBankGrid(){
+  const grid = document.getElementById('bankGrid');
+  grid.innerHTML = Object.keys(QUESTION_BANKS).map(key => {
+    const b = QUESTION_BANKS[key];
+    const a = ACCENTS[b.accent];
+    return `<button class="tile" style="--tile-accent:${a.c}; --tile-accent-dim:${a.d}" onclick="openBank('${key}')">
+      <div class="tile-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="${b.icon}"/></svg></div>
+      <h3>${b.label}</h3>
+      <p>${b.subtitle}</p>
+      <span class="tile-tag">${b.questions.length} questions</span>
+    </button>`;
+  }).join('');
+}
+
+/* ============================================================
+   RENDER: coverage checklist
+   ============================================================ */
+function renderCoverage(){
+  const area = document.getElementById('coverageArea');
+  area.innerHTML = Object.keys(COVERAGE).map(unitKey => {
+    const u = COVERAGE[unitKey];
+    const items = u.topics.map((t,i) => {
+      const ck = `${unitKey}#${i}`;
+      const checked = coveredTopics[ck] ? 'checked' : '';
+      return `<label class="check-item">
+        <input type="checkbox" ${checked} onchange="toggleTopic('${ck}')">
+        <span>${t}</span>
+      </label>`;
+    }).join('');
+    return `<div class="unit-block">
+      <div class="unit-top"><span class="unit-name">${u.name}</span><span class="unit-count" id="count-${unitKey}"></span></div>
+      <div class="progress-track"><div class="progress-fill" id="fill-${unitKey}"></div></div>
+      <div class="check-list">${items}</div>
+    </div>`;
+  }).join('');
+  Object.keys(COVERAGE).forEach(updateUnitProgress);
+}
+function toggleTopic(key){
+  coveredTopics[key] = !coveredTopics[key];
+  const unitKey = key.split('#')[0];
+  updateUnitProgress(unitKey);
+}
+function updateUnitProgress(unitKey){
+  const total = COVERAGE[unitKey].topics.length;
+  let done = 0;
+  for(let i=0;i<total;i++){ if(coveredTopics[`${unitKey}#${i}`]) done++; }
+  const pct = Math.round((done/total)*100);
+  const fill = document.getElementById(`fill-${unitKey}`);
+  const count = document.getElementById(`count-${unitKey}`);
+  if(fill) fill.style.width = pct + '%';
+  if(count) count.textContent = `${done} / ${total}`;
+}
+
+/* ============================================================
+   RENDER: bank list (accordion)
+   ============================================================ */
+function renderBankList(){
+  const bank = QUESTION_BANKS[currentBank];
+  const list = document.getElementById('bankList');
+  list.innerHTML = bank.questions.map((q,i) => {
+    const rk = `${currentBank}#${i}`;
+    const revised = revisedMap[rk] ? 'checked' : '';
+    return `<div class="qcard" data-idx="${i}" data-q="${q.q.toLowerCase().replace(/"/g,'&quot;')}">
+      <button class="qhead" onclick="toggleCard(this)">
+        <span class="qnum">Q${i+1}</span>
+        <span class="qtext">${q.q}</span>
+        <span class="qmeta">
+          <span class="badge unit${q.unit}">Unit ${q.unit}</span>
+        </span>
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="qbody"><div class="qbody-inner">${q.a}</div>
+        <div class="revise-row">
+          <label class="revise-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" ${revised} onchange="toggleRevised('${rk}', this)">
+            <span>Mark as revised</span>
+          </label>
+          <span class="source-tag">Tesseract Labs</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  updateBankProgress();
+}
+function toggleCard(btn){
+  const card = btn.closest('.qcard');
+  const body = card.querySelector('.qbody');
+  const isOpen = card.classList.contains('open');
+  if(isOpen){
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => { body.style.maxHeight = '0px'; });
+    card.classList.remove('open');
+  } else {
+    card.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.addEventListener('transitionend', function h(){
+      if(card.classList.contains('open')) body.style.maxHeight = 'none';
+      body.removeEventListener('transitionend', h);
+    });
+  }
+}
+function expandAll(){
+  document.querySelectorAll('#bankList .qcard').forEach(card => {
+    if(!card.classList.contains('open')){
+      const body = card.querySelector('.qbody');
+      card.classList.add('open');
+      body.style.maxHeight = body.scrollHeight + 'px';
+    }
+  });
+}
+function collapseAll(){
+  document.querySelectorAll('#bankList .qcard').forEach(card => {
+    const body = card.querySelector('.qbody');
+    body.style.maxHeight = '0px';
+    card.classList.remove('open');
+  });
+}
+function toggleRevised(key, input){
+  revisedMap[key] = input.checked;
+  input.closest('.qcard').classList.toggle('revised', input.checked);
+  updateBankProgress();
+}
+function updateBankProgress(){
+  const bank = QUESTION_BANKS[currentBank];
+  const total = bank.questions.length;
+  let done = 0;
+  for(let i=0;i<total;i++){ if(revisedMap[`${currentBank}#${i}`]) done++; }
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('bankProgressLabel').textContent = `${done} of ${total} revised`;
+  document.getElementById('bankProgressFill').style.width = pct + '%';
+}
+function filterBank(){
+  const term = document.getElementById('bankSearch').value.trim().toLowerCase();
+  const cards = document.querySelectorAll('#bankList .qcard');
+  let visible = 0;
+  cards.forEach(card => {
+    const match = card.dataset.q.includes(term);
+    card.style.display = match ? '' : 'none';
+    if(match) visible++;
+  });
+  document.getElementById('bankEmpty').style.display = visible === 0 ? 'block' : 'none';
+}
+
+/* ============================================================
+   QUOTES
+   ============================================================ */
+function renderQuoteDots(){
+  const dots = document.getElementById('quoteDots');
+  dots.innerHTML = QUOTES.map((_,i) => `<span class="${i===quoteIdx?'on':''}"></span>`).join('');
+}
+function showQuote(){
+  const el = document.getElementById('quoteText');
+  el.classList.add('swap');
+  setTimeout(() => {
+    el.textContent = QUOTES[quoteIdx];
+    el.classList.remove('swap');
+    renderQuoteDots();
+  }, 260);
+}
+function startQuoteRotation(){
+  showQuote();
+  stopQuoteRotation();
+  quoteTimer = setInterval(() => {
+    quoteIdx = (quoteIdx + 1) % QUOTES.length;
+    showQuote();
+  }, 6000);
+}
+function stopQuoteRotation(){
+  if(quoteTimer){ clearInterval(quoteTimer); quoteTimer = null; }
+}
+
+/* ============================================================
+   FEEDBACK MODAL
+   ============================================================ */
+let fbRating = 0;
+function renderStars(){
+  const wrap = document.getElementById('fbStars');
+  wrap.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const btn = document.createElement('button');
+    btn.className = 'star-btn' + (i<=fbRating ? ' on' : '');
+    btn.type = 'button';
+    btn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
+    btn.onclick = () => { fbRating = i; renderStars(); };
+    wrap.appendChild(btn);
+  }
+}
+function openFeedback(){
+  document.getElementById('fbOverlay').classList.add('show');
+  document.getElementById('fbForm').style.display = 'block';
+  document.getElementById('fbSuccess').classList.remove('show');
+  document.getElementById('fbText').value = '';
+  fbRating = 0;
+  renderStars();
+}
+function closeFeedback(){
+  document.getElementById('fbOverlay').classList.remove('show');
+}
+function submitFeedback(){
+  const btn = document.getElementById('fbSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  setTimeout(() => {
+    document.getElementById('fbForm').style.display = 'none';
+    document.getElementById('fbSuccess').classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Send feedback';
+  }, 500);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  goHome();
+});
+</script>
+</body>
+</html>

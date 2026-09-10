@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesseract Labs — Database Management Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070d;
+  --panel:#0b0f1a;
+  --panel2:#0f1526;
+  --cyan:#22d3ee;
+  --violet:#8b5cf6;
+  --magenta:#ec4899;
+  --amber:#fbbf24;
+  --green:#34d399;
+  --text:#e7edf7;
+  --muted:#8ea0c6;
+  --border:rgba(150,170,220,0.14);
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  line-height:1.55;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.01em;}
+code, .mono{font-family:'JetBrains Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+::selection{background:var(--violet);color:#fff;}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+}
+
+/* ---------- layout shells ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ---------- nav ---------- */
+nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,7,13,0.72);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:1.05rem;}
+.brand-mark{width:26px;height:26px;position:relative;flex:none;}
+.navlinks{display:flex;gap:6px;align-items:center;}
+.navlinks button{
+  background:none;border:1px solid transparent;color:var(--muted);
+  font-family:'Inter',sans-serif;font-size:0.92rem;padding:8px 16px;
+  border-radius:999px;cursor:pointer;transition:color .15s, border-color .15s, background .15s;
+}
+.navlinks button:hover{color:var(--text);}
+.navlinks a.home-link{
+  display:inline-block;color:var(--muted);text-decoration:none;
+  font-family:'Inter',sans-serif;font-size:0.92rem;padding:8px 16px;
+  border-radius:999px;transition:color .15s;
+}
+.navlinks a.home-link:hover{color:var(--text);}
+.navlinks button.primary{
+  color:var(--bg);background:linear-gradient(120deg,var(--cyan),var(--violet));
+  font-weight:600;
+}
+.navlinks button.primary:hover{filter:brightness(1.08);}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:96px 0 64px;overflow:hidden;}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(to right, rgba(140,160,220,0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(140,160,220,0.06) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 30%, black 40%, transparent 90%);
+  pointer-events:none;
+}
+.hero-vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 15%, rgba(139,92,246,0.16), transparent 65%);
+  pointer-events:none;
+}
+#netCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0.85;}
+.hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:center;}
+@media (max-width:880px){.hero-inner{grid-template-columns:1fr;}}
+
+.eyebrow-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--border);background:rgba(34,211,238,0.06);
+  padding:6px 14px;border-radius:999px;font-size:0.82rem;color:var(--cyan);
+  font-family:'JetBrains Mono',monospace;
+}
+.hero h1{font-size:2.9rem;margin:20px 0 16px;line-height:1.08;}
+.hero h1 .grad{
+  background:linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lead{color:var(--muted);font-size:1.08rem;max-width:52ch;margin-bottom:26px;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:34px;}
+.btn{
+  padding:13px 26px;border-radius:10px;font-weight:600;font-size:0.96rem;
+  cursor:pointer;border:1px solid transparent;transition:transform .15s, filter .15s;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn-primary{background:linear-gradient(120deg,var(--cyan),var(--violet));color:#04060b;}
+.btn-primary:hover{filter:brightness(1.07);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{border-color:var(--cyan);}
+
+.query-line{
+  font-family:'JetBrains Mono',monospace;font-size:0.88rem;color:var(--green);
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;max-width:440px;
+}
+.query-line .caret{display:inline-block;width:8px;height:1em;background:var(--green);vertical-align:middle;animation:blink 1s steps(2) infinite;margin-left:2px;}
+@keyframes blink{50%{opacity:0;}}
+
+/* schema/cylinder visual */
+.schema-stage{position:relative;height:340px;display:flex;align-items:center;justify-content:center;perspective:900px;}
+.db-cylinder{width:200px;height:230px;position:relative;transform-style:preserve-3d;animation:spinY 14s linear infinite;}
+@keyframes spinY{from{transform:rotateY(0deg) rotateX(6deg);}to{transform:rotateY(360deg) rotateX(6deg);}}
+.db-cylinder svg{position:absolute;inset:0;}
+.orbit-ring{
+  position:absolute;border:1px dashed rgba(139,92,246,0.35);border-radius:50%;
+  animation:spin 22s linear infinite;
+}
+.orbit-ring.r1{width:300px;height:300px;top:20px;left:calc(50% - 150px);}
+.orbit-ring.r2{width:230px;height:230px;top:55px;left:calc(50% - 115px);animation-direction:reverse;animation-duration:16s;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.orbit-node{
+  position:absolute;width:10px;height:10px;border-radius:50%;
+  box-shadow:0 0 12px 2px currentColor;
+}
+
+/* quotes */
+.quote-strip{margin-top:14px;height:28px;position:relative;overflow:hidden;max-width:440px;}
+.quote-strip span{
+  position:absolute;inset:0;font-size:0.92rem;color:var(--muted);font-style:italic;
+  opacity:0;transition:opacity .8s ease;
+}
+.quote-strip span.show{opacity:1;}
+
+/* ---------- sections ---------- */
+section{padding:74px 0;}
+.section-head{max-width:60ch;margin-bottom:44px;}
+.section-head .kicker{color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.section-head h2{font-size:2rem;margin-top:10px;}
+.section-head p{color:var(--muted);margin-top:12px;}
+
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media (max-width:880px){.feature-grid{grid-template-columns:1fr 1fr;}}
+@media (max-width:560px){.feature-grid{grid-template-columns:1fr;}}
+.feature-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:26px 22px;transition:border-color .2s, transform .2s;
+}
+.feature-card:hover{border-color:rgba(139,92,246,0.45);transform:translateY(-3px);}
+.feature-card .ficon{
+  width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;margin-bottom:14px;
+  background:linear-gradient(135deg, rgba(34,211,238,0.16), rgba(139,92,246,0.16));
+  border:1px solid var(--border);
+}
+.feature-card h3{font-size:1.02rem;margin-bottom:8px;}
+.feature-card p{color:var(--muted);font-size:0.9rem;}
+
+footer{border-top:1px solid var(--border);padding:34px 0;color:var(--muted);font-size:0.88rem;}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+
+/* ---------- subject page ---------- */
+.subject-header{padding:52px 0 20px;position:relative;}
+.subject-header h1{font-size:2rem;}
+.subject-header .sub{color:var(--muted);margin-top:8px;}
+
+.unit-tabs{display:flex;gap:8px;margin:28px 0 22px;flex-wrap:wrap;}
+.unit-tab{
+  padding:10px 20px;border-radius:10px;border:1px solid var(--border);
+  background:var(--panel);color:var(--muted);cursor:pointer;font-weight:600;font-size:0.92rem;
+  transition:all .15s;
+}
+.unit-tab.active{color:#04060b;background:linear-gradient(120deg,var(--cyan),var(--violet));border-color:transparent;}
+
+.progress-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.progress-wrap .ptext{font-size:0.88rem;color:var(--muted);white-space:nowrap;}
+.progress-bar{flex:1;min-width:160px;height:8px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));width:0%;transition:width .3s ease;}
+
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+.search-box{
+  flex:1;min-width:220px;background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:11px 16px;color:var(--text);font-family:'Inter',sans-serif;font-size:0.92rem;
+}
+.search-box::placeholder{color:var(--muted);}
+.chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{
+  padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--panel);
+  color:var(--muted);font-size:0.82rem;cursor:pointer;transition:all .15s;user-select:none;
+}
+.chip.active{background:rgba(139,92,246,0.18);border-color:var(--violet);color:var(--text);}
+.chip.bookmarkchip.active{background:rgba(251,191,36,0.16);border-color:var(--amber);color:var(--amber);}
+
+.quiz-btn{
+  background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  padding:10px 18px;border-radius:10px;font-size:0.86rem;cursor:pointer;display:inline-flex;gap:8px;align-items:center;
+}
+.quiz-btn:hover{border-color:var(--cyan);}
+
+.qcount{color:var(--muted);font-size:0.85rem;margin:6px 0 18px;}
+
+.qgrid{display:flex;flex-direction:column;gap:14px;}
+.qcard{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;
+}
+.qcard .qtop{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
+.qtags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.tag{font-size:0.72rem;padding:3px 9px;border-radius:6px;font-family:'JetBrains Mono',monospace;letter-spacing:0.2px;}
+.tag.marks{background:rgba(34,211,238,0.14);color:var(--cyan);}
+.tag.pyq{background:rgba(52,211,153,0.14);color:var(--green);}
+.tag.predicted{background:rgba(251,191,36,0.14);color:var(--amber);}
+.tag.concept{background:rgba(150,170,220,0.12);color:var(--muted);}
+.tag.high{background:rgba(236,72,153,0.14);color:var(--magenta);}
+.qtext{font-size:1rem;font-weight:600;margin-bottom:4px;}
+.qactions{display:flex;gap:8px;flex:none;}
+.iconbtn{
+  width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;
+  transition:all .15s;
+}
+.iconbtn:hover{border-color:var(--cyan);color:var(--text);}
+.iconbtn.on{color:var(--amber);border-color:var(--amber);}
+.iconbtn.reviewed.on{color:var(--green);border-color:var(--green);}
+
+.reveal-btn{
+  margin-top:12px;background:none;border:1px solid var(--border);color:var(--cyan);
+  padding:8px 16px;border-radius:8px;font-size:0.85rem;cursor:pointer;
+}
+.reveal-btn:hover{background:rgba(34,211,238,0.08);}
+.answer{
+  margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);
+  color:var(--muted);font-size:0.92rem;display:none;
+}
+.answer.open{display:block;}
+.answer pre{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text);margin:8px 0;white-space:pre;}
+.empty-state{color:var(--muted);text-align:center;padding:60px 0;}
+
+/* quiz modal */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(5,7,13,0.78);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:100;padding:20px;
+}
+.modal-backdrop.open{display:flex;}
+.modal{
+  background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:560px;width:100%;
+  padding:30px 28px;position:relative;
+}
+.modal-close{position:absolute;top:16px;right:18px;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
+.modal .qtags{margin-bottom:16px;}
+.modal .qtext{font-size:1.15rem;margin-bottom:6px;}
+.modal-actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40"><polygon points="20,3 35,12 35,28 20,37 5,28 5,12" fill="none" stroke="url(#navg)" stroke-width="1.6"/><polygon points="20,12 28,17 28,26 20,31 12,26 12,17" fill="none" stroke="url(#navg)" stroke-width="1.2" opacity="0.7"/><defs><linearGradient id="navg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="55%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>
+      Tesseract Labs
+    </div>
+    <div class="navlinks">
+      <a class="home-link" href="index.html">🏠 All Subjects</a>
+      <button onclick="showPage('home')">Home</button>
+      <button class="primary" onclick="showPage('subject')">Open DBMS Bank</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HOME PAGE ================= -->
+<div id="home" class="page active">
+  <header class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-vignette"></div>
+    <canvas id="netCanvas"></canvas>
+    <div class="wrap hero-inner">
+      <div>
+        <span class="eyebrow-badge">CT-1 · Database Management Systems</span>
+        <h1>Study <span class="grad">DBMS</span> the way you'll be tested on it.</h1>
+        <p class="lead">Unit 1 (ER Modeling, Architecture, Keys) and Unit 2 (Relational Algebra, TRC/DRC) broken into a tagged, filterable question bank built from your syllabus, PYQ sets, and predicted papers.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary" onclick="showPage('subject')">Open the question bank →</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">See what's inside</button>
+        </div>
+        <div class="query-line">SELECT topic FROM syllabus<br>WHERE priority = 'HIGH'<span class="caret"></span></div>
+        <div class="quote-strip" id="quoteStrip"></div>
+      </div>
+      <div class="schema-stage">
+        <div class="orbit-ring r1"></div>
+        <div class="orbit-ring r2"></div>
+        <div class="db-cylinder">
+          <svg viewBox="0 0 200 230">
+            <defs>
+              <linearGradient id="cylg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#22d3ee"/><stop offset="55%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="100" cy="35" rx="80" ry="26" fill="none" stroke="url(#cylg)" stroke-width="2"/>
+            <ellipse cx="100" cy="100" rx="80" ry="26" fill="none" stroke="url(#cylg)" stroke-width="1.6" opacity="0.85"/>
+            <ellipse cx="100" cy="165" rx="80" ry="26" fill="none" stroke="url(#cylg)" stroke-width="1.6" opacity="0.7"/>
+            <ellipse cx="100" cy="200" rx="80" ry="26" fill="none" stroke="url(#cylg)" stroke-width="2"/>
+            <line x1="20" y1="35" x2="20" y2="200" stroke="url(#cylg)" stroke-width="1.4" opacity="0.6"/>
+            <line x1="180" y1="35" x2="180" y2="200" stroke="url(#cylg)" stroke-width="1.4" opacity="0.6"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">// study toolkit</span>
+        <h2>Everything you need to drill the question bank</h2>
+        <p>Built around how you'll actually revise in the last few days before the exam — by priority, by mark value, and by what you already know.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card"><div class="ficon">🗂️</div><h3>Unit-wise question bank</h3><p>Every question sorted under Unit 1 (ER Modeling &amp; Architecture) and Unit 2 (Relational Algebra &amp; Calculus).</p></div>
+        <div class="feature-card"><div class="ficon">🔴</div><h3>Priority tags</h3><p>High-priority, repeated, and PYQ-backed questions are flagged so you know what to study first.</p></div>
+        <div class="feature-card"><div class="ficon">👁️</div><h3>Tap-to-reveal answers</h3><p>Answers stay hidden until you tap — test recall before you peek.</p></div>
+        <div class="feature-card"><div class="ficon">🎚️</div><h3>Marks &amp; type filters</h3><p>Filter to 1 / 5 / 10 mark questions, or narrow to PYQ-only vs predicted-only sets.</p></div>
+        <div class="feature-card"><div class="ficon">⭐</div><h3>Bookmark &amp; track progress</h3><p>Star anything you want to revisit and mark questions reviewed — a live progress bar shows how much of each unit you've covered.</p></div>
+        <div class="feature-card"><div class="ficon">🎲</div><h3>Random quiz mode</h3><p>Pulls a random question from your current filter for quick-fire self-testing, one card at a time.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <span>Built by Raghul S — Tesseract Labs</span>
+      <span>DBMS · CT-1 Question Bank</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ================= SUBJECT PAGE ================= -->
+<div id="subject" class="page">
+  <div class="wrap">
+    <div class="subject-header">
+      <h1>Database Management Systems — Question Bank</h1>
+      <p class="sub">Unit 1: File Processing, DBMS Architecture, ER Modeling &amp; Keys · Unit 2: ER-to-Relational Conversion, Relational Algebra, TRC &amp; DRC</p>
+
+      <div class="unit-tabs">
+        <div class="unit-tab active" data-unit="1" onclick="setUnit(1)">Unit 1 — ER Modeling &amp; Architecture</div>
+        <div class="unit-tab" data-unit="2" onclick="setUnit(2)">Unit 2 — Algebra &amp; Calculus</div>
+      </div>
+
+      <div class="progress-wrap">
+        <span class="ptext" id="progressText">0 / 0 reviewed</span>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <button class="quiz-btn" onclick="openQuiz()">🎲 Random quiz question</button>
+      </div>
+
+      <div class="controls">
+        <input class="search-box" id="searchBox" placeholder="Search questions or answers… e.g. 'weak entity'" oninput="renderCards()">
+        <div class="chips" id="chipRow">
+          <div class="chip active" data-filter="all" onclick="setChip('all')">All</div>
+          <div class="chip" data-filter="pyq" onclick="setChip('pyq')">PYQ only</div>
+          <div class="chip" data-filter="predicted" onclick="setChip('predicted')">Predicted only</div>
+          <div class="chip" data-filter="m1" onclick="setChip('m1')">1 mark</div>
+          <div class="chip" data-filter="m5" onclick="setChip('m5')">5 mark</div>
+          <div class="chip" data-filter="m10" onclick="setChip('m10')">10 mark</div>
+          <div class="chip" data-filter="high" onclick="setChip('high')">High priority 🔴</div>
+          <div class="chip bookmarkchip" data-filter="bookmarked" onclick="setChip('bookmarked')">⭐ Bookmarked</div>
+        </div>
+      </div>
+      <div class="qcount" id="qcount"></div>
+    </div>
+
+    <div class="qgrid" id="qgrid"></div>
+  </div>
+</div>
+
+<!-- quiz modal -->
+<div class="modal-backdrop" id="quizModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeQuiz()">✕</button>
+    <div class="qtags" id="quizTags"></div>
+    <div class="qtext" id="quizQ"></div>
+    <div class="answer" id="quizA"></div>
+    <button class="reveal-btn" id="quizRevealBtn" onclick="revealQuiz()">Show answer</button>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="nextQuiz()">Next question →</button>
+      <button class="btn btn-primary" onclick="markQuizReviewed()">Mark reviewed ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- hero network animation (DBMS join/query themed) ---------------- */
+(function(){
+  const canvas = document.getElementById('netCanvas');
+  const ctx = canvas.getContext('2d');
+  let W,H;
+  function resize(){
+    const hero = canvas.parentElement;
+    W = canvas.width = hero.offsetWidth;
+    H = canvas.height = hero.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const colors = ['#22d3ee','#8b5cf6','#ec4899'];
+  const nodeCount = window.innerWidth < 700 ? 8 : 13;
+  const nodes = [];
+  for(let i=0;i<nodeCount;i++){
+    nodes.push({
+      x: Math.random()*1, y: Math.random()*1,
+      vx: (Math.random()-0.5)*0.00028, vy:(Math.random()-0.5)*0.00028,
+      r: 2.4 + Math.random()*1.6,
+      c: colors[i % colors.length]
+    });
+  }
+  const edges = [];
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      if(Math.random() < 0.16){ edges.push({a:i,b:j, t:Math.random(), speed:0.0022+Math.random()*0.003, c: colors[(i+j)%colors.length]}); }
+    }
+  }
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    nodes.forEach(n=>{
+      n.x += n.vx; n.y += n.vy;
+      if(n.x<0||n.x>1) n.vx*=-1;
+      if(n.y<0||n.y>1) n.vy*=-1;
+    });
+    ctx.lineWidth = 1;
+    edges.forEach(e=>{
+      const a = nodes[e.a], b = nodes[e.b];
+      const ax=a.x*W, ay=a.y*H, bx=b.x*W, by=b.y*H;
+      const dist = Math.hypot(ax-bx, ay-by);
+      if(dist > W*0.42) return;
+      ctx.strokeStyle = 'rgba(150,170,220,0.14)';
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+      e.t += e.speed;
+      if(e.t>1) e.t=0;
+      const px = ax + (bx-ax)*e.t, py = ay + (by-ay)*e.t;
+      ctx.beginPath();
+      ctx.fillStyle = e.c;
+      ctx.shadowColor = e.c; ctx.shadowBlur = 8;
+      ctx.arc(px,py,2.1,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+    nodes.forEach(n=>{
+      const x=n.x*W, y=n.y*H;
+      ctx.beginPath();
+      ctx.fillStyle = n.c;
+      ctx.shadowColor = n.c; ctx.shadowBlur = 10;
+      ctx.arc(x,y,n.r,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ---------------- rotating quotes ---------------- */
+const QUOTES = [
+  "Normalize your tables before you normalize your stress.",
+  "A candidate key never lies — it's just minimal about it.",
+  "ACID isn't just for chemistry: Atomicity, Consistency, Isolation, Durability.",
+  "Every JOIN has a story. Know your keys and you'll know the story.",
+  "TRC asks what you want. Algebra tells you how to get it.",
+  "Weak entities need a strong entity nearby — a bit like exam week."
+];
+(function(){
+  const el = document.getElementById('quoteStrip');
+  QUOTES.forEach((q,i)=>{
+    const s = document.createElement('span');
+    s.textContent = '“' + q + '”';
+    if(i===0) s.classList.add('show');
+    el.appendChild(s);
+  });
+  let idx = 0;
+  setInterval(()=>{
+    const spans = el.querySelectorAll('span');
+    spans[idx].classList.remove('show');
+    idx = (idx+1) % spans.length;
+    spans[idx].classList.add('show');
+  }, 3800);
+})();
+
+/* ---------------- page routing ---------------- */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+  if(id==='subject') renderCards();
+}
+
+/* ---------------- question data ---------------- */
+/* [id, unit, marks, type('pyq'|'predicted'|'concept'), priority('high'|'medium'), question, answerHTML] */
+const QUESTIONS = [
+["u1-1m-01",1,1,"concept","high","What is DBMS?","DBMS is software used to store, retrieve, manage and manipulate data in a database efficiently."],
+["u1-1m-02",1,1,"concept","medium","What is a database?","A database is a collection of meaningful and interrelated information."],
+["u1-1m-03",1,1,"concept","medium","What is data redundancy?","Data redundancy is the unnecessary duplication of the same data in multiple files or locations."],
+["u1-1m-04",1,1,"concept","medium","What is data inconsistency?","Data inconsistency occurs when the same data has different values in different files or locations."],
+["u1-1m-05",1,1,"concept","high","What is data independence?","Data independence is the ability to modify one level of database schema without affecting the next higher level."],
+["u1-1m-06",1,1,"concept","high","Name the three levels of database architecture.","<ul><li>External level</li><li>Conceptual level</li><li>Internal / Physical level</li></ul>"],
+["u1-1m-07",1,1,"concept","high","Which level describes physical storage?","Physical / Internal level."],
+["u1-1m-08",1,1,"concept","high","Which data independence allows changes in storage without affecting the logical schema?","Physical data independence."],
+["u1-1m-09",1,1,"concept","medium","Which data model uses a tree structure?","Hierarchical data model."],
+["u1-1m-10",1,1,"concept","medium","Which model represents data using tables?","Relational model."],
+["u1-1m-11",1,1,"concept","medium","What is an ER model?","ER model is a high-level data model that represents entities, attributes and relationships graphically."],
+["u1-1m-12",1,1,"concept","high","What represents an entity in an ER diagram?","Rectangle."],
+["u1-1m-13",1,1,"concept","high","What represents a relationship?","Diamond."],
+["u1-1m-14",1,1,"concept","high","What represents an attribute?","Ellipse / Oval."],
+["u1-1m-15",1,1,"concept","high","What represents a multivalued attribute?","Double ellipse."],
+["u1-1m-16",1,1,"pyq","high","What represents a derived attribute? <span class='tag pyq' style='margin-left:6px;'>appeared in Set D</span>","Dashed ellipse."],
+["u1-1m-17",1,1,"concept","high","What is a weak entity?","A weak entity is an entity that cannot be uniquely identified by its own attributes and depends on a strong entity."],
+["u1-1m-18",1,1,"concept","high","What represents a weak entity?","Double rectangle."],
+["u1-1m-19",1,1,"concept","high","What represents an identifying relationship?","Double diamond."],
+["u1-1m-20",1,1,"concept","high","What is a super key?","A super key is a set of one or more attributes that uniquely identifies a tuple."],
+["u1-1m-21",1,1,"concept","high","What is a candidate key?","A minimal super key is called a candidate key."],
+["u1-1m-22",1,1,"concept","high","What is a primary key?","A candidate key selected to uniquely identify records in a relation is called a primary key."],
+["u1-1m-23",1,1,"concept","high","What is a foreign key?","A foreign key is an attribute in one relation that references the primary key of another relation."],
+["u1-1m-24",1,1,"concept","high","What is 1:1 cardinality?","One entity of A is associated with at most one entity of B, and vice versa."],
+["u1-1m-25",1,1,"concept","high","What is 1:N cardinality?","One entity of A can be associated with many entities of B."],
+["u1-1m-26",1,1,"concept","high","What is M:N cardinality?","Many entities of A can be associated with many entities of B."],
+["u1-1m-27",1,1,"concept","medium","What is total participation?","Every entity in an entity set must participate in at least one relationship."],
+["u1-1m-28",1,1,"concept","medium","What is partial participation?","Only some entities participate in the relationship."],
+["u1-1m-29",1,1,"concept","medium","What is a domain constraint?","A domain constraint specifies the valid values that an attribute can take."],
+["u1-1m-30",1,1,"concept","medium","What is entity integrity?","Entity integrity requires that a primary key must be unique and cannot be NULL."],
+["u1-1m-31",1,1,"concept","high","What is referential integrity?","Referential integrity ensures that a foreign-key value must match a valid referenced primary-key value, unless NULL is permitted."],
+
+["u1-5m-01",1,5,"concept","high","Explain the problems / issues in a File Processing System.","<ul><li>Data redundancy — same data duplicated in multiple files</li><li>Data inconsistency — updating one copy may not update others</li><li>Limited data sharing between applications</li><li>Data dependence on physical file structure</li><li>Integrity problems — hard to enforce validation rules</li><li>Security problems — limited access control</li><li>Concurrency problems — simultaneous updates conflict</li><li>Scalability problems with large data volumes</li><li>Limited query capability</li></ul><b>Conclusion:</b> DBMS was developed to overcome redundancy, inconsistency, isolation, security, integrity and concurrency problems of file processing."],
+["u1-5m-02",1,5,"concept","high","Explain the advantages of DBMS over a File Processing System.","<pre>File Processing          DBMS\nHigh redundancy          Redundancy controlled\nData inconsistency       Better consistency\nLimited sharing          Easy data sharing\nPoor security            Better security\nDifficult recovery       Backup & recovery\nPoor concurrency         Concurrency control\nProgram-data dependence  Data independence\nLimited queries          Powerful query language</pre>"],
+["u1-5m-03",1,5,"concept","high","Explain DBMS Architecture / Three-Schema Architecture.","<b>1. External Level</b> — highest level, user's view; different users can have different views.<br><b>2. Conceptual Level</b> — complete logical structure: entities, relationships, constraints; hides physical storage details.<br><b>3. Internal / Physical Level</b> — lowest level; how data is physically stored (files, indexes, storage structures).<pre>        USERS\n          ↓\n   External Level\n     /    |    \\\n   View1 View2 View3\n          ↓\n   Conceptual Level\n          ↓\n    Internal Level\n          ↓\n   Physical Storage</pre>"],
+["u1-5m-04",1,5,"concept","high","Explain Physical and Logical Data Independence.","<b>Physical Data Independence</b> — change physical storage without changing the logical schema. Examples: HDD→SSD, changing file organization, changing indexes, changing access methods, moving the DB to another drive.<br><br><b>Logical Data Independence</b> — change the logical schema without affecting external views/applications. Examples: adding an attribute, removing an attribute, splitting or merging records.<br><br><i>Very likely question:</i> Differentiate Physical vs Logical Data Independence — physical is concerned with the internal schema and is easier to achieve; logical is concerned with the conceptual/external schema and is more difficult."],
+["u1-5m-05",1,5,"concept","high","Explain the different Data Models.","<b>1. Hierarchical</b> — tree structure, parent-child, mainly 1:N.<br><b>2. Network</b> — extension of hierarchical, a record can have multiple parents, supports complex relationships.<br><b>3. ER Model</b> — high-level conceptual model using entities, attributes, relationships.<br><b>4. Relational Model</b> — tables; rows are tuples, columns are attributes.<br><b>5. Object-Oriented Model</b> — data as objects, combining data and operations."],
+["u1-5m-06",1,5,"concept","high","Explain ER Diagram symbols / notations.","<pre>Rectangle             Entity\nDouble rectangle      Weak entity\nDiamond               Relationship\nDouble diamond        Identifying relationship\nOval                  Attribute\nDouble oval           Multivalued attribute\nDashed oval           Derived attribute\nUnderlined attribute  Key attribute\nDouble line           Total participation</pre>"],
+["u1-5m-07",1,5,"concept","high","Explain the different types of Keys.","<b>Super Key</b> — any attribute set that uniquely identifies a record. e.g. Student(Roll_No, Name, Dept) → Roll_No, (Roll_No,Name).<br><b>Candidate Key</b> — minimal super key, e.g. Roll_No.<br><b>Primary Key</b> — candidate key chosen to identify tuples, e.g. Roll_No.<br><b>Foreign Key</b> — attribute referring to another table's primary key, e.g. Student.Dept_ID → Department.Dept_ID.<br><i>Memory:</i> Super → Candidate → Primary."],
+["u1-5m-08",1,5,"concept","high","Explain the types of constraints.","<ul><li>Domain constraint — values must belong to a valid domain</li><li>Key constraint — key values must uniquely identify tuples</li><li>Entity integrity — primary key cannot be NULL</li><li>Referential integrity — foreign key must reference a valid key</li><li>NOT NULL — attribute cannot contain NULL</li><li>UNIQUE — no duplicate values allowed</li><li>CHECK — values must satisfy a condition</li></ul>"],
+["u1-5m-09",1,5,"concept","high","Explain Mapping Cardinality.","Mapping cardinality specifies how many entities can be associated through a relationship.<br><b>1:1</b> — Person–Passport.<br><b>1:N</b> — Department–Employee (one dept employs many).<br><b>N:1</b> — Employee–Department (many work for one).<br><b>M:N</b> — Student–Course (many enroll in many)."],
+["u1-5m-10",1,5,"concept","high","Explain Strong Entity and Weak Entity.","<b>Strong Entity</b> — has its own primary key, can exist independently. e.g. EMPLOYEE(Emp_ID PK, Name, Salary).<br><b>Weak Entity</b> — no complete primary key of its own, depends on a strong entity; uses owner's PK + partial key. e.g. DEPENDENT(Dependent_Name partial key, Age) with combined key (Emp_ID, Dependent_Name)."],
+["u1-5m-11",1,5,"concept","high","How does DBMS overcome redundancy and inconsistency?","<ul><li>Centralized data storage reduces duplicate data</li><li>Normalization reduces unnecessary repetition</li><li>Constraints maintain data integrity</li><li>Primary/foreign keys maintain relationships</li><li>Transactions maintain consistency</li><li>Concurrency control handles simultaneous users</li><li>Controlled updates keep changes consistent</li></ul><span class='tag pyq'>Actual Set D FP-I question</span>"],
+
+["u1-10m-01",1,10,"predicted","high","Design an ER diagram for a Hospital Management System.","<b>Entities:</b> PATIENT(Patient_ID PK, Name, DOB, Address, Phone) · DOCTOR(Doctor_ID PK, Name, Specialization, Phone) · APPOINTMENT(Appointment_ID PK, Date, Time) · TREATMENT(Treatment_ID PK, Description, Cost)<br><b>Relationships:</b><pre>PATIENT 1 ── books ── N APPOINTMENT\nDOCTOR  1 ── attends ── N APPOINTMENT\nAPPOINTMENT 1 ── has ── N TREATMENT</pre><b>Notes:</b> a patient can have many appointments, a doctor can handle many appointments, and treatment info attaches to an appointment. For 10 marks: Entities (2) + Attributes/PK (2) + Relationships (2) + Cardinalities (2) + diagram (2)."],
+["u1-10m-02",1,10,"predicted","high","Design an ER diagram for a Library Management System.","<b>Entities:</b> BOOK(ISBN PK, Title, Author, Publisher) · MEMBER(Member_ID PK, Name, Address, Phone) · LIBRARIAN(Librarian_ID PK, Name, Phone) · BOOK_COPY(Copy_No, ISBN FK)<br><b>Relationships:</b><pre>BOOK 1 ── has ── N BOOK_COPY\nMEMBER M ── borrows ── N BOOK_COPY  (Issue_Date, Return_Date)\nLIBRARIAN 1 ── manages ── N BOOK</pre><b>Note:</b> BOOK_COPY is a weak entity — a copy can't exist without its book. (A similar Smart City Library scenario with Branch/Nominee appeared in the actual Set D 10-mark paper.)"],
+["u1-10m-03",1,10,"predicted","high","Design an ER diagram for a Banking System.","<b>Entities:</b> CUSTOMER(Customer_ID PK, Name, Address, Phone) · ACCOUNT(Account_No PK, Account_Type, Balance) · BRANCH(Branch_ID PK, Branch_Name, Location) · LOAN(Loan_No PK, Amount, Loan_Type)<br><b>Relationships:</b><pre>CUSTOMER M ── Deposits ── N ACCOUNT\nBRANCH 1 ── maintains ── N ACCOUNT\nCUSTOMER M ── Takes ── N LOAN\nBRANCH 1 ── Provides ── N LOAN</pre><b>Key point (asked in Set C):</b> if one customer has multiple accounts, the foreign key belongs on the many side — i.e. the Account table."],
+["u1-10m-04",1,10,"predicted","high","Design an ER diagram for a University Database.","<b>Entities:</b> STUDENT(Student_ID PK, Name, DOB, Address) · COURSE(Course_ID PK, Course_Name, Credits) · INSTRUCTOR(Instructor_ID PK, Name, Salary) · DEPARTMENT(Dept_ID PK, Dept_Name)<br><b>Relationships:</b><pre>DEPARTMENT 1 ── has ── N STUDENT\nDEPARTMENT 1 ── offers ── N COURSE\nINSTRUCTOR 1 ── teaches ── N COURSE\nSTUDENT M ── enrolls ── N COURSE</pre>For the M:N enrollment: ENROLLMENT(Student_ID FK, Course_ID FK, Grade)."],
+["u1-10m-05",1,10,"predicted","medium","Design an ER diagram for an Employee Database.","<b>Entities:</b> EMPLOYEE(Emp_ID PK, Name, Salary, Phone, Dept_ID) · DEPARTMENT(Dept_ID PK, Dept_Name, Location)<br><b>Relationship:</b> DEPARTMENT 1 ── employs ── N EMPLOYEE<br><b>If employee has multiple phone numbers</b> (multivalued attribute): EMPLOYEE_PHONE(Emp_ID FK, Phone_No, PK(Emp_ID, Phone_No))."],
+
+["u2-1m-01",2,1,"concept","high","What is Relational Algebra?","A procedural query language that uses operators to retrieve and manipulate relations."],
+["u2-1m-02",2,1,"concept","high","What is Relational Calculus?","A non-procedural / declarative query language that specifies what data is required rather than how to retrieve it."],
+["u2-1m-03",2,1,"concept","high","What is selection? Give its symbol.","Selection retrieves rows satisfying a condition. Symbol: σ"],
+["u2-1m-04",2,1,"concept","high","What is projection? Give its symbol.","Projection retrieves selected columns. Symbol: π"],
+["u2-1m-05",2,1,"concept","high","What is Cartesian product? Give its symbol.","Combines every tuple of one relation with every tuple of another. Symbol: ×"],
+["u2-1m-06",2,1,"concept","high","What is union? Give its symbol.","Returns tuples present in either relation. Symbol: ∪"],
+["u2-1m-07",2,1,"concept","high","What is set difference? Give its symbol.","Returns tuples present in the first relation but not the second. Symbol: −"],
+["u2-1m-08",2,1,"concept","medium","What is the rename operation? Give its symbol.","Rename changes the name of a relation. Symbol: ρ"],
+["u2-1m-09",2,1,"concept","high","What is Tuple Relational Calculus (TRC)?","A non-procedural query language in which variables represent complete tuples."],
+["u2-1m-10",2,1,"concept","high","What is Domain Relational Calculus (DRC)?","A non-procedural query language in which variables represent individual attribute / domain values."],
+["u2-1m-11",2,1,"concept","high","What is the general form of TRC?","{ t | P(t) }"],
+["u2-1m-12",2,1,"concept","high","What is the general form of DRC?","{ &lt;x1,x2,...,xn&gt; | P(x1,x2,...,xn) }"],
+["u2-1m-13",2,1,"concept","medium","What is a tuple variable?","A variable representing an entire tuple of a relation."],
+["u2-1m-14",2,1,"concept","medium","What is a domain variable?","A variable representing a single attribute value from a domain."],
+["u2-1m-15",2,1,"concept","medium","What does ∃ mean?","There exists."],
+["u2-1m-16",2,1,"concept","medium","What does ∀ mean?","For all."],
+["u2-1m-17",2,1,"concept","high","Which is procedural: Algebra or Calculus?","Relational Algebra."],
+["u2-1m-18",2,1,"concept","high","Which is declarative: Algebra or Calculus?","Relational Calculus."],
+["u2-1m-19",2,1,"concept","high","What is a safe expression?","An expression that produces a finite relation containing values from the relevant database domains — needed because unrestricted TRC expressions can otherwise produce infinite relations."],
+["u2-1m-20",2,1,"concept","high","What is the weak entity conversion rule?","Include the weak entity's attributes, the owner's primary key, and the partial key."],
+
+["u2-5m-01",2,5,"concept","high","Explain conversion of a Strong Entity with simple attributes into a relational table.","Create one relation, include all attributes, and select the entity's key as primary key.<pre>STUDENT(Reg_No, Name, DOB)</pre>Reg_No is the primary key."],
+["u2-5m-02",2,5,"concept","high","Explain conversion of Composite Attributes.","A composite attribute is split into its simple component attributes.<pre>Name → First_Name, Last_Name\nAddress → Street, City, Pincode</pre>Instead of Student(Reg_No, Name, Address), create:<pre>Student(Reg_No, First_Name, Last_Name, Street, City, Pincode)</pre>Only the simple components are included."],
+["u2-5m-03",2,5,"concept","high","Explain conversion of Multivalued Attributes.","A multivalued attribute requires a separate table.<pre>STUDENT(Reg_No, Name)\nSTUDENT_PHONE(Reg_No, Phone_No)</pre>Primary key of STUDENT_PHONE: (Reg_No, Phone_No)."],
+["u2-5m-04",2,5,"concept","high","Explain conversion of a Weak Entity into a relational table.","<b>Steps:</b> (1) create a separate table for the weak entity, (2) include weak entity attributes, (3) include the strong entity's primary key as a foreign key, (4) combine owner key + partial key to form the primary key.<pre>EMPLOYEE(Emp_ID PK, Name)\nDEPENDENT(Emp_ID FK, Dependent_Name, Age, PK(Emp_ID, Dependent_Name))</pre><span class='tag pyq'>Exact example in Set D answer key</span>"],
+["u2-5m-05",2,5,"concept","high","Explain translating a Relationship Set into a table.","Include the primary keys of participating entities plus any relationship attributes; the combined keys generally form the primary key for M:N relationships.<pre>EMPLOYEE(Emp_No, Name)\nDEPARTMENT(Dept_ID, Name)\nWORKS_IN(Emp_No, Dept_ID, Date_of_Join)</pre>"],
+["u2-5m-06",2,5,"concept","high","Explain Binary Cardinality Ratios.","<b>1:1</b> — one entity ↔ one entity.<br><b>1:N</b> — one entity ↔ many entities.<br><b>N:1</b> — many entities ↔ one entity.<br><b>M:N</b> — many entities ↔ many entities."],
+["u2-5m-07",2,5,"concept","high","Explain Relational Algebra operations.","<pre>Selection            σ    Select rows\nProjection           π    Select columns\nUnion                ∪    Combine tuples\nIntersection         ∩    Common tuples\nDifference           −    Tuples in first only\nCartesian Product    ×    Pair every tuple\nJoin                 ⋈    Combine related tuples\nRename               ρ    Rename relation\nAssignment           ←    Store result</pre>"],
+["u2-5m-08",2,5,"concept","high","Explain Selection and Projection with examples.","Given EMP(EmpNo, Name, Job, Salary, DeptNo):<br><b>Selection</b> (rows) — salary &gt; 2000: <code>σ Salary&gt;2000 (EMP)</code><br><b>Projection</b> (columns) — name and job: <code>π Name,Job (EMP)</code><br><i>Memory:</i> Selection = Rows, Projection = Columns."],
+["u2-5m-09",2,5,"concept","high","Explain Union and Set Difference.","<b>Union (R ∪ S):</b> tuples from R or S; needs same number of attributes, compatible domains; duplicates removed.<br><b>Difference (R − S):</b> tuples present in R but not in S."],
+["u2-5m-10",2,5,"concept","high","Explain Cartesian Product with an example.","R × S combines every tuple of R with every tuple of S — if R has m tuples and S has n tuples, R×S has m×n tuples.<pre>A={1,2,3}, B={X,Y}\nResult: (1,X)(1,Y)(2,X)(2,Y)(3,X)(3,Y)</pre>"],
+["u2-5m-11",2,5,"concept","high","Explain Tuple Relational Calculus with an example.","TRC is non-procedural. General form: { t | P(t) } where t is a tuple variable and P(t) is a predicate.<br>Example — employees with salary &gt; 2000:<pre>{t | t ∈ EMP ∧ t[Salary] > 2000}</pre>"],
+["u2-5m-12",2,5,"concept","high","Explain Domain Relational Calculus with an example.","DRC uses domain variables, one per attribute value. General form: {&lt;x1,...,xn&gt; | P(x1,...,xn)}<br>Example — loans over 1200:<pre>{<l,b,a> | <l,b,a> ∈ Loan ∧ a > 1200}</pre>"],
+["u2-5m-13",2,5,"concept","high","Differentiate Relational Algebra and Relational Calculus.","<pre>Relational Algebra          Relational Calculus\nProcedural                  Non-procedural\nSpecifies HOW                Specifies WHAT\nUses operators               Uses predicates\nσ, π, ∪, −, ×, ⋈              logic & quantifiers\nUsed for execution planning   High-level specification</pre><i>One-liner:</i> Algebra tells HOW to retrieve; Calculus tells WHAT to retrieve.<span class='tag pyq'>Asked directly in Set D</span>"],
+["u2-5m-14",2,5,"concept","high","Explain Safety of Expressions in Tuple Relational Calculus.","Some unrestricted calculus expressions can generate infinite relations, e.g. {t | ¬(t ∈ R)} over an infinite domain. To prevent this, we restrict expressions to <b>safe expressions</b> — ones that produce a finite result whose values relate properly to the database domains in the expression."],
+["u2-5m-15",2,5,"concept","high","Explain pitfalls in relational database design.","Poor design can cause: repetition of information, inability to represent certain information, and update / insertion / deletion anomalies plus NULL-value problems.<br>Example: Lending(Branch_Name, Branch_City, Assets, Customer_Name, Loan_Number, Amount) repeats branch details per loan.<br><b>Fix — decompose:</b><pre>Branch_Customer(Branch_Name, Branch_City, Assets, Customer_Name)\nCustomer_Loan(Customer_Name, Loan_Number, Amount)</pre>"],
+
+["u2-10m-01",2,10,"predicted","high","Explain conversion of an ER model into relational tables (all cases).","<b>Case 1 — simple attributes:</b> Student(Reg_No, Name, DOB)<br><b>Case 2 — composite:</b> Student(Reg_No, First_Name, Last_Name, Street, City, Pincode)<br><b>Case 3 — multivalued:</b> Student(Reg_No, Name) + Student_Phone(Reg_No, Phone_No)<br><b>Case 4 — relationship:</b> Works_In(Emp_No, Dept_ID, Date_of_Join)<br><b>Case 5 — weak entity:</b> Employee(Emp_ID PK, Name) + Dependent(Emp_ID FK, Dependent_Name, Age, PK(Emp_ID,Dependent_Name))<br><b>Case 6 — M:N:</b> Enrollment(Student_ID FK, Course_ID FK, Grade, PK(Student_ID,Course_ID))"],
+["u2-10m-02",2,10,"predicted","high","Explain all Relational Algebra operations with examples.","Given EMP(EmpNo, Name, Job, Salary, DeptNo):<pre>Selection:   σ Salary>2000 (EMP)\nProjection:  π Name,Job (EMP)\nUnion:       EMP1 ∪ EMP2\nDifference:  EMP1 − EMP2\nCartesian:   EMP × DEPT\nJoin:        EMP ⋈ EMP.DeptNo=DEPT.DeptNo DEPT\nRename:      ρ E(EMP)\nIntersection:EMP1 ∩ EMP2\nAssignment:  TEMP ← σ Salary>2000(EMP)</pre>"],
+["u2-10m-03",2,10,"predicted","high","Solve Relational Algebra query problems.","Given EMP(EmpNo,Name,Job,Salary,DeptNo), DEPT(DeptNo,DeptName,Location):<pre>Q1 salary>30000:      σ Salary>30000 (EMP)\nQ2 employee names:    π Name (EMP)\nQ3 names, salary>30000: π Name (σ Salary>30000 (EMP))\nQ4 employees in Chennai: π Name (σ Location='Chennai' (EMP ⋈ DEPT))\nQ5 name + dept name:  π Name,DeptName (EMP ⋈ EMP.DeptNo=DEPT.DeptNo DEPT)</pre><i>Pattern:</i> for 'find names where condition' → SELECT first, then PROJECT."],
+["u2-10m-04",2,10,"predicted","high","Explain TRC with suitable queries.","Given EMP(EmpNo,Name,Job,Salary,DeptNo):<pre>Salary > 2000:\n{t | t ∈ EMP ∧ t[Salary] > 2000}\n\nEmpNo with salary > 2000:\n{t | ∃s ∈ EMP ( t[EmpNo]=s[EmpNo] ∧ s[Salary]>2000 )}</pre>"],
+["u2-10m-05",2,10,"predicted","high","Explain DRC with suitable queries.","Given LOAN(Loan_No, Branch_Name, Amount):<pre>Loans > 1200:\n{<l,b,a> | <l,b,a> ∈ LOAN ∧ a > 1200}\n\nCustomers with loan > 1200:\n{<c> | ∃l,b,a ( <c,l> ∈ BORROWER ∧ <l,b,a> ∈ LOAN ∧ a>1200 )}</pre>"],
+["u2-10m-06",2,10,"predicted","high","Compare Relational Algebra, TRC and DRC.","<pre>Feature       Algebra    TRC        DRC\nType          Procedural Non-proc.  Non-proc.\nVariables     Relations  Tuples     Domain values\nMain concept  Operators  Predicates Predicates\nSpecifies     How        What       What\nExample       σ,π,⋈      {t|P(t)}   {<x,y>|P(x,y)}</pre>"],
+["u2-10m-07",2,10,"predicted","high","Explain the Computational Capability of Relational Algebra and Calculus.","Relational Algebra and Relational Calculus have equivalent expressive power under standard theoretical assumptions — Algebra is procedural, Calculus is declarative.<br><span class='tag pyq'>Set D asks directly: \"computational capability of relational algebra is equivalent to\" → <b>First-order logic</b></span>"],
+
+["setc-1m-01",1,1,"pyq","high","In a Banking System, if one customer has multiple accounts, where should the foreign key be placed?","Account table."],
+["setc-1m-02",1,1,"pyq","high","Updating an employee's salary in one file but not another is called?","Data inconsistency."],
+["setc-1m-03",1,1,"pyq","high","Changing HDD to SSD without changing application programs demonstrates?","Physical data independence."],
+["setc-1m-04",1,1,"pyq","high","Tables with rows, columns and primary keys represent which model?","Relational model."],
+["setc-1m-05",2,1,"pyq","high","Which statement is incorrect (about relations)?","A row in a relational table cannot have an attribute containing multiple values."],
+["setc-1m-06",2,1,"pyq","high","How is a composite attribute converted?","Include its component (simple) attributes as separate columns."],
+["setc-1m-07",2,1,"pyq","high","Which operation is fundamental in relational algebra (per the answer key)?","Projection — though the exact wording of this question in the key is imperfect, projection is the intended concept."],
+["setc-1m-08",2,1,"pyq","high","DRC represents results using?","Domain variables with assigned values."],
+["setc-1m-09",2,1,"pyq","high","Which is NOT a relational design pitfall?","Normalization of tables."],
+["setc-1m-10",2,1,"pyq","high","TRC query form?","{ t | Condition(t) }"],
+
+["setc-5m-01",1,5,"pyq","high","Outline the types of database users, their functions, and why different interfaces are needed.","<ul><li>Naive users</li><li>Application programmers</li><li>Sophisticated users</li><li>Native users</li><li>Specialized users</li><li>Stand-alone users</li></ul>Different interfaces are needed because each user group's knowledge and responsibilities differ."],
+["setc-5m-02",1,5,"pyq","high","Identify all types of attributes for a Smart_Device entity and show them in an ER diagram.","Attributes: Device_ID, Device_Name, Device_Type, Manufacturer_Details, Installation_Date, Device_Age, IP_Address, MAC_Address, Firmware_Versions, Location.<br><b>Types:</b> Device_Age → derived · Firmware_Versions → multivalued · Manufacturer_Details / Location → composite · the rest → simple."],
+["setc-5m-03",2,5,"pyq","high","Discuss conversion of a strong entity with multivalued and composite attributes into a relational table.","<pre>EMPLOYEE(Emp_ID, Name, Street, City, Pincode)\nEMPLOYEE_PHONE(Emp_ID, Phone_No, PK(Emp_ID, Phone_No))</pre>"],
+["setc-5m-04",2,5,"pyq","high","Illustrate common pitfalls in relational database design.","Repetition of information, NULL values, insertion anomaly, update anomaly, deletion anomaly — solved through decomposition."],
+
+["setc-10m-01",1,10,"pyq","high","Design an ER diagram for an Airline system (Set C actual 10-mark question).","<b>Entities:</b> AIRPORT, FLIGHT, AIRCRAFT, PASSENGER, EMERGENCY_CONTACT, BOOKING.<br><b>Relationships:</b><pre>AIRPORT 1 ── N FLIGHT\nAIRCRAFT 1 ── N FLIGHT\nPASSENGER M ── N FLIGHT (through BOOKING)\nPASSENGER 1 ── N EMERGENCY_CONTACT</pre>EMERGENCY_CONTACT is a weak entity (can't exist without PASSENGER). BOOKING is an associative entity with Booking_Date, Seat_Number, Travel_Class."],
+
+["setd-1m-01",1,1,"pyq","high","Which level of the architecture is the physical storage level?","Physical level."],
+["setd-1m-02",1,1,"pyq","high","What is the symbol for a derived attribute?","Dashed ellipse."],
+["setd-1m-03",1,1,"pyq","medium","A transaction is completed entirely or not at all — which ACID property?","Atomicity."],
+["setd-1m-04",1,1,"pyq","high","What defines a weak entity?","It does not have a primary key of its own."],
+["setd-1m-05",1,1,"pyq","medium","What is an advantage of DBMS over a file system?","Reduced data inconsistency and improved data sharing."],
+["setd-1m-06",2,1,"pyq","high","What is the fundamental difference between Algebra and Calculus?","Algebra is procedural; Calculus is declarative."],
+["setd-1m-07",2,1,"pyq","high","Weak entity conversion requires?","Both its own attributes and the identifying (owner) entity's key."],
+["setd-1m-08",2,1,"pyq","high","Which is a valid TRC expression?","{ t | Student(t) ∧ t.age > 18 }"],
+["setd-1m-09",2,1,"pyq","high","Which of these is NOT a relational design pitfall?","Using foreign keys."],
+["setd-1m-10",2,1,"pyq","high","What is the computational capability of relational algebra equivalent to?","First-order logic."],
+
+["setd-5m-01",1,5,"pyq","high","How does DBMS overcome data redundancy and inconsistency? (Set D)","Centralized storage, normalization, integrity constraints, primary/foreign keys, transaction management and concurrency control all reduce duplication and keep data consistent."],
+["setd-5m-02",1,5,"pyq","high","What is the role of the Query Processor in DBMS?","It parses, optimizes, and translates a high-level query into an efficient execution plan, then coordinates with the storage manager to retrieve results."],
+["setd-5m-03",2,5,"pyq","high","How is a weak entity converted into a relational table? (Set D)","Create a table with the weak entity's own attributes plus the strong entity's primary key as a foreign key; the combined (owner key + partial key) becomes the primary key."],
+["setd-5m-04",2,5,"pyq","high","Compare the roles of Relational Algebra and Relational Calculus in query optimization.","Calculus expresses queries declaratively (what is needed); a DBMS typically translates calculus into an equivalent algebra expression, which is then optimized and executed procedurally step by step."],
+
+["setd-10m-01",1,10,"pyq","high","Design an ER diagram for a Smart City Library system (Set D).","<b>Entities:</b> BRANCH, LIBRARIAN, BOOK, BOOK_COPY, MEMBER, NOMINEE, BORROW.<br><b>Cardinalities:</b><pre>BRANCH 1:N LIBRARIAN\nBOOK 1:N BOOK_COPY\nMEMBER M:N BOOK_COPY (via BORROW)\nMEMBER 1:N NOMINEE</pre>Weak entities: BOOK_COPY and NOMINEE."],
+["setd-10m-02",1,10,"pyq","high","Design an ER diagram for a ConnectHub social media platform (Set D).","<b>Entities:</b> USER, POST, COMMENT, PHONE_NUMBER, LIKE.<br><b>Relationships:</b><pre>USER 1:N POST\nUSER 1:N COMMENT\nPOST 1:N COMMENT\nUSER M:N POST (via LIKE)\nUSER 1:N PHONE_NUMBER</pre>PHONE_NUMBER is weak. LIKE is associative with User_ID, Post_ID, Date_Liked — composite key (User_ID, Post_ID)."]
+];
+
+/* ---------------- state ---------------- */
+let currentUnit = 1;
+let currentChip = 'all';
+let reviewed = new Set();
+let bookmarked = new Set();
+let openAnswers = new Set();
+let quizPool = [];
+let quizIndex = -1;
+let quizRevealed = false;
+
+/* ---------------- persistence (best effort, falls back silently) ---------------- */
+async function loadState(){
+  try{
+    if(window.storage){
+      const r = await window.storage.get('dbms-progress');
+      if(r && r.value){
+        const d = JSON.parse(r.value);
+        reviewed = new Set(d.reviewed||[]);
+        bookmarked = new Set(d.bookmarked||[]);
+      }
+    }
+  }catch(e){ /* no saved state yet, or storage unavailable — start fresh */ }
+  renderCards();
+}
+async function saveState(){
+  try{
+    if(window.storage){
+      await window.storage.set('dbms-progress', JSON.stringify({reviewed:[...reviewed], bookmarked:[...bookmarked]}));
+    }
+  }catch(e){ /* best effort only */ }
+}
+
+/* ---------------- unit / chip / search ---------------- */
+function setUnit(u){
+  currentUnit = u;
+  document.querySelectorAll('.unit-tab').forEach(t=>t.classList.toggle('active', Number(t.dataset.unit)===u));
+  renderCards();
+}
+function setChip(f){
+  currentChip = f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.dataset.filter===f));
+  renderCards();
+}
+
+function matchesChip(item){
+  const [,,marks,type,priority] = item;
+  switch(currentChip){
+    case 'all': return true;
+    case 'pyq': return type==='pyq';
+    case 'predicted': return type==='predicted';
+    case 'm1': return marks===1;
+    case 'm5': return marks===5;
+    case 'm10': return marks===10;
+    case 'high': return priority==='high';
+    case 'bookmarked': return bookmarked.has(item[0]);
+    default: return true;
+  }
+}
+
+function renderCards(){
+  const grid = document.getElementById('qgrid');
+  const search = document.getElementById('searchBox').value.trim().toLowerCase();
+  const filtered = QUESTIONS.filter(item=>{
+    if(item[1] !== currentUnit) return false;
+    if(!matchesChip(item)) return false;
+    if(search){
+      const hay = (item[5] + ' ' + item[6]).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('qcount').textContent = filtered.length + ' question' + (filtered.length===1?'':'s') + ' shown';
+
+  const unitTotal = QUESTIONS.filter(i=>i[1]===currentUnit).length;
+  const unitReviewed = QUESTIONS.filter(i=>i[1]===currentUnit && reviewed.has(i[0])).length;
+  document.getElementById('progressText').textContent = unitReviewed + ' / ' + unitTotal + ' reviewed';
+  document.getElementById('progressFill').style.width = (unitTotal? (unitReviewed/unitTotal*100):0) + '%';
+
+  if(filtered.length===0){
+    grid.innerHTML = '<div class="empty-state">No questions match this filter yet — try clearing the search or switching filters.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(item=>{
+    const [id,unit,marks,type,priority,q,a] = item;
+    const isBook = bookmarked.has(id);
+    const isRev = reviewed.has(id);
+    const isOpen = openAnswers.has(id);
+    return `
+    <div class="qcard">
+      <div class="qtop">
+        <div style="flex:1;">
+          <div class="qtags">
+            <span class="tag marks">${marks} mark</span>
+            <span class="tag ${type}">${type==='pyq'?'PYQ':type==='predicted'?'Predicted':'Concept'}</span>
+            ${priority==='high'?'<span class="tag high">High priority</span>':''}
+          </div>
+          <div class="qtext">${q}</div>
+        </div>
+        <div class="qactions">
+          <button class="iconbtn ${isBook?'on':''}" title="Bookmark" onclick="toggleBookmark('${id}')">${isBook?'★':'☆'}</button>
+          <button class="iconbtn reviewed ${isRev?'on':''}" title="Mark reviewed" onclick="toggleReviewed('${id}')">✓</button>
+        </div>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer('${id}')">${isOpen?'Hide answer':'Show answer'}</button>
+      <div class="answer ${isOpen?'open':''}" id="ans-${id}">${a}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAnswer(id){
+  if(openAnswers.has(id)) openAnswers.delete(id); else openAnswers.add(id);
+  renderCards();
+}
+function toggleBookmark(id){
+  if(bookmarked.has(id)) bookmarked.delete(id); else bookmarked.add(id);
+  saveState(); renderCards();
+}
+function toggleReviewed(id){
+  if(reviewed.has(id)) reviewed.delete(id); else reviewed.add(id);
+  saveState(); renderCards();
+}
+
+/* ---------------- quiz mode ---------------- */
+function openQuiz(){
+  quizPool = QUESTIONS.filter(item=> item[1]===currentUnit && matchesChip(item));
+  if(quizPool.length===0) quizPool = QUESTIONS.filter(item=>item[1]===currentUnit);
+  quizIndex = -1;
+  document.getElementById('quizModal').classList.add('open');
+  nextQuiz();
+}
+function closeQuiz(){
+  document.getElementById('quizModal').classList.remove('open');
+}
+function nextQuiz(){
+  if(quizPool.length===0) return;
+  let idx = Math.floor(Math.random()*quizPool.length);
+  if(quizPool.length>1){ while(idx===quizIndex) idx = Math.floor(Math.random()*quizPool.length); }
+  quizIndex = idx;
+  quizRevealed = false;
+  const [id,unit,marks,type,priority,q,a] = quizPool[idx];
+  document.getElementById('quizTags').innerHTML = `<span class="tag marks">${marks} mark</span><span class="tag ${type}">${type==='pyq'?'PYQ':type==='predicted'?'Predicted':'Concept'}</span>${priority==='high'?'<span class="tag high">High priority</span>':''}`;
+  document.getElementById('quizQ').textContent = q.replace(/<[^>]+>/g,'');
+  const ansEl = document.getElementById('quizA');
+  ansEl.innerHTML = a; ansEl.classList.remove('open');
+  document.getElementById('quizRevealBtn').textContent = 'Show answer';
+}
+function revealQuiz(){
+  quizRevealed = !quizRevealed;
+  document.getElementById('quizA').classList.toggle('open', quizRevealed);
+  document.getElementById('quizRevealBtn').textContent = quizRevealed ? 'Hide answer' : 'Show answer';
+}
+function markQuizReviewed(){
+  if(quizIndex<0) return;
+  const id = quizPool[quizIndex][0];
+  reviewed.add(id);
+  saveState();
+  renderCards();
+  nextQuiz();
+}
+
+loadState();
+</script>
+</body>
+</html>
