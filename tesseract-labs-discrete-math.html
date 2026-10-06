@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tesseract Labs — Discrete Mathematics FT-2</title>
+<title>Tesseract Labs — Discrete Mathematics FT-3</title>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
@@ -288,6 +288,7 @@
 
   :focus-visible{outline:2px solid var(--gold-bright); outline-offset:2px;}
 </style>
+<style>.exam-banner{display:none;margin:0 auto 22px;max-width:1180px;padding:16px 20px;border:1px solid rgba(245,207,92,0.4);border-left:3px solid #f5cf5c;border-radius:12px;background:rgba(245,207,92,0.06);color:#eafff2;line-height:1.6;font-size:14.5px}.exam-banner b{color:#f5cf5c}.exam-banner .eb-title{font-weight:700;margin-bottom:6px;letter-spacing:.3px}</style>
 </head>
 <body>
 
@@ -348,9 +349,9 @@
         </svg>
       </div>
 
-      <span class="eyebrow">FT-2 · 08-09-2026</span>
+      <span class="eyebrow">FT-3 · 08-10-2026</span>
       <h1 class="hero-title">Discrete Mathematics,<br><em>mapped and rehearsed.</em></h1>
-      <p class="hero-sub">Every Hasse diagram, every Warshall matrix, every Euclidean back-substitution your semester and FT papers have repeated — sorted by unit, tagged by marks, ready to test yourself against.</p>
+      <p class="hero-sub">Every Hasse diagram, every Warshall matrix, every Euclidean back-substitution, every inconsistency proof your semester and FT papers have repeated — sorted by unit, tagged by marks, ready to test yourself against.</p>
 
       <div class="hero-actions">
         <button class="btn-primary" onclick="showSubject()">Open question bank</button>
@@ -410,13 +411,14 @@
 <!-- ============ SUBJECT PAGE ============ -->
 <div id="subject-page">
   <div class="subject-hero">
-    <span class="eyebrow">FT-2 · 08-09-2026</span>
-    <h1>Discrete Mathematics — FT-2 Question Bank</h1>
-    <p>Unit 1: Sets, Relations &amp; Functions · Unit 2: Combinatorics &amp; Number Theory. Sourced from semester PYQs, FT/CT papers, and the Unit-I / Unit-II reference material.</p>
+    <span class="eyebrow">FT-3 · 08-10-2026</span>
+    <h1>Discrete Mathematics — FT-3 Question Bank</h1>
+    <p>Unit 1: Sets, Relations &amp; Functions · Unit 2: Combinatorics &amp; Number Theory · Unit 3: Logic &amp; Proofs. Sourced from semester PYQs, FT/CT papers, and the Unit-I / II / III reference material.</p>
   </div>
 
   <div class="unit-tabs" id="unit-tabs"></div>
   <div class="filter-row" id="filter-row"></div>
+  <div class="exam-banner" id="exam-banner"><div class="eb-title">📅 FT-3 · Unit 3 · 8 Oct 2026</div>Total <b>30 marks</b>, converted to <b>15 marks</b>. Paper has <b>4 questions of 10 marks each — answer any 3</b> (3 × 10 = 30). Expect inference (direct / indirect / CP), inconsistency, truth-table and PMI proofs.</div>
   <div class="question-grid" id="question-grid"></div>
 </div>
 
@@ -517,7 +519,8 @@ const quotes = [
   "Warshall's algorithm turns 'maybe reachable' into a definite yes or no.",
   "gcd(a, b) is never just a number — it's always ma + nb waiting to be found.",
   "Euclid divided his way to an answer 2,300 years ago. You can too, in five lines.",
-  "Six boys, four girls, one row — the arrangement is smaller than you fear."
+  "Six boys, four girls, one row — the arrangement is smaller than you fear.",
+  "Assume the negation, chase the contradiction — r and not-r is where every inconsistency ends."
 ];
 let qIndex = 0;
 const quoteBox = document.getElementById('quote-box');
@@ -709,14 +712,33 @@ const QUESTIONS = [
   {unit:2, marks:8, type:'Predicted', priority:false, topic:'Combinatorics',
    q:'From identical red, blue and green balls, select 10 balls with $r+b+g=10$. How many ways if (a) no restriction, (b) at least one red, (c) exactly one red?',
    a:'<p><b>(a)</b> Non-negative solutions: $^{12}C_2 = \\boxed{66}$.</p><p><b>(b)</b> Let $r\'=r-1 \\ge 0$: $r\'+b+g=9$, giving $^{11}C_2 = \\boxed{55}$.</p><p><b>(c)</b> Fix $r=1$: $b+g=9$, giving $^{10}C_1 = \\boxed{10}$.</p>'}
+  ,
+  // ---------------- UNIT 3 ----------------
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "Inconsistency", "q": "Show that the premises are inconsistent: (1) If Rama gets his degree, he will get a job. (2) If he gets a job, he will get married. (3) If he goes for higher study, he will not get married. (4) Rama gets his degree and goes for higher study.", "a": "<p>Let $p$ = degree, $q$ = job, $r$ = married, $s$ = higher study. Premises: $p\\to q,\\ q\\to r,\\ s\\to\\neg r,\\ p\\land s$.</p><p>From $p\\land s$: $p$ and $s$. Modus Ponens on $p\\to q$ gives $q$; on $q\\to r$ gives $r$; on $s\\to\\neg r$ gives $\\neg r$.</p><p>$r\\land\\neg r=F$, so the premises are $\\boxed{\\text{inconsistent}}$. (Appeared Dec 2023, May 2025, Jul 2025, Jul 2025 TM.)</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "Inconsistency", "q": "Prove that $a\\to(b\\to c),\\ d\\to(b\\land\\neg c),\\ a\\land d$ are inconsistent.", "a": "<p>From $a\\land d$: $a$, $d$. From $a\\to(b\\to c)$ and $a$: $b\\to c$. From $d\\to(b\\land\\neg c)$ and $d$: $b\\land\\neg c$, so $b$ and $\\neg c$.</p><p>Modus Ponens on $b\\to c$ with $b$ gives $c$. Hence $c\\land\\neg c=F$: $\\boxed{\\text{inconsistent}}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": false, "topic": "Inconsistency", "q": "Show that these are inconsistent: (1) If Jack misses many classes through illness, he fails high school. (2) If Jack fails high school, he is uneducated. (3) If Jack reads a lot of books, he is not uneducated. (4) Jack misses many classes and reads a lot of books.", "a": "<p>Let $M,F,U,B$ be the four statements. Premises: $M\\to F,\\ F\\to U,\\ B\\to\\neg U,\\ M\\land B$.</p><p>From $M\\land B$: $M$, $B$. Then $F$, then $U$; but $B\\to\\neg U$ gives $\\neg U$.</p><p>$U\\land\\neg U=F$, so $\\boxed{\\text{inconsistent}}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "Indirect Method", "q": "Using the indirect method, derive $p\\to\\neg s$ from $p\\to(q\\lor r),\\ q\\to\\neg p,\\ s\\to\\neg r,\\ p$.", "a": "<p>Assume the negation: $\\neg(p\\to\\neg s)\\equiv p\\land s$, so $p$ and $s$.</p><p>$p\\to(q\\lor r)$ with $p$: $q\\lor r$. $q\\to\\neg p$ with $p$ (Modus Tollens): $\\neg q$. Disjunctive Syllogism: $r$.</p><p>$s\\to\\neg r$ with $s$: $\\neg r$. So $r\\land\\neg r=F$, the assumption is false and $\\boxed{p\\to\\neg s}$. (May 2024, Nov 2024, CT.)</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "CP Rule", "q": "Derive $r\\to s$ from $p\\to(q\\to s),\\ \\neg r\\lor p,\\ q$.", "a": "<p>Use CP: assume $r$ as an additional premise.</p><p>(1) $\\neg r\\lor p$ and $r$ give $p$ (Disjunctive Syllogism). (2) $p\\to(q\\to s)$ and $p$ give $q\\to s$ (Modus Ponens). (3) $q$ and $q\\to s$ give $s$.</p><p>Discharging the assumption: $\\boxed{r\\to s}$ by CP. (July 2024.)</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": false, "topic": "Direct Method", "q": "Show that $t\\land s$ can be derived from $p\\to q,\\ q\\to\\neg r,\\ r,\\ p\\lor(t\\land s)$.", "a": "<p>(1) $q\\to\\neg r$ and $r$: $\\neg q$ (Modus Tollens). (2) $p\\to q$ and $\\neg q$: $\\neg p$ (Modus Tollens). (3) $p\\lor(t\\land s)$ and $\\neg p$: $t\\land s$ (Disjunctive Syllogism).</p><p>$\\boxed{t\\land s}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": false, "topic": "Direct Method", "q": "Premises: Radha works hard; if she works hard she is a dull girl; if she is a dull girl she will not get the job. Show that Radha will not get the job.", "a": "<p>Let $p$ = works hard, $q$ = dull girl, $r$ = gets the job. Premises: $p,\\ p\\to q,\\ q\\to\\neg r$.</p><p>$p,\\ p\\to q\\Rightarrow q$ (MP); $q,\\ q\\to\\neg r\\Rightarrow\\neg r$ (MP). So $\\boxed{\\neg r}$: Radha will not get the job.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": false, "topic": "Direct Proof", "q": "Give a direct proof of $((p\\to q)\\land(\\neg r\\lor s)\\land(p\\lor r))\\to(\\neg q\\to s)$.", "a": "<p>Use CP: assume $\\neg q$. Modus Tollens on $p\\to q$: $\\neg p$. Disjunctive Syllogism on $p\\lor r$: $r$. Disjunctive Syllogism on $\\neg r\\lor s$: $s$.</p><p>Hence $\\boxed{\\neg q\\to s}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": false, "topic": "Inference (Real-life)", "q": "Show that \"If you send an e-mail, I will finish the program; if you do not, I will go to sleep early; if I go to sleep early, I will wake up refreshed\" lead to \"If I do not finish the program, I will wake up refreshed.\"", "a": "<p>$p\\to q,\\ \\neg p\\to r,\\ r\\to s$; prove $\\neg q\\to s$. Assume $\\neg q$.</p><p>Modus Tollens: $\\neg p$. Then $r$, then $s$. By CP, $\\boxed{\\neg q\\to s}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": false, "topic": "Inference", "q": "Prove $[p\\land(p\\to q)\\land(s\\lor r)\\land(r\\to\\neg q)]\\to(s\\lor t)$.", "a": "<p>$p,\\ p\\to q\\Rightarrow q$. If $r$ held, $r\\to\\neg q$ would give $\\neg q$, contradicting $q$; so $\\neg r$.</p><p>$s\\lor r$ and $\\neg r$ give $s$; by Addition $s\\lor t$. $\\boxed{\\text{Proved}}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "Truth Table", "q": "Construct the truth table for $(\\neg p\\to r)\\land(p\\leftrightarrow q)$ and classify it.", "a": "<p>Rows in order $pqr$ = TTT, TTF, TFT, TFF, FTT, FTF, FFT, FFF.</p><p>$\\neg p\\to r$: T,T,T,T,T,F,T,T. $p\\leftrightarrow q$: T,T,F,F,F,F,T,T.</p><p>Final column: T,T,F,F,F,F,T,T — both T and F occur, so $\\boxed{\\text{Contingency}}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "Truth Table", "q": "Verify whether $((p\\to q)\\land(q\\to r))\\to(p\\to r)$ is a tautology, contradiction or contingency.", "a": "<p>Rows $pqr$ in the order TTT … FFF. $p\\to q$: T,T,F,F,T,T,T,T. $q\\to r$: T,F,T,T,T,F,T,T. Conjunction: T,F,F,F,T,F,T,T. $p\\to r$: T,F,T,F,T,T,T,T.</p><p>Final column is T in all 8 rows, so $\\boxed{\\text{Tautology}}$ (Hypothetical Syllogism).</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "Without Truth Table", "q": "Without a truth table, prove $p\\to(q\\to p)\\equiv\\neg p\\to(p\\to q)$.", "a": "<p>LHS $=\\neg p\\lor(\\neg q\\lor p)=(p\\lor\\neg p)\\lor\\neg q=T\\lor\\neg q=T$.</p><p>RHS $=p\\lor(\\neg p\\lor q)=(p\\lor\\neg p)\\lor q=T$.</p><p>Both sides are $T$, so $\\boxed{\\text{LHS}\\equiv\\text{RHS}}$. (Nov 2024, CT.)</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "PMI", "q": "Prove by mathematical induction that $n^3+2n$ is divisible by 3 for $n\\ge1$.", "a": "<p>Base: $n=1$ gives $3$, divisible by 3. Hypothesis: $k^3+2k=3m$.</p><p>$(k+1)^3+2(k+1)=(k^3+2k)+3k^2+3k+3=3(m+k^2+k+1)$. Hence $\\boxed{3\\mid(n^3+2n)}$ for all $n\\ge1$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": true, "topic": "PMI", "q": "Prove by mathematical induction that $8^n-3^n$ is divisible by 5 for $n\\ge1$.", "a": "<p>Base: $8-3=5$. Hypothesis: $8^k-3^k=5m$.</p><p>$8^{k+1}-3^{k+1}=8(8^k-3^k)+5(3^k)=5(8m+3^k)$. Hence $\\boxed{5\\mid(8^n-3^n)}$.</p>"},
+  {"unit": 3, "marks": 10, "type": "PYQ", "priority": false, "topic": "PMI", "q": "Prove by induction: $\\dfrac1{\\sqrt1}+\\dfrac1{\\sqrt2}+\\cdots+\\dfrac1{\\sqrt n}>\\sqrt n$ for $n\\ge2$.", "a": "<p>Base: $n=2$: $1+0.707=1.707>1.414$. Hypothesis: sum up to $k$ is $>\\sqrt k$.</p><p>Step: sum to $k+1$ is $>\\sqrt k+\\dfrac1{\\sqrt{k+1}}$. Since $\\sqrt{k+1}-\\sqrt k=\\dfrac1{\\sqrt{k+1}+\\sqrt k}<\\dfrac1{\\sqrt{k+1}}$, we get $\\sqrt k+\\dfrac1{\\sqrt{k+1}}>\\sqrt{k+1}$.</p><p>Hence $\\boxed{P(k+1)}$ holds and the result is true for all $n\\ge2$.</p>"}
 ];
 
-let currentUnit = 1;
+let currentUnit = 3;
 let currentFilter = 'all';
 
 const UNITS = [
   {id:1, label:'Unit 1 — Sets, Relations & Functions'},
-  {id:2, label:'Unit 2 — Combinatorics & Number Theory'}
+  {id:2, label:'Unit 2 — Combinatorics & Number Theory'},
+  {id:3, label:'Unit 3 — Logic & Proofs'}
 ];
 const FILTERS = [
   {id:'all', label:'All'},
@@ -724,6 +746,7 @@ const FILTERS = [
   {id:'predicted', label:'Predicted only'},
   {id:'1', label:'1 mark'},
   {id:'8', label:'8 mark'},
+  {id:'10', label:'10 mark'},
   {id:'15', label:'15 mark'},
   {id:'priority', label:'High priority 🔥'}
 ];
@@ -757,6 +780,7 @@ function matchesFilter(item){
     case 'predicted': return item.type === 'Predicted';
     case '1': return item.marks === 1;
     case '8': return item.marks === 8;
+    case '10': return item.marks === 10;
     case '15': return item.marks === 15;
     case 'priority': return item.priority === true;
     default: return true;
@@ -765,6 +789,7 @@ function matchesFilter(item){
 function renderQuestions(){
   renderTabs();
   renderFilters();
+  document.getElementById('exam-banner').style.display = currentUnit===3 ? 'block' : 'none';
   const grid = document.getElementById('question-grid');
   grid.innerHTML = '';
   const items = QUESTIONS.filter(q=> q.unit===currentUnit && matchesFilter(q));
@@ -854,14 +879,14 @@ window.addEventListener('load', ()=>{
 </style>
 <script>
 (function(){
-  var target = new Date("2026-09-08T09:00:00").getTime();
+  var target = new Date("2026-10-08T09:00:00").getTime();
   var el = document.getElementById('tlx-timer');
   function tick(){
     var diff = target - Date.now();
     if(diff <= 0){ el.textContent = '🎯 FT day is here!'; return; }
     var d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
         m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-    el.textContent = '⏳ FT-2 in ' + d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+    el.textContent = '⏳ FT-3 in ' + d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
   }
   tick(); setInterval(tick, 1000);
 })();
